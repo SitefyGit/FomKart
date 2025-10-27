@@ -1,0 +1,666 @@
+'use client'
+
+import { useCallback, useEffect, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Image from 'next/image'
+import { 
+  CreditCard, 
+  Lock, 
+  Clock, 
+  CheckCircle,
+  FileText,
+  User
+} from 'lucide-react'
+import { supabase, type Json, type JsonRecord, type User as ProfileUser } from '@/lib/supabase'
+
+interface CheckoutItem {
+  productId: string
+  packageId: string
+  quantity: number
+  requirements?: JsonRecord
+  product?: CheckoutProduct
+  package?: CheckoutPackage
+}
+
+interface CheckoutCreator {
+  username?: string | null
+  full_name?: string | null
+  avatar_url?: string | null
+}
+
+interface CheckoutProduct {
+  id: string
+  title?: string | null
+  starting_price?: number | null
+  base_price?: number | null
+  auto_message?: string | null
+  auto_message_enabled?: boolean | null
+  creator_id: string
+  images?: string[] | null
+  creator?: CheckoutCreator
+}
+
+interface CheckoutPackage {
+  id: string
+  name: string
+  price: number
+  description?: string | null
+  delivery_time?: number | null
+  delivery_days?: number | null
+  features?: string[] | null
+}
+
+function CheckoutContent() {
+  const getRequirementText = (value: Json | undefined): string => {
+    if (typeof value === 'string') return value
+    if (value === null || typeof value === 'undefined') return ''
+    return String(value)
+  }
+
+  const [items, setItems] = useState<CheckoutItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [processing, setProcessing] = useState(false)
+  const [currentUser, setCurrentUser] = useState<ProfileUser | null>(null)
+  const [billingInfo, setBillingInfo] = useState({
+    fullName: '',
+    email: '',
+    address: '',
+    city: '',
+    zipCode: '',
+    country: ''
+  })
+  const [paymentMethod, setPaymentMethod] = useState('stripe')
+  const [specialInstructions, setSpecialInstructions] = useState('')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const checkAuth = useCallback(async () => {
+    try {
+      // Check Supabase authentication
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error || !user) {
+        router.push('/auth/login')
+        return
+      }
+
+      // Get user profile from database
+      const { data: userProfile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single<ProfileUser>()
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError)
+        // Create user profile if it doesn't exist
+        const { data: newProfile, error: createError } = await supabase
+          .from('users')
+          .insert([{
+            id: user.id,
+            email: user.email,
+            username: user.email?.split('@')[0] || 'user',
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0]
+          }])
+          .select()
+          .single<ProfileUser>()
+
+        if (createError) {
+          console.error('Error creating user profile:', createError)
+          router.push('/auth/login')
+          return
+        }
+        setCurrentUser(newProfile)
+      } else {
+        setCurrentUser(userProfile)
+      }
+      
+      setBillingInfo({
+        fullName: userProfile?.full_name
+          || user.user_metadata?.full_name
+          || user.email?.split('@')[0]
+          || '',
+        email: user.email || '',
+        address: '',
+        city: '',
+        zipCode: '',
+        country: ''
+      })
+    } catch (error) {
+      console.error('Error checking auth:', error)
+      router.push('/auth/login')
+    }
+  }, [router])
+
+  const loadCheckoutItems = useCallback(async () => {
+    try {
+      const itemsParam = searchParams.get('items')
+      if (!itemsParam) {
+        router.push('/cart')
+        return
+      }
+
+  const checkoutItems = JSON.parse(decodeURIComponent(itemsParam)) as CheckoutItem[]
+      
+      // Fetch real product and package data from Supabase
+      const itemsWithDetails = await Promise.all(
+        checkoutItems.map(async (item): Promise<CheckoutItem | null> => {
+          // Get product details
+          const { data: product, error: productError } = await supabase
+            .from('products')
+            .select(`
+              *,
+              users!creator_id (
+                username,
+                full_name,
+                avatar_url
+              )
+            `)
+            .eq('id', item.productId)
+            .single<CheckoutProduct & { users?: CheckoutCreator }>()
+
+          if (productError) {
+            console.error('Error fetching product:', productError)
+            return null
+          }
+
+          // Get package details
+          const { data: packageData, error: packageError } = await supabase
+            .from('product_packages')
+            .select('*')
+            .eq('id', item.packageId)
+            .single<CheckoutPackage>()
+
+          if (packageError) {
+            console.error('Error fetching package:', packageError)
+            return null
+          }
+
+          const { users, ...productRest } = product
+
+          return {
+            ...item,
+            product: {
+              ...productRest,
+              creator: users
+            },
+            package: packageData
+          } satisfies CheckoutItem
+        })
+      )
+
+      // Filter out null items (failed to load)
+      const validItems = itemsWithDetails.filter((item): item is CheckoutItem => item !== null)
+      setItems(validItems)
+    } catch (error) {
+      console.error('Error loading checkout items:', error)
+      router.push('/cart')
+    } finally {
+      setLoading(false)
+    }
+  }, [router, searchParams])
+
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
+
+  useEffect(() => {
+    loadCheckoutItems()
+  }, [loadCheckoutItems])
+
+  const calculateSubtotal = () => {
+    return items.reduce((total, item) => {
+      const price = item.package?.price || item.product?.starting_price || 0
+      return total + (price * item.quantity)
+    }, 0)
+  }
+
+  const calculateServiceFee = (subtotal: number) => {
+    return Math.round(subtotal * 0.05 * 100) / 100
+  }
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal()
+    const serviceFee = calculateServiceFee(subtotal)
+    return subtotal + serviceFee
+  }
+
+  const processPayment = async () => {
+  if (!currentUser || items.length === 0) return
+
+    setProcessing(true)
+    try {
+      // Create orders for each item
+      const orderPromises = items.map(async (item) => {
+        if (!item.product || !item.package) {
+          throw new Error('Checkout item is missing product or package details')
+        }
+
+        const product = item.product
+        const selectedPackage = item.package
+
+        const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`
+        const subtotal = selectedPackage.price * item.quantity
+        const serviceFee = Math.round(subtotal * 0.05 * 100) / 100
+        const total = subtotal + serviceFee
+
+        // Calculate expected delivery date
+        const deliveryDays = selectedPackage.delivery_time
+          ?? selectedPackage.delivery_days
+          ?? 5
+        const expectedDelivery = new Date()
+        expectedDelivery.setDate(expectedDelivery.getDate() + deliveryDays)
+
+        const { data: order, error } = await supabase
+          .from('orders')
+          .insert([{
+            order_number: orderNumber,
+            buyer_id: currentUser.id,
+            seller_id: product.creator_id,
+            product_id: item.productId,
+            package_id: item.packageId,
+            quantity: item.quantity,
+            unit_price: selectedPackage.price,
+            total_price: total,
+            service_fee: serviceFee,
+            requirements: item.requirements,
+            special_instructions: specialInstructions,
+            status: 'confirmed',
+            payment_status: 'completed',
+            payment_method: paymentMethod,
+            transaction_id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            expected_delivery: expectedDelivery.toISOString()
+          }])
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Error creating order:', error)
+          throw error
+        }
+
+        // If seller enabled automation, send welcome message automatically
+        if (order?.id && product.auto_message_enabled && product.auto_message) {
+          try {
+            await supabase
+              .from('order_messages')
+              .insert([{
+                order_id: order.id,
+                sender_id: product.creator_id,
+                message: product.auto_message,
+                is_system_message: true
+              }])
+          } catch (autoMessageError) {
+            console.warn('Auto message insert failed', autoMessageError)
+          }
+        }
+
+        return order
+      })
+
+      const orders = await Promise.all(orderPromises)
+
+      // Notify sellers (and buyer) about new orders
+      try {
+        for (const ord of orders) {
+          // Seller notification: order placed
+          if (ord.seller_id) {
+            await fetch('/api/notifications/create', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: ord.seller_id,
+                type: 'order_placed',
+                title: 'New order placed',
+                message: `Order #${(ord.id || '').toString().slice(0, 8)} has been placed`,
+                data: { order_id: ord.id }
+              })
+            })
+          }
+          // Buyer notification: order confirmed
+          if (ord.buyer_id) {
+            await fetch('/api/notifications/create', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: ord.buyer_id,
+                type: 'order_placed',
+                title: 'Order confirmed',
+                message: `Your order #${(ord.id || '').toString().slice(0, 8)} is confirmed`,
+                data: { order_id: ord.id }
+              })
+            })
+          }
+        }
+      } catch (e) {
+        console.warn('Notification create failed', e)
+      }
+      
+      // Clear cart after successful order creation
+      if (currentUser.id) {
+        await supabase
+          .from('carts')
+          .delete()
+          .eq('user_id', currentUser.id)
+      }
+
+      // Redirect to the first order confirmation page
+      if (orders.length > 0) {
+        router.push(`/orders/${orders[0].id}?success=true`)
+      }
+      
+    } catch (error) {
+      console.error('Payment processing error:', error)
+      alert('Payment failed. Please try again.')
+      setProcessing(false)
+    }
+  }
+
+  const subtotal = calculateSubtotal()
+  const serviceFee = calculateServiceFee(subtotal)
+  const total = calculateTotal()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading checkout...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900">No items to checkout</h1>
+          <p className="mt-2 text-gray-600">Please add items to your cart first.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center gap-2">
+            <Lock className="w-6 h-6 text-green-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Secure Checkout</h1>
+          </div>
+          <p className="text-gray-600 mt-1">Complete your order securely</p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Forms */}
+          <div className="space-y-6">
+            {/* Billing Information */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <User className="w-5 h-5" />
+                Billing Information
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={billingInfo.fullName}
+                    onChange={(e) => setBillingInfo({...billingInfo, fullName: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={billingInfo.email}
+                    onChange={(e) => setBillingInfo({...billingInfo, email: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <input
+                    type="text"
+                    value={billingInfo.address}
+                    onChange={(e) => setBillingInfo({...billingInfo, address: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <input
+                    type="text"
+                    value={billingInfo.city}
+                    onChange={(e) => setBillingInfo({...billingInfo, city: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                  <input
+                    type="text"
+                    value={billingInfo.zipCode}
+                    onChange={(e) => setBillingInfo({...billingInfo, zipCode: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Special Instructions */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Special Instructions
+              </h2>
+              <textarea
+                value={specialInstructions}
+                onChange={(e) => setSpecialInstructions(e.target.value)}
+                rows={4}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Any additional information or special requests for the seller..."
+              />
+            </div>
+
+            {/* Payment Method */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Payment Method
+              </h2>
+              <div className="space-y-3">
+                <div className="flex items-center p-4 border border-gray-300 rounded-lg">
+                  <input
+                    type="radio"
+                    id="stripe"
+                    name="paymentMethod"
+                    value="stripe"
+                    checked={paymentMethod === 'stripe'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <label htmlFor="stripe" className="ml-3 flex items-center gap-3 flex-1">
+                    <div className="bg-blue-600 text-white px-2 py-1 rounded text-sm font-semibold">
+                      STRIPE
+                    </div>
+                    <span className="font-medium">Credit/Debit Card</span>
+                    <div className="ml-auto text-sm text-gray-500">Secure payment processing</div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Order Summary */}
+          <div className="lg:sticky lg:top-8 lg:h-fit">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
+              
+              {/* Items */}
+              <div className="space-y-4 mb-6">
+                {items.map((item, index) => (
+                  <div key={index} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
+                    {/* Product Image */}
+                    <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                      {item.product?.images && item.product.images.length > 0 ? (
+                        <Image
+                          src={item.product.images[0]}
+                          alt={item.product.title || 'Product'}
+                          width={64}
+                          height={64}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                          <FileText className="w-6 h-6 text-gray-500" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">{item.product?.title}</h3>
+                      <p className="text-sm text-gray-600">
+                        by {item.product?.creator?.full_name || item.product?.creator?.username}
+                      </p>
+                      {item.package && (
+                        <p className="text-sm font-medium text-blue-600">{item.package.name} Package</p>
+                      )}
+                      {item.package?.delivery_days && (
+                        <div className="flex items-center gap-1 mt-1 text-sm text-gray-500">
+                          <Clock className="w-3 h-3" />
+                          {item.package.delivery_days} days
+                        </div>
+                      )}
+                      {/* Mini requirements form */}
+                      <div className="mt-3 space-y-2 text-xs">
+                        <div>
+                          <div className="text-gray-600 mb-1">Project details</div>
+                          <textarea
+                            className="w-full border rounded p-2"
+                            rows={2}
+                            value={getRequirementText(item.requirements?.details)}
+                            onChange={(e)=>{
+                              const v = e.target.value
+                              setItems(prev => prev.map((it, i) => i===index ? { ...it, requirements: { ...(it.requirements||{}), details: v } } : it))
+                            }}
+                            placeholder="Describe what you need"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-gray-600 mb-1">URLs</div>
+                          <input
+                            className="w-full border rounded p-2"
+                            value={getRequirementText(item.requirements?.urls)}
+                            onChange={(e)=>{
+                              const v = e.target.value
+                              setItems(prev => prev.map((it, i) => i===index ? { ...it, requirements: { ...(it.requirements||{}), urls: v } } : it))
+                            }}
+                            placeholder="https://example.com, https://brief.link"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-gray-600 mb-1">Notes to seller</div>
+                          <textarea
+                            className="w-full border rounded p-2"
+                            rows={2}
+                            value={getRequirementText(item.requirements?.notes)}
+                            onChange={(e)=>{
+                              const v = e.target.value
+                              setItems(prev => prev.map((it, i) => i===index ? { ...it, requirements: { ...(it.requirements||{}), notes: v } } : it))
+                            }}
+                            placeholder="Any additional info"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
+                        <span className="font-semibold text-gray-900">
+                          ${((item.package?.price || item.product?.starting_price || 0) * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals */}
+              <div className="space-y-2 pb-4 border-b border-gray-200">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-900">${subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Service Fee (5%)</span>
+                  <span className="text-gray-900">${serviceFee.toFixed(2)}</span>
+                </div>
+              </div>
+              
+              <div className="flex justify-between pt-4 mb-6">
+                <span className="text-lg font-semibold text-gray-900">Total</span>
+                <span className="text-2xl font-bold text-gray-900">${total.toFixed(2)}</span>
+              </div>
+
+              {/* Checkout Button */}
+              <button
+                onClick={processPayment}
+                disabled={processing || !billingInfo.fullName || !billingInfo.email}
+                className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {processing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Processing Payment...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-5 h-5" />
+                    Complete Purchase
+                  </>
+                )}
+              </button>
+
+              <div className="mt-4 space-y-2 text-xs text-gray-500">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>SSL encrypted and secure</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Money-back guarantee</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Direct communication with sellers</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading checkout...</p>
+        </div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
+  )
+}
