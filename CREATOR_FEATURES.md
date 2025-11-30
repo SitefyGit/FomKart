@@ -49,7 +49,7 @@ This document outlines all the features implemented for the FomKart creator page
   - Clearly displayed dummy credentials
   - Auto-fill button for testing
 - **Email**: `creator@fomkart.com`
-  - **Password**: `creator123`
+  - **Password**: *(set a temporary value in Supabase Auth; not stored in the repo)*
   - **Username**: `designpro`
 - **Social Login Options**:
   - Google OAuth integration ready
@@ -116,7 +116,7 @@ This document outlines all the features implemented for the FomKart creator page
 1. Go to `/auth/creator-login`
 2. Use the dummy credentials:
   - **Email**: creator@fomkart.com
-   - **Password**: creator123
+  - **Password**: *(configure a temporary value in Supabase Auth; not stored in git)*
 3. Click "Auto Fill" button or manually enter credentials
 4. Submit form to login and redirect to creator profile
 

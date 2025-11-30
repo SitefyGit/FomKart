@@ -32,6 +32,9 @@ export default function OrderPage({ params }: OrderPageProps) {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [showBilling, setShowBilling] = useState(false)
+  const [existingReview, setExistingReview] = useState<any>(null)
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '', sellerRating: 0, sellerComment: '' })
+  const [submittingReview, setSubmittingReview] = useState(false)
 
   const pushToast = (type: ToastItem['type'], message: string, title?: string) => {
     const id = Math.random().toString(36).slice(2)
@@ -69,6 +72,23 @@ export default function OrderPage({ params }: OrderPageProps) {
         ])
         setMessages(msgs)
         setDeliveries(dels)
+        if (user && ord?.buyer?.id === user.id) {
+          const { data: reviewRow } = await supabase
+            .from('reviews')
+            .select('id,rating,comment,seller_rating,seller_comment')
+            .eq('order_id', ord.id)
+            .eq('reviewer_id', user.id)
+            .maybeSingle()
+          if (reviewRow) {
+            setExistingReview(reviewRow)
+            setReviewForm({
+              rating: reviewRow.rating ?? 5,
+              comment: reviewRow.comment ?? '',
+              sellerRating: reviewRow.seller_rating ?? 0,
+              sellerComment: reviewRow.seller_comment ?? ''
+            })
+          }
+        }
       } catch (e) {
         console.warn('Order load failed', e)
         setError('Failed to load order')
@@ -106,6 +126,117 @@ export default function OrderPage({ params }: OrderPageProps) {
   const approveBy = order?.approve_by ? new Date(order.approve_by) : null
   const approveByLabel = approveBy ? approveBy.toLocaleString() : null
   const overdue = approveBy ? Date.now() > approveBy.getTime() : false
+  const canReview = isBuyer && (order?.status === 'completed' || order?.status === 'delivered')
+  const hasSubmittedReview = !!existingReview
+
+  const handleSubmitReview = async () => {
+    if (!order || !currentUser) return
+    if (hasSubmittedReview) return
+    if (!reviewForm.rating) {
+      pushToast('error', 'Please provide a product rating first.')
+      return
+    }
+    const productId = order.product?.id || order.product_id
+    const sellerId = order.seller?.id
+    if (!productId || !sellerId) {
+      pushToast('error', 'Unable to submit a review for this order right now.')
+      return
+    }
+    try {
+      setSubmittingReview(true)
+      const payload = {
+        order_id: order.id,
+        product_id: productId,
+        seller_id: sellerId,
+        reviewer_id: currentUser.id,
+        rating: Number(reviewForm.rating),
+        comment: reviewForm.comment?.trim() || null,
+        seller_rating: reviewForm.sellerRating ? Number(reviewForm.sellerRating) : null,
+        seller_comment: reviewForm.sellerComment?.trim() || null,
+        is_public: true
+      }
+      const { error: insertError } = await supabase.from('reviews').insert(payload)
+      if (insertError) throw insertError
+      const { data: freshReview } = await supabase
+        .from('reviews')
+        .select('id,rating,comment,seller_rating,seller_comment')
+        .eq('order_id', order.id)
+        .eq('reviewer_id', currentUser.id)
+        .maybeSingle()
+      if (freshReview) {
+        setExistingReview(freshReview)
+        setReviewForm({
+          rating: freshReview.rating ?? reviewForm.rating,
+          comment: freshReview.comment ?? reviewForm.comment,
+          sellerRating: freshReview.seller_rating ?? reviewForm.sellerRating,
+          sellerComment: freshReview.seller_comment ?? reviewForm.sellerComment
+        })
+      }
+      try {
+        const { data: productRatings } = await supabase
+          .from('reviews')
+          .select('rating')
+          .eq('product_id', productId)
+          .eq('is_public', true)
+        if (productRatings) {
+          const ratings = productRatings
+            .map((row: { rating: number | null }) => (typeof row.rating === 'number' ? row.rating : null))
+            .filter((value): value is number => value !== null)
+          const reviewCount = ratings.length
+          const average = reviewCount ? Number((ratings.reduce((sum, value) => sum + value, 0) / reviewCount).toFixed(2)) : 0
+          await supabase
+            .from('products')
+            .update({ rating: average, reviews_count: reviewCount })
+            .eq('id', productId)
+        }
+        const { data: sellerRatings } = await supabase
+          .from('reviews')
+          .select('seller_rating,rating')
+          .eq('seller_id', sellerId)
+          .eq('is_public', true)
+        if (sellerRatings) {
+          const validSellerRatings = sellerRatings
+            .map((row: { seller_rating: number | null; rating?: number | null }) => {
+              if (typeof row.seller_rating === 'number' && row.seller_rating > 0) return row.seller_rating
+              if (typeof row.rating === 'number' && row.rating > 0) return row.rating
+              return null
+            })
+            .filter((value): value is number => value !== null)
+          const sellerReviewCount = validSellerRatings.length
+          const sellerAverage = sellerReviewCount ? Number((validSellerRatings.reduce((sum, value) => sum + value, 0) / sellerReviewCount).toFixed(2)) : 0
+          await supabase
+            .from('users')
+            .update({ rating: sellerAverage, total_reviews: sellerReviewCount })
+            .eq('id', sellerId)
+        }
+      } catch (aggError) {
+        console.warn('Failed to update aggregated ratings', aggError)
+      }
+      if (order.seller?.id) {
+        try {
+          await fetch('/api/notifications/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: order.seller.id,
+              type: 'review_received',
+              title: 'New review received',
+              message: `Buyer left a review on Order #${orderShort}`,
+              data: { order_id: order.id, product_id: productId }
+            })
+          })
+        } catch (notifyErr) {
+          console.warn('Failed to send review notification', notifyErr)
+        }
+      }
+      pushToast('success', 'Thanks for reviewing your order!')
+    } catch (err) {
+      console.warn('Review submit failed', err)
+      pushToast('error', 'Could not submit review right now.')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
 
   const handleSend = async () => {
     if (!order) return
@@ -598,6 +729,92 @@ export default function OrderPage({ params }: OrderPageProps) {
                 <div className="mt-1 text-xs text-gray-500">Approve by: {approveByLabel || '—'}</div>
               )}
             </div>
+            {isBuyer && (
+              <div className="bg-white rounded-xl shadow border border-gray-100 p-6">
+                <h3 className="font-semibold text-gray-900 mb-3">Leave a review</h3>
+                {hasSubmittedReview ? (
+                  <div className="space-y-3 text-sm text-gray-600">
+                    <div className="p-3 rounded-lg bg-green-50 border border-green-100 text-green-700 text-sm">Thank you! Your review has been submitted.</div>
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Product rating</div>
+                      <div className="font-medium text-gray-900">{existingReview?.rating ?? reviewForm.rating}/5</div>
+                      {existingReview?.comment && <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{existingReview.comment}</p>}
+                    </div>
+                    {existingReview?.seller_rating ? (
+                      <div>
+                        <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Seller experience</div>
+                        <div className="font-medium text-gray-900">{existingReview.seller_rating}/5</div>
+                        {existingReview.seller_comment && <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{existingReview.seller_comment}</p>}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : canReview ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Product rating *</label>
+                      <select
+                        value={reviewForm.rating}
+                        onChange={e => setReviewForm(prev => ({ ...prev, rating: Number(e.target.value) }))}
+                        className="w-full border rounded-lg px-3 py-2 text-sm"
+                      >
+                        {[5,4,3,2,1].map(val => (
+                          <option key={val} value={val}>{val} Stars</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Product feedback</label>
+                      <textarea
+                        value={reviewForm.comment}
+                        onChange={e => setReviewForm(prev => ({ ...prev, comment: e.target.value }))}
+                        rows={3}
+                        maxLength={500}
+                        placeholder="Share your experience for future buyers"
+                        className="w-full border rounded-lg px-3 py-2 text-sm"
+                      />
+                      <div className="text-[10px] text-gray-500 text-right">{reviewForm.comment.length}/500</div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Seller rating (optional)</label>
+                      <select
+                        value={reviewForm.sellerRating}
+                        onChange={e => setReviewForm(prev => ({ ...prev, sellerRating: Number(e.target.value) }))}
+                        className="w-full border rounded-lg px-3 py-2 text-sm"
+                      >
+                        {[0,5,4,3,2,1].map(val => (
+                          <option key={val} value={val}>{val === 0 ? 'Skip' : `${val} Stars`}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {reviewForm.sellerRating > 0 && (
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Seller feedback</label>
+                        <textarea
+                          value={reviewForm.sellerComment}
+                          onChange={e => setReviewForm(prev => ({ ...prev, sellerComment: e.target.value }))}
+                          rows={3}
+                          maxLength={400}
+                          placeholder="Let the seller know what stood out."
+                          className="w-full border rounded-lg px-3 py-2 text-sm"
+                        />
+                        <div className="text-[10px] text-gray-500 text-right">{reviewForm.sellerComment.length}/400</div>
+                      </div>
+                    )}
+                    <button
+                      onClick={handleSubmitReview}
+                      disabled={submittingReview}
+                      className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm disabled:opacity-50"
+                    >
+                      {submittingReview ? 'Submitting…' : 'Submit review'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-600">
+                    Reviews unlock once the order is delivered. We'll remind you again after completion.
+                  </div>
+                )}
+              </div>
+            )}
             <div className="space-y-3">
               <Link href="/" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center block">Continue Shopping</Link>
               <Link href="/orders" className="w-full bg-white hover:bg-gray-50 text-gray-900 font-semibold py-3 px-4 rounded-lg border transition-colors text-center block">View All Orders</Link>

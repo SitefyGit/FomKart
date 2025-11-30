@@ -23,7 +23,7 @@
 1. **Authentication** → **Users** → **Add user**
 2. Create user with:
   - Email: `creator@fomkart.com`
-   - Password: `creator123`
+  - Password: *(choose a secure value in Supabase Auth)*
 3. Copy the User UID
 4. Replace `YOUR_USER_ID_HERE` in `database/sample-creator-data.sql`
 5. Run the sample data SQL

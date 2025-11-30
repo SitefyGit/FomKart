@@ -113,25 +113,45 @@ export default function EditProductPage({ params }: EditProductProps) {
 
   const onSave = async () => {
     if (!product || saving) return;
+    const parsedPrice = Number(price.trim() || 0);
+    if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+      alert('Please enter a valid price.');
+      return;
+    }
     setSaving(true);
     try {
       const addUrls = await uploadImages(product.slug, product.creator_id, newFiles);
-      const finalImages = [...images, ...addUrls];
+      const finalImages = [...images, ...addUrls].filter(Boolean);
+      const parsedTags = tags
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+
       const payload: Partial<DBProduct> = {
         title,
         description,
-        base_price: price ? Number(price) : 0,
-        tags: tags.split(',').map(t=>t.trim()).filter(Boolean) as any,
-        images: finalImages as any,
+        base_price: parsedPrice,
+        tags: parsedTags,
+        images: finalImages,
         auto_message_enabled: autoMessageEnabled,
         auto_message: autoMessageEnabled ? autoMessage : null
       };
-      const { error } = await supabase.from('products').update(payload).eq('id', product.id);
+      const { error, data } = await supabase
+        .from('products')
+        .update(payload)
+        .eq('id', product.id)
+        .eq('creator_id', product.creator_id)
+        .select('id')
+        .single();
       if (error) throw error;
+      if (!data) throw new Error('No product updated');
+      setImages(finalImages);
+      setNewFiles([]);
       router.push(`/product/${product.id}`);
     } catch (e) {
       console.error('Save product failed', e);
-      alert('Failed to save changes');
+      const message = e instanceof Error && e.message ? e.message : 'Failed to save changes';
+      alert(message);
     } finally {
       setSaving(false);
     }

@@ -5,7 +5,7 @@
 -- First, you need to create a user through Supabase Auth
 -- Go to Authentication > Users in your Supabase dashboard and create a user with:
 -- Email: creator@fomkart.com
--- Password: creator123
+-- Choose a secure password when creating this user in Supabase Auth
 -- Then get the user ID and replace 'YOUR_USER_ID_HERE' below
 
 -- Sample creator profile (replace YOUR_USER_ID_HERE with actual user ID from auth.users)
@@ -207,7 +207,7 @@ INSERT INTO public.newsletter_subscriptions (
 );
 
 -- Instructions:
-- 1. Create a user in Supabase Auth dashboard with email: creator@fomkart.com and password: creator123
+-- 1. Create a user in Supabase Auth dashboard with email: creator@fomkart.com and set your own secure password
 -- 2. Copy the user ID from the auth.users table
 -- 3. Replace all instances of 'YOUR_USER_ID_HERE' with the actual user ID
 -- 4. Run this SQL in your Supabase SQL Editor

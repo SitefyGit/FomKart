@@ -2,27 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { addToCart as addToCartApi, getCurrentUser, supabase } from '@/lib/supabase';
+import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import {
   Star,
   Clock,
   Check,
   ShoppingCart,
-  Heart,
   Share2,
-  ChevronLeft,
-  ChevronRight,
   User,
   MessageCircle,
-  DollarSign,
-  Package,
   ArrowRight,
-  Play,
-  Youtube,
   Globe,
-  Eye,
   ArrowLeft
 } from 'lucide-react';
 import { ShareModal } from '@/components/ShareModal';
@@ -56,6 +50,7 @@ interface Product {
   demoUrl?: string;
   totalSales?: number;
   avgRating?: number;
+  reviewCount?: number;
   features?: string[];
   requirements?: string[];
 }
@@ -81,6 +76,29 @@ interface Review {
   reviewer: User;
 }
 
+type ReviewRow = {
+  id: string;
+  rating?: number | null;
+  comment?: string | null;
+  created_at: string;
+  reviewer?:
+    | {
+        id?: string | null;
+        full_name?: string | null;
+        username?: string | null;
+        avatar_url?: string | null;
+        is_verified?: boolean | null;
+      }
+    | Array<{
+        id?: string | null;
+        full_name?: string | null;
+        username?: string | null;
+        avatar_url?: string | null;
+        is_verified?: boolean | null;
+      }>
+    | null;
+};
+
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
@@ -90,8 +108,6 @@ export default function ProductPage({ params }: ProductPageProps) {
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<ProductPackage | null>(null);
-  const [showVideo, setShowVideo] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -166,6 +182,54 @@ export default function ProductPage({ params }: ProductPageProps) {
             const extLine = prod.requirements.find((r: string) => r.startsWith('External:'));
             if (extLine) externalLink = extLine.replace('External:','').trim();
           }
+          let fetchedReviews: Review[] = [];
+          try {
+            const unwrap = <T,>(value: T | T[] | null | undefined): T | undefined => {
+              if (!value) return undefined;
+              return Array.isArray(value) ? value[0] : value;
+            };
+            const { data: reviewsData } = await supabase
+              .from('reviews')
+              .select(`id, rating, comment, created_at, reviewer:reviewer_id(id, full_name, username, avatar_url, is_verified)`)
+              .eq('product_id', prod.id)
+              .eq('is_public', true)
+              .order('created_at', { ascending: false });
+            fetchedReviews = (reviewsData || []).map((row: ReviewRow) => {
+              const reviewer = unwrap(row.reviewer);
+              const commentText = (row.comment || '').trim();
+              return {
+                id: row.id,
+                user_id: reviewer?.id || 'unknown',
+                product_id: prod.id,
+                rating: typeof row.rating === 'number' ? row.rating : 0,
+                comment: commentText || 'Buyer left a rating.',
+                created_at: row.created_at,
+                reviewer: {
+                  id: reviewer?.id || 'unknown',
+                  full_name: reviewer?.full_name || reviewer?.username || 'Anonymous',
+                  username: reviewer?.username || 'anonymous',
+                  email: '',
+                  avatar_url: reviewer?.avatar_url || '',
+                  bio: '',
+                  verified: !!reviewer?.is_verified,
+                  created_at: new Date().toISOString()
+                }
+              };
+            });
+          } catch (reviewErr) {
+            console.warn('Failed to load reviews for product', reviewErr);
+          }
+          const fallbackReviewCount =
+            typeof prod.reviews_count === 'number'
+              ? prod.reviews_count
+              : typeof prod.total_reviews === 'number'
+                ? prod.total_reviews
+                : 0;
+          const reviewCount = fetchedReviews.length || fallbackReviewCount;
+          const reviewAverage = fetchedReviews.length
+            ? Number((fetchedReviews.reduce((sum, item) => sum + item.rating, 0) / fetchedReviews.length).toFixed(2))
+            : (typeof prod.rating === 'number' ? Number(prod.rating) : 0);
+
           const mapped: Product = {
             id: prod.id,
             title: prod.title,
@@ -180,7 +244,8 @@ export default function ProductPage({ params }: ProductPageProps) {
             created_at: prod.created_at,
             updated_at: prod.updated_at,
             totalSales: prod.orders_count || 0,
-            avgRating: prod.rating || 0,
+            avgRating: reviewAverage,
+            reviewCount,
             youtubeVideoId: youTubeId,
             demoUrl: externalLink,
             features: prod.features || [],
@@ -208,6 +273,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           };
           setProduct(mapped);
           setSelectedPackage(mapped.packages?.[0] || null);
+          setReviews(fetchedReviews);
         } else {
           // Fallback mock
           const mock: Product = {
@@ -225,6 +291,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             updated_at: new Date().toISOString(),
             totalSales: 0,
             avgRating: 0,
+            reviewCount: 0,
             features: ['1 concept','PNG'],
             requirements: [],
             creator: { id:'creator1', full_name:'Demo Creator', username:'demo_creator', email:'', avatar_url:'https://picsum.photos/100/100?random=10', bio:'Demo bio', verified:true, created_at:new Date().toISOString() },
@@ -234,13 +301,8 @@ export default function ProductPage({ params }: ProductPageProps) {
           };
           setProduct(mock);
           setSelectedPackage(mock.packages?.[0] || null);
+          setReviews([]);
         }
-
-        // Reviews (placeholder) – real implementation would join reviews table
-        const placeholderReviews: Review[] = [
-          { id:'r1', user_id:'u1', product_id: resolvedParams.id, rating:5, comment:'Fantastic quality!', created_at:new Date().toISOString(), reviewer: { id:'u1', full_name:'Happy Buyer', username:'happybuyer', email:'', avatar_url:'https://picsum.photos/50/50?random=11', bio:'', verified:true, created_at:new Date().toISOString() } }
-        ];
-        setReviews(placeholderReviews);
       } catch (e) {
         console.error('Product load failed', e);
       } finally {
@@ -249,33 +311,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     };
     fetchProduct();
   }, [resolvedParams.id]);
-
-  const nextImage = () => {
-    if (product?.images) {
-      setCurrentImageIndex((prev) => 
-        prev === product.images.length - 1 ? 0 : prev + 1
-      );
-    }
-  };
-
-  const prevImage = () => {
-    if (product?.images) {
-      setCurrentImageIndex((prev) => 
-        prev === 0 ? product.images.length - 1 : prev - 1
-      );
-    }
-  };
-
-  // Cart item interface (local-only)
-  interface CartItem {
-    productId: string;
-    packageId: string;
-    title: string;
-    packageName: string;
-    price: number;
-    quantity: number;
-    thumbnail?: string;
-  }
 
   const handleAddToCart = async () => {
     if (!product || !selectedPackage) return;
@@ -351,7 +386,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
-          <p className="text-gray-600">The product you're looking for doesn't exist.</p>
+          <p className="text-gray-600">The product you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );
@@ -369,9 +404,9 @@ export default function ProductPage({ params }: ProductPageProps) {
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
             </button>
-            <a href="/" className="hover:text-emerald-600">FomKart</a>
+            <Link href="/" className="hover:text-emerald-600">FomKart</Link>
             <span className="mx-2">/</span>
-            <a href="/category/digital-products" className="hover:text-emerald-600">Products</a>
+            <Link href="/category/digital-products" className="hover:text-emerald-600">Products</Link>
             <span className="mx-2">/</span>
             <span className="text-gray-900 truncate">{product.title}</span>
           </nav>
@@ -383,83 +418,27 @@ export default function ProductPage({ params }: ProductPageProps) {
           {/* Left Column - Media and Description */}
           <div className="lg:col-span-2 space-y-8">
             {/* Image Gallery */}
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="relative aspect-video bg-gray-100">
-                {showVideo && product.youtubeVideoId ? (
-                  <iframe
-                    src={`https://www.youtube.com/embed/${product.youtubeVideoId}`}
-                    className="w-full h-full"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : (
-                  <>
-                    <Image
-                      src={product.images[currentImageIndex] || 'https://picsum.photos/600/400?random=0'}
-                      alt={product.title}
-                      fill
-                      className="object-cover"
-                    />
-                    {product.images.length > 1 && (
-                      <>
-                        <button
-                          onClick={prevImage}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={nextImage}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
+            <div className="bg-white rounded-lg shadow-sm p-4">
+              <ProductMediaGallery
+                images={product.images}
+                youtubeVideoId={product.youtubeVideoId}
+                title={product.title}
+              />
               
-              {/* Media Controls */}
-              <div className="p-4 border-t border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex space-x-2">
-                    {product.images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`w-3 h-3 rounded-full transition-colors ${
-                          currentImageIndex === index ? 'bg-blue-600' : 'bg-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    {product.youtubeVideoId && (
-                      <button
-                        onClick={() => setShowVideo(!showVideo)}
-                        className="flex items-center px-3 py-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors text-sm"
-                      >
-                        <Youtube className="w-4 h-4 mr-1" />
-                        {showVideo ? 'Show Images' : 'Video'}
-                      </button>
-                    )}
-                    {product.demoUrl && (
-                      <a
-                        href={product.demoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-sm"
-                      >
-                        <Globe className="w-4 h-4 mr-1" />
-                        Live Demo
-                      </a>
-                    )}
-                  </div>
+              {/* Live Demo Button */}
+              {product.demoUrl && (
+                <div className="mt-4 flex justify-end">
+                  <a
+                    href={product.demoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Live Demo
+                  </a>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Product Description */}
@@ -553,9 +532,11 @@ export default function ProductPage({ params }: ProductPageProps) {
 
             {/* Reviews Section */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Reviews ({reviews.length})</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Reviews ({product.reviewCount ?? reviews.length})</h2>
               <div className="space-y-6">
-                {reviews.map((review) => (
+                {reviews.length === 0 ? (
+                  <p className="text-sm text-gray-500">No reviews yet.</p>
+                ) : reviews.map((review) => (
                   <div key={review.id} className="flex space-x-4">
                     <Image
                       src={review.reviewer.avatar_url || 'https://picsum.photos/50/50?random=99'}
@@ -599,31 +580,41 @@ export default function ProductPage({ params }: ProductPageProps) {
             {/* Creator Info */}
             {product.creator && (
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center space-x-4 mb-4">
+                <Link
+                  href={`/creator/${product.creator.username}`}
+                  className="flex items-center space-x-4 mb-4 group"
+                >
                   <Image
                     src={product.creator.avatar_url || 'https://picsum.photos/60/60?random=98'}
                     alt={product.creator.full_name}
                     width={60}
                     height={60}
-                    className="rounded-full"
+                    className="rounded-full transition-transform duration-200 group-hover:scale-105"
                   />
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-bold text-gray-900">{product.creator.full_name}</h3>
+                      <span className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">{product.creator.full_name}</span>
                       {product.creator.verified && (
                         <Check className="w-5 h-5 text-green-600" />
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">@{product.creator.username}</p>
+                    <span className="text-sm text-gray-600">@{product.creator.username}</span>
                     <div className="flex items-center space-x-1 mt-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                       <span className="text-sm font-medium">{product.avgRating}</span>
-                      <span className="text-sm text-gray-500">({product.totalSales} reviews)</span>
+                      <span className="text-sm text-gray-500">({product.reviewCount ?? 0} reviews)</span>
                     </div>
                   </div>
-                </div>
+                </Link>
                 <p className="text-gray-700 text-sm mb-4">{product.creator.bio}</p>
-                <button onClick={()=>{ if(product?.creator?.username){ window.location.href = `/creator/${product.creator.username}?contact=1`; } }} className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                <button
+                  onClick={() => {
+                    if (product?.creator?.username) {
+                      router.push(`/creator/${product.creator.username}?contact=1`);
+                    }
+                  }}
+                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Contact Creator
                 </button>
@@ -793,7 +784,7 @@ export default function ProductPage({ params }: ProductPageProps) {
         <ShareModal
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
-          url={`${typeof window!=='undefined'?window.location.href:''}`}
+          url={typeof window !== 'undefined' ? window.location.href : ''}
           title={product.title}
         />
       )}

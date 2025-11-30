@@ -7,12 +7,12 @@ export default function CredentialsHelper() {
   const [isOpen, setIsOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const credentials = {
-    email: 'creator@fomkart.com',
-    password: 'creator123'
-  };
+  const demoEmail = process.env.NEXT_PUBLIC_DEMO_CREATOR_EMAIL ?? 'creator@fomkart.com';
+  const demoPassword = process.env.NEXT_PUBLIC_DEMO_CREATOR_PASSWORD ?? '';
+  const hasDemoPassword = demoPassword.length > 0;
 
   const copyToClipboard = (text: string) => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
   };
 
@@ -51,9 +51,9 @@ export default function CredentialsHelper() {
         <div>
           <label className="text-xs font-medium text-gray-500 mb-1 block">EMAIL</label>
           <div className="flex items-center gap-2">
-            <code className="bg-gradient-to-r from-gray-50 to-gray-100 px-3 py-2 rounded-lg text-sm flex-1 hover:from-emerald-50 hover:to-blue-50 transition-all duration-200">{credentials.email}</code>
+            <code className="bg-gradient-to-r from-gray-50 to-gray-100 px-3 py-2 rounded-lg text-sm flex-1 hover:from-emerald-50 hover:to-blue-50 transition-all duration-200">{demoEmail}</code>
             <button
-              onClick={() => copyToClipboard(credentials.email)}
+              onClick={() => copyToClipboard(demoEmail)}
               className="p-2 text-gray-400 hover:text-emerald-600 transition-all duration-200 hover:scale-110"
             >
               <Copy className="w-4 h-4" />
@@ -65,20 +65,24 @@ export default function CredentialsHelper() {
           <label className="text-xs font-medium text-gray-500 mb-1 block">PASSWORD</label>
           <div className="flex items-center gap-2">
             <code className="bg-gradient-to-r from-gray-50 to-gray-100 px-3 py-2 rounded-lg text-sm flex-1 hover:from-emerald-50 hover:to-blue-50 transition-all duration-200">
-              {showPassword ? credentials.password : '••••••••'}
+              {hasDemoPassword ? (showPassword ? demoPassword : '••••••••') : 'Set NEXT_PUBLIC_DEMO_CREATOR_PASSWORD'}
             </code>
-            <button
-              onClick={() => setShowPassword(!showPassword)}
-              className="p-2 text-gray-400 hover:text-blue-600 transition-all duration-200 hover:scale-110"
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={() => copyToClipboard(credentials.password)}
-              className="p-2 text-gray-400 hover:text-emerald-600 transition-all duration-200 hover:scale-110"
-            >
-              <Copy className="w-4 h-4" />
-            </button>
+            {hasDemoPassword ? (
+              <>
+                <button
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-2 text-gray-400 hover:text-blue-600 transition-all duration-200 hover:scale-110"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => copyToClipboard(demoPassword)}
+                  className="p-2 text-gray-400 hover:text-emerald-600 transition-all duration-200 hover:scale-110"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
       </div>
@@ -91,7 +95,7 @@ export default function CredentialsHelper() {
           Go to Login
         </a>
         <p className="text-xs text-gray-500 text-center">
-          Use these credentials to test the creator login
+          Configure demo values in your environment (NEXT_PUBLIC_DEMO_CREATOR_EMAIL / NEXT_PUBLIC_DEMO_CREATOR_PASSWORD) to enable autofill.
         </p>
       </div>
     </div>

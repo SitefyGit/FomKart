@@ -11,7 +11,7 @@ import {
   FileText,
   User
 } from 'lucide-react'
-import { supabase, type Json, type JsonRecord, type User as ProfileUser } from '@/lib/supabase'
+import { supabase, type Json, type JsonRecord, type User as ProfileUser, type CourseDeliveryPayload, type ProductDigitalAsset } from '@/lib/supabase'
 
 interface CheckoutItem {
   productId: string
@@ -38,6 +38,10 @@ interface CheckoutProduct {
   creator_id: string
   images?: string[] | null
   creator?: CheckoutCreator
+  auto_deliver?: boolean | null
+  is_digital?: boolean | null
+  digital_files?: ProductDigitalAsset[] | null
+  course_delivery?: CourseDeliveryPayload | null
 }
 
 interface CheckoutPackage {
@@ -282,16 +286,44 @@ function CheckoutContent() {
         // If seller enabled automation, send welcome message automatically
         if (order?.id && product.auto_message_enabled && product.auto_message) {
           try {
-            await supabase
-              .from('order_messages')
-              .insert([{
-                order_id: order.id,
-                sender_id: product.creator_id,
-                message: product.auto_message,
-                is_system_message: true
-              }])
+            const response = await fetch('/api/orders/auto-message', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: order.id,
+                creatorId: product.creator_id,
+                message: product.auto_message
+              })
+            })
+
+            if (!response.ok) {
+              const errorBody = await response.json().catch(() => ({}))
+              throw new Error(errorBody.error || 'Auto message request failed')
+            }
           } catch (autoMessageError) {
             console.warn('Auto message insert failed', autoMessageError)
+          }
+        }
+
+        if (order?.id) {
+          const coursePayload = (product.course_delivery || null) as CourseDeliveryPayload | null
+          const hasCoursePayload = !!(
+            coursePayload &&
+            ((Array.isArray(coursePayload.links) && coursePayload.links.length > 0) ||
+              (Array.isArray(coursePayload.passkeys) && coursePayload.passkeys.length > 0) ||
+              (coursePayload.notes && coursePayload.notes.trim()))
+          )
+          const hasDigitalFiles = Array.isArray(product.digital_files) && product.digital_files.length > 0
+          if (product.auto_deliver || hasDigitalFiles || hasCoursePayload) {
+            try {
+              await fetch('/api/orders/auto-deliver', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: order.id, productId: product.id })
+              })
+            } catch (autoDeliveryError) {
+              console.warn('Digital auto delivery failed', autoDeliveryError)
+            }
           }
         }
 

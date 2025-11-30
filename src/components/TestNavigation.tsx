@@ -20,7 +20,7 @@ export default function TestNavigation() {
           👤 Creator Profile
         </a>
         <p className="text-xs text-gray-500 mt-2">
-          Demo: creator@fomkart.com / creator123
+          Demo email: creator@fomkart.com (use the password you set in Supabase Auth)
         </p>
       </div>
     </div>

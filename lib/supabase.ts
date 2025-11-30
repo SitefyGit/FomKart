@@ -64,6 +64,22 @@ export interface Product {
   packages?: ProductPackage[]
 }
 
+export interface CreatorPost {
+  id: string
+  creator_id: string
+  caption?: string | null
+  post_type: 'text' | 'image' | 'video'
+  media_url?: string | null
+  video_url?: string | null
+  video_provider?: string | null
+  video_id?: string | null
+  link_url?: string | null
+  tags?: string[] | null
+  is_public: boolean
+  created_at: string
+  updated_at: string
+}
+
 export interface ProductPackage {
   id: string
   product_id: string

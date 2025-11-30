@@ -26,6 +26,48 @@ export default async function FeaturedServicesSection() {
     .limit(9)
 
   const services = (data as unknown as Service[]) || []
+  const productIds = services.map((service) => service.id)
+
+  type ProductRatingRow = { product_id: string | null; rating: number | null }
+  const statsMap = new Map<string, { rating: number; count: number }>()
+
+  if (productIds.length) {
+    const { data: ratingRows } = await supabase
+      .from('reviews')
+      .select('product_id, rating')
+      .eq('is_public', true)
+      .in('product_id', productIds)
+      .not('rating', 'is', null)
+
+    const totals = new Map<string, { sum: number; count: number }>()
+
+    for (const row of (ratingRows as ProductRatingRow[] | null) ?? []) {
+      if (!row || !row.product_id) continue
+      const ratingValue = Number(row.rating)
+      if (!Number.isFinite(ratingValue) || ratingValue <= 0) continue
+      const current = totals.get(row.product_id) ?? { sum: 0, count: 0 }
+      current.sum += ratingValue
+      current.count += 1
+      totals.set(row.product_id, current)
+    }
+
+    for (const [productId, aggregate] of totals.entries()) {
+      if (aggregate.count === 0) continue
+      const average = Math.round((aggregate.sum / aggregate.count) * 10) / 10
+      statsMap.set(productId, { rating: average, count: aggregate.count })
+    }
+  }
+
+  const servicesWithRatings = services.map((service) => {
+    const stats = statsMap.get(service.id)
+    const derivedRating = stats?.rating ?? service.rating ?? 0
+    const derivedCount = stats?.count ?? service.reviews_count ?? 0
+    return {
+      ...service,
+      rating: derivedRating,
+      reviews_count: derivedCount
+    }
+  })
 
   return (
     <section className="py-12 sm:py-16">
@@ -36,7 +78,7 @@ export default async function FeaturedServicesSection() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {services.map((service: Service, index: number) => (
+          {servicesWithRatings.map((service: Service, index: number) => (
             <Link
               key={service.id}
               href={`/product/${service.id}`}
@@ -71,7 +113,7 @@ export default async function FeaturedServicesSection() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1 bg-yellow-50 px-2 sm:px-3 py-1 rounded-full">
                     <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs sm:text-sm font-medium text-yellow-700">{service.rating ?? 0}</span>
+                    <span className="text-xs sm:text-sm font-medium text-yellow-700">{Number(service.rating ?? 0).toFixed(1)}</span>
                     <span className="text-xs sm:text-sm text-gray-500">({service.reviews_count ?? 0})</span>
                   </div>
                   <span className="font-bold text-gray-900 text-sm sm:text-lg group-hover:text-emerald-600 transition-colors">From ${service.base_price}</span>
@@ -79,7 +121,7 @@ export default async function FeaturedServicesSection() {
               </div>
             </Link>
           ))}
-          {services.length === 0 && (
+          {servicesWithRatings.length === 0 && (
             <div className="text-center text-gray-500">No services yet.</div>
           )}
         </div>

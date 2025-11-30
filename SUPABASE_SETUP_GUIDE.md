@@ -52,7 +52,7 @@ Your Supabase project is ready! Follow these steps to complete the setup:
 2. Click **Add user** → **Create new user**
 3. Enter:
    - **Email**: `creator@fomkart.com`
-   - **Password**: `creator123`
+   - **Password**: *(set a secure temporary value; do not store it in git)*
    - **Confirm**: Enable email confirmation
 4. Click **Create user**
 5. Copy the **User UID** from the users table
@@ -71,7 +71,7 @@ Visit these URLs to test:
 - http://localhost:3001 - Main landing page
 - http://localhost:3001/auth/signup - Create new account
 - http://localhost:3001/auth/login - User login
-- http://localhost:3001/auth/creator-login - Creator login (creator@fomkart.com / creator123)
+- http://localhost:3001/auth/creator-login - Creator login (use the credentials you configured)
 - http://localhost:3001/creator/designpro - Creator profile page
 
 ---
@@ -130,9 +130,9 @@ console.log('Categories:', data)
 
 ### 2. Creator Login Test
 1. Go to `/auth/creator-login`
-2. Use demo credentials:
+2. Use demo credentials you configured:
    - **Email**: creator@fomkart.com
-   - **Password**: creator123
+   - **Password**: *(the secure value you set in Supabase Auth)*
 3. Should redirect to creator profile
 
 ### 3. Newsletter Signup Test

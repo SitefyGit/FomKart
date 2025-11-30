@@ -1,14 +1,15 @@
 // CLEAN REWRITE (corruption removed)
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import type { User as SupabaseAuthUser } from "@supabase/supabase-js";
+import { supabase, fetchCreatorPosts, createCreatorPost, deleteCreatorPost, deleteProduct, type CreatorPost, type ProductDigitalAsset, type CourseDeliveryPayload } from "@/lib/supabase";
 // Icons (Heroicons + MUI)
-import { UserCircleIcon, MapPinIcon, LinkIcon, ArrowTopRightOnSquareIcon, PlayCircleIcon, ChatBubbleLeftRightIcon, CameraIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, MapPinIcon, LinkIcon, ArrowTopRightOnSquareIcon, PlayCircleIcon, ChatBubbleLeftRightIcon, CameraIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import ShareIcon from '@mui/icons-material/Share';
-import { YouTubeEmbed } from '@/components/YouTubeEmbed';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import StarIcon from '@mui/icons-material/StarOutline';
@@ -30,69 +31,157 @@ interface Product {
   auto_message_enabled?: boolean;
   auto_message?: string | null;
 }
+
+type NewProductInsert = {
+  title: string;
+  description: string;
+  base_price: number;
+  creator_id: string;
+  type: 'product' | 'service';
+  slug: string;
+  features: string[];
+  requirements: string[];
+  tags: string[];
+  videos: string[];
+  images: string[];
+  auto_message_enabled: boolean;
+  auto_message: string | null;
+  status: 'active' | 'draft' | 'paused' | 'archived' | 'sold_out';
+  digital_files?: ProductDigitalAsset[] | null;
+  course_delivery?: CourseDeliveryPayload | null;
+  auto_deliver?: boolean;
+  is_digital?: boolean;
+};
+
+type ProductInsertRow = {
+  id: string;
+  created_at: string;
+  features?: string[] | null;
+  requirements?: string[] | null;
+  tags?: string[] | null;
+  videos?: string[] | null;
+  images?: string[] | null;
+};
+
+type ProductPackageInsert = {
+  product_id: string;
+  name: string;
+  description: string;
+  price: number;
+  delivery_time: number;
+  revisions: number;
+  features: string[];
+  sort_order: number;
+};
+
+function isProductInsertRow(value: unknown): value is ProductInsertRow {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+
+  if (typeof record.id !== "string" || typeof record.created_at !== "string") {
+    return false;
+  }
+
+  const arrayFields: Array<keyof ProductInsertRow> = [
+    "features",
+    "requirements",
+    "tags",
+    "videos",
+    "images"
+  ];
+
+  return arrayFields.every((field) => {
+    const fieldValue = record[field];
+    return (
+      fieldValue === undefined ||
+      fieldValue === null ||
+      (Array.isArray(fieldValue) && fieldValue.every((item) => typeof item === "string"))
+    );
+  });
+}
 interface Creator {
   id: string; username: string; full_name: string; bio?: string; avatar_url?: string; created_at: string;
   background_image?: string; products: Product[]; totalProducts: number;
   location?: string; website?: string; social_links?: Record<string, string>;
-  followers?: number; following?: number;
+  profile_section_order?: ProfileSectionKey[] | null;
 }
+
+type CreatorProfileUpdate = Pick<Creator, "bio" | "website" | "location" | "social_links">;
 
 async function loadCreator(username: string): Promise<Creator | null> {
   try {
     const { data: userData, error } = await supabase
-      .from("users").select("*")
-      .eq("username", username)
-      .eq("is_creator", true)
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .eq('is_creator', true)
       .single();
     if (error || !userData) return null;
+
     const { data: products } = await supabase
-      .from("products")
-      .select("id,title,description,created_at,images,videos,features,base_price")
-      .eq("creator_id", userData.id)
-      .order("created_at", { ascending: false });
-    const productList = (products || []).map(p => ({ id: p.id, title: p.title, description: p.description, created_at: p.created_at, images: p.images, videos: p.videos, features: p.features, base_price: p.base_price }));
+      .from('products')
+      .select('id,title,description,created_at,images,videos,features,base_price')
+      .eq('creator_id', userData.id)
+      .order('created_at', { ascending: false });
+
+    const productList = (products || []).map(p => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      created_at: p.created_at,
+      images: p.images,
+      videos: p.videos,
+      features: p.features,
+      base_price: p.base_price
+    }));
+
     if (productList.length === 0) {
-      // Dummy products fallback
-      for (let i=1;i<=3;i++) {
+      for (let i = 1; i <= 3; i++) {
         productList.push({
           id: `dummy-${i}`,
           title: `Sample Product ${i}`,
           description: `This is a placeholder description for sample product ${i}. Replace by adding a real product.`,
-          created_at: new Date(Date.now()- i*86400000).toISOString(),
+          created_at: new Date(Date.now() - i * 86400000).toISOString(),
           images: [],
           videos: [],
-          features: ['Feature A','Feature B'].slice(0,i),
-          base_price: i*10 + 9
+          features: ['Feature A', 'Feature B'].slice(0, i),
+          base_price: i * 10 + 9
         });
       }
     }
+
+    const layout = Array.isArray(userData.profile_section_order)
+      ? (userData.profile_section_order.filter((section: string): section is ProfileSectionKey => (DEFAULT_SECTION_ORDER as string[]).includes(section)))
+      : null;
+
     return {
       id: userData.id,
       username: userData.username,
       full_name: userData.full_name || userData.username,
-      bio: userData.bio || "Creative professional.",
+      bio: userData.bio || 'Creative professional.',
       avatar_url: userData.avatar_url,
       created_at: userData.created_at,
       background_image: userData.background_image,
       location: userData.location,
       website: userData.website,
       social_links: userData.social_links || {},
-    followers: 0,
-    following: 0,
-  products: productList,
-    totalProducts: productList.length
+      products: productList,
+      totalProducts: productList.length,
+      profile_section_order: layout
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // Image helpers: resize client-side for faster uploads
 async function resizeImage(file: File, maxWidth: number, maxHeight: number, mime = 'image/webp', quality = 0.85): Promise<Blob> {
   try {
-    const bitmap = await createImageBitmap(file)
-    let { width, height } = bitmap
-    const ratio = Math.min(maxWidth / width, maxHeight / height, 1)
-    const targetW = Math.round(width * ratio)
-    const targetH = Math.round(height * ratio)
+  const bitmap = await createImageBitmap(file)
+  const { width, height } = bitmap
+  const ratio = Math.min(maxWidth / width, maxHeight / height, 1)
+  const targetW = Math.round(width * ratio)
+  const targetH = Math.round(height * ratio)
     const canvas = document.createElement('canvas')
     canvas.width = targetW
     canvas.height = targetH
@@ -105,16 +194,44 @@ async function resizeImage(file: File, maxWidth: number, maxHeight: number, mime
   }
 }
 
+type VideoMeta = { provider: 'youtube' | 'vimeo'; id: string };
+
+type ProfileSectionKey = 'products' | 'reviews' | 'links'
+
+const DEFAULT_SECTION_ORDER: ProfileSectionKey[] = ['products', 'reviews', 'links']
+
+const POST_IMAGE_BUCKET = 'creator-posts';
+const POST_IMAGE_MAX_EDGE = 1600;
+
+function extractVideoMeta(rawUrl: string): VideoMeta | null {
+  const url = rawUrl.trim();
+  if (!url) return null;
+  const youtubeMatch = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i);
+  if (youtubeMatch) {
+    return { provider: 'youtube', id: youtubeMatch[1] };
+  }
+  const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if (vimeoMatch) {
+    return { provider: 'vimeo', id: vimeoMatch[1] };
+  }
+  return null;
+}
+
+function getEmbedUrl(meta: VideoMeta): string {
+  if (meta.provider === 'youtube') {
+    return `https://www.youtube.com/embed/${meta.id}`;
+  }
+  return `https://player.vimeo.com/video/${meta.id}`;
+}
+
 export default function CreatorPage() {
   const { username } = useParams<{ username: string }>();
   const router = useRouter();
   const [creator, setCreator] = useState<Creator | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null); // 'avatar' | 'cover'
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<SupabaseAuthUser | null>(null);
   const [shareOpen, setShareOpen] = useState(false); // State for Share Modal
-  const [recentActivity, setRecentActivity] = useState<Array<{ id: string; type: 'product' | 'review' | 'post'; created_at: string; title: string; extra?: string; tags?: string[]; link?: string; videoId?: string }>>([]);
-  const [activityLoading, setActivityLoading] = useState(true);
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [newProduct, setNewProduct] = useState({ title: '', description: '', price: '' });
   // Extra dynamic product fields (gig style)
@@ -132,7 +249,10 @@ export default function CreatorPage() {
     courseModules: '',
     courseHours: '',
     courseCurriculum: '',
-    courseLevel: ''
+    courseLevel: '',
+    courseAccessLinks: '',
+    coursePasskeys: '',
+    courseAccessNotes: ''
   });
   const [savingProduct, setSavingProduct] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
@@ -140,15 +260,24 @@ export default function CreatorPage() {
   const [messageBody, setMessageBody] = useState('');
   const [moreOpen, setMoreOpen] = useState(false);
   const [addPostOpen, setAddPostOpen] = useState(false);
-  const [newPostTitle, setNewPostTitle] = useState('');
-  const [newPostBody, setNewPostBody] = useState('');
-  const [newPostLink, setNewPostLink] = useState('');
-  const [newPostVideo, setNewPostVideo] = useState('');
-  const [newPostTags, setNewPostTags] = useState('');
+  const [posts, setPosts] = useState<CreatorPost[]>([]);
+  const [postsLoading, setPostsLoading] = useState(true);
+  const [postType, setPostType] = useState<CreatorPost['post_type']>('text');
+  const [postCaption, setPostCaption] = useState('');
+  const [postLinkUrl, setPostLinkUrl] = useState('');
+  const [postVideoUrl, setPostVideoUrl] = useState('');
+  const [postTags, setPostTags] = useState('');
+  const [postImageFile, setPostImageFile] = useState<File | null>(null);
+  const [postImagePreview, setPostImagePreview] = useState<string | null>(null);
+  const [postSubmitting, setPostSubmitting] = useState(false);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [subscribeEmail, setSubscribeEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [sectionOrder, setSectionOrder] = useState<ProfileSectionKey[]>(DEFAULT_SECTION_ORDER);
+  const [draggingSection, setDraggingSection] = useState<ProfileSectionKey | null>(null);
   const pushToast = (t: Omit<ToastItem, 'id'>) => setToasts((prev) => [...prev, { id: Math.random().toString(36).slice(2), ...t }]);
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
   // Settings modal
@@ -173,8 +302,64 @@ export default function CreatorPage() {
   const [selectedType, setSelectedType] = useState('digital');
   // New: support multiple product images in a gallery
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [deliveryFiles, setDeliveryFiles] = useState<File[]>([]);
   const [autoMessageEnabled, setAutoMessageEnabled] = useState(false);
   const [autoMessage, setAutoMessage] = useState('');
+  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [showAllPosts, setShowAllPosts] = useState(false);
+
+  const resetPostForm = useCallback(() => {
+    setPostType('text');
+    setPostCaption('');
+    setPostLinkUrl('');
+    setPostVideoUrl('');
+    setPostTags('');
+    setPostImageFile(null);
+    setPostImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }, []);
+
+  const closePostModal = useCallback(() => {
+    setAddPostOpen(false);
+    resetPostForm();
+  }, [resetPostForm]);
+
+  const buildActivityEntryFromPost = useCallback((post: CreatorPost) => {
+    const caption = (post.caption || '').trim();
+    const captionLines = caption ? caption.split(/\r?\n/).filter(Boolean) : [];
+    const fallbackTitle = post.post_type === 'video'
+      ? 'Shared a new video'
+      : post.post_type === 'image'
+        ? 'Shared a new photo'
+        : 'Shared an update';
+    const title = captionLines[0]?.slice(0, 80) || fallbackTitle;
+    const isKnownProvider = post.video_provider === 'youtube' || post.video_provider === 'vimeo';
+    const embedUrl = post.post_type === 'video' && isKnownProvider && post.video_id
+      ? getEmbedUrl({ provider: post.video_provider as 'youtube' | 'vimeo', id: post.video_id })
+      : undefined;
+
+    return {
+      id: `post-${post.id}`,
+      type: 'post' as const,
+      created_at: post.created_at,
+      title,
+      extra: caption || undefined,
+      tags: post.tags && post.tags.length ? post.tags.filter(Boolean) : undefined,
+      link: post.link_url || undefined,
+      videoId: post.post_type === 'video' && post.video_provider === 'youtube' ? post.video_id || undefined : undefined,
+      imageUrl: post.post_type === 'image' ? post.media_url || undefined : undefined,
+      embedUrl,
+      postType: post.post_type
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (postImagePreview) URL.revokeObjectURL(postImagePreview);
+    };
+  }, [postImagePreview]);
 
   async function handleImageUpload(file: File, type: 'avatar' | 'cover') {
     if (!creator) return;
@@ -208,7 +393,8 @@ export default function CreatorPage() {
       }
       const { data: publicUrlData } = supabase.storage.from(activeBucket).getPublicUrl(path);
       const url = `${publicUrlData.publicUrl}?v=${stamp}`; // add query param to bust CDN cache after replacement
-      const updates: any = type === 'avatar' ? { avatar_url: url } : { background_image: url };
+      const updates: Partial<Pick<Creator, 'avatar_url' | 'background_image'>> =
+        type === 'avatar' ? { avatar_url: url } : { background_image: url };
       const prevUrl = type === 'avatar' ? creator.avatar_url : creator.background_image;
       const { error: updateError } = await supabase.from('users').update(updates).eq('id', creator.id);
       if (updateError) throw updateError;
@@ -223,9 +409,10 @@ export default function CreatorPage() {
           await supabase.storage.from(bucket).remove([key]);
         }
       }
-    } catch (e:any) {
-      console.error('Upload failed', e);
-      alert(`Failed to upload image: ${e?.message||'Unknown error'}`);
+    } catch (error) {
+      console.error('Upload failed', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to upload image: ${message}`);
     } finally {
       setUpdating(null);
     }
@@ -234,6 +421,168 @@ export default function CreatorPage() {
   function onSelectFile(e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') {
     const file = e.target.files?.[0];
     if (file) handleImageUpload(file, type);
+  }
+
+  const handleDeliveryFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length) return;
+    setDeliveryFiles((prev) => [...prev, ...files]);
+    event.target.value = '';
+  };
+
+  const handleRemoveDeliveryFile = (index: number) => {
+    setDeliveryFiles((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  function handlePostTypeSelection(type: CreatorPost['post_type']) {
+    setPostType(type);
+    if (type !== 'video') setPostVideoUrl('');
+    if (type !== 'image') {
+      setPostImageFile(null);
+      setPostImagePreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    }
+  }
+
+  function handlePostImageInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPostImageFile(file);
+    const objectUrl = URL.createObjectURL(file);
+    setPostImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return objectUrl;
+    });
+  }
+
+  async function handlePostSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!creator) return;
+    const trimmedCaption = postCaption.trim();
+    const trimmedLink = postLinkUrl.trim();
+    const trimmedVideo = postVideoUrl.trim();
+    const tagList = postTags.split(',').map((t) => t.trim()).filter(Boolean);
+
+    if (postType === 'image' && !postImageFile) {
+      pushToast({ type: 'error', title: 'Image required', message: 'Select an image before posting.' });
+      return;
+    }
+    if (postType === 'video' && !trimmedVideo) {
+      pushToast({ type: 'error', title: 'Video link missing', message: 'Add a YouTube or Vimeo link.' });
+      return;
+    }
+
+    try {
+      setPostSubmitting(true);
+      let mediaUrl: string | null = null;
+      let videoProvider: 'youtube' | 'vimeo' | null = null;
+      let videoId: string | null = null;
+      let videoUrl: string | null = null;
+
+      if (postType === 'image' && postImageFile) {
+        const resized = await resizeImage(postImageFile, POST_IMAGE_MAX_EDGE, POST_IMAGE_MAX_EDGE, 'image/webp', 0.82);
+        const fileName = `${creator.id}/posts/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.webp`;
+        const { error: uploadError } = await supabase.storage
+          .from(POST_IMAGE_BUCKET)
+          .upload(fileName, resized, { upsert: true, contentType: 'image/webp', cacheControl: '3600' });
+        if (uploadError) {
+          throw new Error(uploadError.message || 'Image upload failed');
+        }
+        const { data: publicData } = supabase.storage.from(POST_IMAGE_BUCKET).getPublicUrl(fileName);
+        mediaUrl = publicData.publicUrl ? `${publicData.publicUrl}?v=${Date.now()}` : null;
+      }
+
+      if (postType === 'video') {
+        const meta = extractVideoMeta(trimmedVideo);
+        if (!meta) {
+          pushToast({ type: 'error', title: 'Unsupported link', message: 'Only YouTube or Vimeo links are supported right now.' });
+          return;
+        }
+        videoProvider = meta.provider;
+        videoId = meta.id;
+        videoUrl = getEmbedUrl(meta);
+      }
+
+      const newPost = await createCreatorPost({
+        creator_id: creator.id,
+        caption: trimmedCaption || null,
+        post_type: postType,
+        media_url: mediaUrl,
+        video_url: videoUrl,
+        video_provider: videoProvider,
+        video_id: videoId,
+        link_url: trimmedLink || null,
+        tags: tagList,
+        is_public: true
+      });
+
+      if (!newPost) {
+        throw new Error('Unable to save post');
+      }
+
+      setPosts((prev) => [newPost, ...prev]);
+      pushToast({ type: 'success', title: 'Post published', message: 'Your update is now live.' });
+      closePostModal();
+    } catch (error) {
+      console.error('Post creation failed', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      pushToast({ type: 'error', title: 'Could not publish', message });
+    } finally {
+      setPostSubmitting(false);
+    }
+  }
+
+  async function handleDeletePost(postId: string) {
+    if (!creator) return;
+    const confirmDelete = window.confirm('Delete this post? This action cannot be undone.');
+    if (!confirmDelete) return;
+    try {
+      setDeletingPostId(postId);
+      const success = await deleteCreatorPost(creator.id, postId);
+      if (!success) {
+        throw new Error('Unable to delete post.');
+      }
+      setPosts((prev) => prev.filter((post) => post.id !== postId));
+      pushToast({ type: 'success', title: 'Post deleted', message: 'The post has been removed.' });
+    } catch (error) {
+      console.error('Failed to delete post', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      pushToast({ type: 'error', title: 'Delete failed', message });
+    } finally {
+      setDeletingPostId(null);
+    }
+  }
+
+  async function handleDeleteProduct(productId: string) {
+    if (!creator) return;
+    const confirmDelete = window.confirm('Delete this product? Buyers will no longer see it.');
+    if (!confirmDelete) return;
+    try {
+      setDeletingProductId(productId);
+      const success = await deleteProduct(creator.id, productId);
+      if (!success) {
+        throw new Error('Unable to delete product.');
+      }
+      setCreator((prev) => {
+        if (!prev) return prev;
+        const filteredProducts = prev.products.filter((product) => product.id !== productId);
+        const realCount = filteredProducts.filter((product) => !product.id.startsWith('dummy-')).length;
+        return {
+          ...prev,
+          products: filteredProducts,
+          totalProducts: realCount > 0 ? realCount : filteredProducts.length
+        };
+      });
+      pushToast({ type: 'success', title: 'Product deleted', message: 'The product has been removed.' });
+    } catch (error) {
+      console.error('Failed to delete product', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      pushToast({ type: 'error', title: 'Delete failed', message });
+    } finally {
+      setDeletingProductId(null);
+    }
   }
 
   useEffect(() => {
@@ -264,76 +613,502 @@ export default function CreatorPage() {
 
   const isOwner = !!(currentUser && creator && currentUser.id === creator.id);
 
-  // Load recent activity after creator & products fetched
-  useEffect(() => {
-    async function loadActivity() {
-      if (!creator) return;
-      setActivityLoading(true);
-      try {
-  const activities: Array<{ id: string; type: 'product' | 'review' | 'post'; created_at: string; title: string; extra?: string; tags?: string[]; link?: string; videoId?: string }> = [];
-        // Recent products already present
-        creator.products.slice(0,5).forEach(p => activities.push({ id: `p-${p.id}`, type: 'product', created_at: p.created_at, title: p.title }));
-        const productIds = creator.products.map(p=>p.id);
-        if (productIds.length) {
-          const { data: revs } = await supabase
-            .from('reviews')
-            .select('id, created_at, comment, product:products(id,title)')
-            .in('product_id', productIds)
-            .order('created_at', { ascending: false })
-            .limit(5);
-          (revs||[]).forEach(r => {
-            const prodTitle = Array.isArray(r.product) ? r.product[0]?.title : (r.product as any)?.title;
-            activities.push({ id: `r-${r.id}`, type: 'review', created_at: r.created_at, title: prodTitle || 'Product', extra: r.comment?.slice(0,80) });
-          });
-        }
-        activities.sort((a,b)=> new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        setRecentActivity(activities.slice(0,9));
-      } catch (e) {
-        console.warn('Recent activity load failed', e);
-      } finally {
-        setActivityLoading(false);
-      }
-    }
-    loadActivity();
-  }, [creator]);
+  const sanitizeLayout = useCallback((input?: ProfileSectionKey[] | null) => {
+    if (!input || !Array.isArray(input) || input.length === 0) return [...DEFAULT_SECTION_ORDER];
+    const filtered = input.filter((section): section is ProfileSectionKey => (DEFAULT_SECTION_ORDER as string[]).includes(section));
+    const merged = [...new Set([...filtered, ...DEFAULT_SECTION_ORDER])];
+    return merged.slice(0, DEFAULT_SECTION_ORDER.length);
+  }, []);
 
-  // Real follower / following counts
   useEffect(() => {
-    async function loadFollowerCounts() {
-      if (!creator) return;
-      try {
-        const [{ count: followerCount }, { count: followingCount }] = await Promise.all([
-          supabase.from('subscriptions').select('*', { count: 'exact', head: true }).eq('creator_id', creator.id),
-          supabase.from('subscriptions').select('*', { count: 'exact', head: true }).eq('subscriber_id', creator.id)
-        ]);
-        setCreator(prev => prev ? { ...prev, followers: followerCount || 0, following: followingCount || 0 } : prev);
-      } catch (e) {
-        console.warn('Follower counts load failed', e);
-      }
+    setSectionOrder(sanitizeLayout(creator?.profile_section_order));
+  }, [creator?.profile_section_order, sanitizeLayout]);
+
+  const persistSectionOrder = useCallback(async (order: ProfileSectionKey[]) => {
+    if (!creator || !isOwner) return;
+    try {
+      const { error } = await supabase.from('users').update({ profile_section_order: order }).eq('id', creator.id);
+      if (error) throw error;
+      setCreator(prev => prev ? { ...prev, profile_section_order: order } : prev);
+    } catch (error) {
+      console.error('Failed to save section order', error);
+      pushToast({ type: 'error', title: 'Reorder failed', message: 'Could not save new layout. Please try again.' });
+      setSectionOrder(sanitizeLayout(creator?.profile_section_order));
     }
-    loadFollowerCounts();
-  }, [creator?.id]);
+  }, [creator, isOwner, pushToast, sanitizeLayout, setCreator]);
+
+  const latestPost = posts[0] ?? null;
+  const latestPostEntry = latestPost ? buildActivityEntryFromPost(latestPost) : null;
+  const latestPostLabel = latestPost
+    ? latestPost.post_type === 'video'
+      ? 'Latest Video'
+      : latestPost.post_type === 'image'
+        ? 'Latest Photo'
+        : 'Latest Link'
+    : 'Links';
+  const secondaryPostEntries = posts.slice(1, 4).map((post) => ({ post, entry: buildActivityEntryFromPost(post) }));
+
+  const handleDropSection = useCallback((targetId: ProfileSectionKey, dropAfter: boolean) => {
+    if (!draggingSection || draggingSection === targetId || !isOwner) {
+      setDraggingSection(null);
+      return;
+    }
+
+    setSectionOrder((prev) => {
+      if (!prev.includes(targetId) || !prev.includes(draggingSection)) return prev;
+      const movingDown = prev.indexOf(draggingSection) < prev.indexOf(targetId);
+      const shouldInsertAfter = dropAfter || movingDown;
+      const withoutDragged = prev.filter((section) => section !== draggingSection);
+      const targetIndex = withoutDragged.indexOf(targetId);
+      if (targetIndex === -1) return prev;
+      const insertIndex = shouldInsertAfter ? targetIndex + 1 : targetIndex;
+      const next = [...withoutDragged];
+      next.splice(insertIndex, 0, draggingSection);
+      persistSectionOrder(next);
+      return next;
+    });
+    setDraggingSection(null);
+  }, [draggingSection, isOwner, persistSectionOrder]);
+
+  const renderDragHandle = (id: ProfileSectionKey) => {
+    if (!isOwner) return null;
+    return (
+      <button
+        type="button"
+        draggable
+        onDragStart={(event) => {
+          event.dataTransfer.effectAllowed = 'move'
+          event.dataTransfer.setData('text/plain', id)
+          setDraggingSection(id)
+        }}
+        onDragEnd={() => setDraggingSection(null)}
+        className="cursor-grab text-gray-400 hover:text-gray-600 active:cursor-grabbing"
+        aria-label="Drag section"
+      >
+        <Bars3Icon className="h-5 w-5" />
+      </button>
+    )
+  }
+
+  const sectionDropHandlers = (id: ProfileSectionKey) => {
+    if (!isOwner) return {};
+    return {
+      onDragOver: (event: React.DragEvent<HTMLElement>) => {
+        if (!draggingSection || draggingSection === id) return;
+        event.preventDefault();
+      },
+      onDrop: (event: React.DragEvent<HTMLElement>) => {
+        event.preventDefault();
+        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        const dropAfter = event.clientY - rect.top > rect.height / 2;
+        handleDropSection(id, dropAfter);
+      }
+    };
+  }
+
+  const renderSection = (id: ProfileSectionKey) => {
+    const dragHighlight = draggingSection === id ? 'ring-2 ring-blue-200 shadow-xl' : ''
+    switch (id) {
+      case 'products':
+        const productList = creator?.products ?? []
+        
+        const renderProduct = (p: Product) => {
+          const images = Array.isArray(p.images) ? p.images.filter(Boolean) : []
+          const videos = Array.isArray(p.videos) ? p.videos.filter(Boolean) : []
+          const features = Array.isArray(p.features) ? p.features.filter(Boolean) : []
+          const hasVideo = videos.length > 0
+          const imageCount = images.length
+          const featureCount = features.length
+          const price = (typeof p.base_price === 'number' && p.base_price >= 0) ? p.base_price : undefined
+          return (
+            <Link href={`/product/${p.id}`} key={p.id} prefetch className="group border rounded-xl overflow-hidden bg-white hover:shadow-md transition relative block h-full">
+              <div className="relative aspect-video bg-gray-100 text-gray-400 text-xs overflow-hidden">
+                {imageCount > 0 ? (
+                  <Image
+                    src={images[0]}
+                    alt={p.title}
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">No media yet</div>
+                )}
+                <button type="button" onClick={(e)=>{e.preventDefault(); setShareProduct({ url: `${window.location.origin}/product/${p.id}`, title: p.title });}}
+                  className="absolute right-2 top-2 bg-white/90 hover:bg-white text-gray-700 rounded-full px-2.5 py-1 text-xs shadow">
+                  Share
+                </button>
+                {isOwner && !p.id.startsWith('dummy-') && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      if (!deletingProductId || deletingProductId === p.id) {
+                        handleDeleteProduct(p.id)
+                      }
+                    }}
+                    disabled={deletingProductId === p.id}
+                    className="absolute left-2 top-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-full px-2.5 py-1 text-xs shadow disabled:opacity-60"
+                  >
+                    {deletingProductId === p.id ? 'Deleting…' : 'Delete'}
+                  </button>
+                )}
+              </div>
+              <div className="p-4">
+                <h3 className="font-semibold mb-1 line-clamp-1">{p.title}</h3>
+                <p className="text-xs text-gray-500 line-clamp-2 mb-2">{p.description}</p>
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex gap-1 flex-wrap">
+                    {hasVideo && (
+                      <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><PlayCircleIcon className="h-3 w-3"/>Video</span>
+                    )}
+                    {imageCount > 1 && (
+                      <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><StarIcon fontSize="inherit" style={{fontSize:'12px'}}/>{imageCount} Images</span>
+                    )}
+                    {featureCount > 0 && (
+                      <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><StarIcon fontSize="inherit" style={{fontSize:'12px'}}/>{featureCount} Feature{featureCount>1?'s':''}</span>
+                    )}
+                    {!hasVideo && imageCount <= 1 && featureCount === 0 && (
+                      <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full inline-flex items-center gap-1">Basic</span>
+                    )}
+                  </div>
+                  <span className="font-semibold text-blue-600">{price !== undefined ? `$${price}` : 'Free'}</span>
+                </div>
+              </div>
+            </Link>
+          )
+        }
+
+        return (
+          <section
+            key="products"
+            className={`bg-white rounded-2xl shadow-md p-6 transition ${dragHighlight}`}
+            {...sectionDropHandlers('products')}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {renderDragHandle('products')}
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  Featured Products
+                  <span className="text-sm text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{creator?.totalProducts ?? 0}</span>
+                </h2>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowAllProducts(!showAllProducts)}
+                  className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50 inline-flex items-center gap-1"
+                >
+                  {showAllProducts ? 'Show Less' : 'View All'}
+                </button>
+                {isOwner && (
+                  <button onClick={()=>setAddProductOpen(true)} className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"><AddCircleOutlineIcon fontSize="small"/>Add Product</button>
+                )}
+              </div>
+            </div>
+            
+            {productList.length === 0 ? (
+              <p className="text-sm text-gray-500">No products yet.</p>
+            ) : showAllProducts ? (
+              <div className="grid gap-5 md:grid-cols-3">
+                {productList.map(p => renderProduct(p))}
+              </div>
+            ) : (
+              <div className="flex gap-5 overflow-x-auto pb-4 snap-x scrollbar-hide -mx-6 px-6">
+                {productList.map(p => (
+                  <div key={p.id} className="min-w-[280px] md:min-w-[320px] snap-center first:pl-6 last:pr-6">
+                    {renderProduct(p)}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {shareProduct && (
+              <ShareModal isOpen={!!shareProduct} onClose={()=>setShareProduct(null)} url={shareProduct.url} title={shareProduct.title} />
+            )}
+          </section>
+        )
+      case 'reviews':
+        return (
+          <section
+            key="reviews"
+            className={`bg-white rounded-2xl shadow-md p-6 transition ${dragHighlight}`}
+            {...sectionDropHandlers('reviews')}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              {renderDragHandle('reviews')}
+              <h2 className="text-xl font-semibold">Customer Reviews</h2>
+            </div>
+            <ReviewsSlider creatorId={creator?.id || ''} />
+          </section>
+        )
+      case 'links':
+        return (
+          <section
+            key="links"
+            className={`bg-white rounded-2xl shadow-md p-6 transition ${dragHighlight}`}
+            {...sectionDropHandlers('links')}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  {renderDragHandle('links')}
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    Links
+                    {latestPost && (
+                      <span className="text-xs font-medium text-gray-400 flex items-center gap-1">
+                        {latestPostLabel}
+                        <span>
+                          {new Date(latestPost.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </span>
+                      </span>
+                    )}
+                  </h2>
+                </div>
+                {latestPostEntry?.extra && latestPost?.post_type === 'text' && (
+                  <p className="text-xs text-gray-500 line-clamp-1">{latestPostEntry.extra}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setShowAllPosts(!showAllPosts)}
+                  className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50 inline-flex items-center gap-1"
+                >
+                  {showAllPosts ? 'Show Less' : 'View All'}
+                </button>
+                {isOwner && (
+                  <>
+                    {!showAllPosts && latestPost && (
+                      <button
+                        onClick={() => handleDeletePost(latestPost.id)}
+                        disabled={deletingPostId === latestPost.id}
+                        className="px-3 py-1.5 text-sm rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60"
+                      >
+                        {deletingPostId === latestPost.id ? 'Deleting…' : 'Delete Post'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { resetPostForm(); setAddPostOpen(true); }}
+                      className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"
+                    >
+                      <AddCircleOutlineIcon fontSize="small"/>Add Post
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {postsLoading ? (
+              <div className="text-sm text-gray-500">Loading recent posts…</div>
+            ) : !latestPost ? (
+              <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center text-sm text-gray-500">
+                {isOwner ? (
+                  <div className="space-y-3">
+                    <p>Add your favorite links, updates, or embeds to showcase your work.</p>
+                    <button
+                      onClick={() => { resetPostForm(); setAddPostOpen(true); }}
+                      className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                    >
+                      <AddCircleOutlineIcon fontSize="inherit"/>Share your first link
+                    </button>
+                  </div>
+                ) : (
+                  <p>{creator?.full_name} hasn’t shared anything yet.</p>
+                )}
+              </div>
+            ) : showAllPosts ? (
+              <div className="grid gap-6 md:grid-cols-3">
+                {posts.map((post) => {
+                  const entry = buildActivityEntryFromPost(post);
+                  return (
+                    <article key={post.id} className="rounded-xl border bg-gray-50 p-3 space-y-2">
+                      <div className="flex items-center justify-between text-[11px] text-gray-500">
+                        <span className="inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 capitalize text-gray-700">{post.post_type}</span>
+                        <div className="flex items-center gap-2">
+                          <span>{new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                          {isOwner && (
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              disabled={deletingPostId === post.id}
+                              className="px-2 py-0.5 rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60"
+                            >
+                              {deletingPostId === post.id ? 'Deleting…' : 'Delete'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-sm font-semibold line-clamp-2">{entry.title}</div>
+                      {post.post_type === 'image' && entry.imageUrl && (
+                        <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+                          <Image src={entry.imageUrl} alt={entry.title} fill className="object-cover" sizes="200px" />
+                        </div>
+                      )}
+                      {post.post_type === 'video' && entry.embedUrl && (
+                        <div className="aspect-video overflow-hidden rounded-lg bg-black/5">
+                          <iframe
+                            src={entry.embedUrl}
+                            className="h-full w-full"
+                            frameBorder={0}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+                      {post.post_type === 'text' && entry.extra && (
+                        <p className="text-xs text-gray-600 line-clamp-4 whitespace-pre-line">{entry.extra}</p>
+                      )}
+                      {entry.link && (
+                        <a href={entry.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline break-words">
+                          <LinkIcon className="h-3 w-3"/>{entry.link}
+                        </a>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-3">
+                <div className="md:col-span-2 space-y-3">
+                  {latestPost.post_type === 'video' && latestPostEntry?.embedUrl && (
+                    <div className="aspect-video overflow-hidden rounded-xl bg-black/5">
+                      <iframe
+                        src={latestPostEntry.embedUrl}
+                        className="h-full w-full"
+                        frameBorder={0}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                  {latestPost.post_type === 'image' && latestPost.media_url && (
+                    <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
+                      <Image src={latestPost.media_url} alt={latestPostEntry?.title || 'Creator post'} fill className="object-cover" sizes="(min-width: 768px) 60vw, 100vw" />
+                    </div>
+                  )}
+                  {latestPost.post_type === 'text' && latestPostEntry?.extra && (
+                    <div className="rounded-xl border bg-gray-50 p-4 text-sm text-gray-700 whitespace-pre-line">
+                      {latestPostEntry.extra}
+                    </div>
+                  )}
+                  {latestPost.post_type !== 'text' && latestPostEntry?.extra && (
+                    <p className="text-sm text-gray-700 whitespace-pre-line">{latestPostEntry.extra}</p>
+                  )}
+                  {latestPost.link_url && (
+                    <a
+                      href={latestPost.link_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline break-words"
+                    >
+                      <LinkIcon className="h-4 w-4"/>{latestPost.link_url}
+                    </a>
+                  )}
+                  {latestPost.tags && latestPost.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {latestPost.tags.map((tag) => (
+                        <span key={tag} className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">#{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  {secondaryPostEntries.length === 0 ? (
+                    <div className="rounded-xl border bg-gray-50 p-4 text-sm text-gray-500">No other links yet.</div>
+                  ) : (
+                    secondaryPostEntries.map(({ post, entry }) => (
+                      <article key={post.id} className="rounded-xl border bg-gray-50 p-3 space-y-2">
+                        <div className="flex items-center justify-between text-[11px] text-gray-500">
+                          <span className="inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 capitalize text-gray-700">{post.post_type}</span>
+                          <div className="flex items-center gap-2">
+                            <span>{new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                            {isOwner && (
+                              <button
+                                onClick={() => handleDeletePost(post.id)}
+                                disabled={deletingPostId === post.id}
+                                className="px-2 py-0.5 rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60"
+                              >
+                                {deletingPostId === post.id ? 'Deleting…' : 'Delete'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold line-clamp-2">{entry.title}</div>
+                        {post.post_type === 'image' && entry.imageUrl && (
+                          <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+                            <Image src={entry.imageUrl} alt={entry.title} fill className="object-cover" sizes="200px" />
+                          </div>
+                        )}
+                        {post.post_type === 'video' && entry.embedUrl && (
+                          <div className="aspect-video overflow-hidden rounded-lg bg-black/5">
+                            <iframe
+                              src={entry.embedUrl}
+                              className="h-full w-full"
+                              frameBorder={0}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
+                          </div>
+                        )}
+                        {post.post_type === 'text' && entry.extra && (
+                          <p className="text-xs text-gray-600 line-clamp-4 whitespace-pre-line">{entry.extra}</p>
+                        )}
+                        {entry.link && (
+                          <a href={entry.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline break-words">
+                            <LinkIcon className="h-3 w-3"/>{entry.link}
+                          </a>
+                        )}
+                      </article>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        )
+      default:
+        return null
+    }
+  }
+
+  // Load creator posts for the Links section
+  useEffect(() => {
+    if (!creator) return;
+    let cancelled = false;
+    setPostsLoading(true);
+    (async () => {
+      try {
+        const postsData = await fetchCreatorPosts(creator.id, 18);
+        if (!cancelled) setPosts(postsData);
+      } catch (e) {
+        if (!cancelled) {
+          console.warn('Posts load failed', e);
+          setPosts([]);
+        }
+      } finally {
+        if (!cancelled) setPostsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [creator, buildActivityEntryFromPost]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600">Loading…</div>;
-  if (!creator) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow text-center">
-        <UserCircleIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h1 className="text-xl font-semibold mb-2">Creator not found</h1>
-        <a href="/" className="text-blue-600 hover:underline inline-flex items-center gap-1">Return home <ArrowTopRightOnSquareIcon className="h-4 w-4"/></a>
-      </div>
-    </div>
-  );
+  if (!creator) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600">Creator not found.</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ToastContainer toasts={toasts} onClose={removeToast} />
-      {/* Cover Section */}
-      <div className="relative h-72 w-full bg-gray-200 group overflow-hidden">
+      <div className="relative h-80 w-full bg-gray-200 overflow-hidden group">
         {creator.background_image ? (
-          <img src={creator.background_image} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
+          <Image
+            src={creator.background_image}
+            alt="Cover"
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
+          />
         ) : (
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse" />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse" />
         )}
         {isOwner && (
           <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -363,7 +1138,13 @@ export default function CreatorPage() {
           <div className="relative w-40 shrink-0">
             <div className="relative w-40 h-40 rounded-full overflow-hidden ring-4 ring-white shadow-lg flex items-center justify-center bg-gray-100 group/avatar">
               {creator.avatar_url ? (
-                <img src={creator.avatar_url} alt={creator.full_name} className="w-full h-full object-cover" />
+                <Image
+                  src={creator.avatar_url}
+                  alt={creator.full_name}
+                  fill
+                  className="object-cover"
+                  sizes="160px"
+                />
               ) : (
                 <UserCircleIcon className="h-28 w-28 text-gray-300" />
               )}
@@ -384,21 +1165,13 @@ export default function CreatorPage() {
             <SocialIconsBar links={creator.social_links} className="mb-6" />
             <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
               {creator.location && <span className="flex items-center gap-1"><MapPinIcon className="h-4 w-4"/> {creator.location}</span>}
-              <span>Joined {new Date(creator.created_at).toLocaleDateString(undefined,{ month:'long', year:'numeric'})}</span>
+              <span>Joined {new Date(creator.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric'})}</span>
               {creator.website && <a href={creator.website} target="_blank" className="text-blue-600 hover:underline inline-flex items-center gap-1"><LinkIcon className="h-4 w-4"/>Website</a>}
             </div>
             <div className="flex gap-10 mb-6">
               <div>
-                <div className="text-xl font-semibold">{creator.followers?.toLocaleString()}</div>
-                <div className="text-xs uppercase tracking-wide text-gray-500">Followers</div>
-              </div>
-              <div>
-                <div className="text-xl font-semibold">{creator.following?.toLocaleString()}</div>
-                <div className="text-xs uppercase tracking-wide text-gray-500">Following</div>
-              </div>
-              <div>
                 <div className="text-xl font-semibold">{creator.totalProducts}</div>
-                <div className="text-xs uppercase tracking-wide text-gray-500">Products</div>
+                <div className="text-xs uppercase tracking-wide text-gray-500">Live Products</div>
               </div>
             </div>
             <div className="flex gap-3">
@@ -430,147 +1203,11 @@ export default function CreatorPage() {
           </div>
         </div>
       </div>
-      {/* Footer social icons duplication (optional) */}
-      <div className="max-w-6xl mx-auto px-6 mt-8 pb-10">
-        <SocialIconsBar links={creator.social_links} className="justify-center" />
-      </div>
   {moreOpen && <div onClick={()=>setMoreOpen(false)} className="fixed inset-0 z-10" aria-hidden="true" />}
 
       {/* Main Content Sections */}
       <div className="max-w-6xl mx-auto px-6 mt-10 space-y-10 pb-24">
-        {/* Featured Products */}
-  <section className="bg-white rounded-2xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">Featured Products <span className="text-sm text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{creator.totalProducts}</span></h2>
-            <div className="flex gap-2">
-              <button className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50 inline-flex items-center gap-1">View All</button>
-                {isOwner && (
-                  <button onClick={()=>setAddProductOpen(true)} className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"><AddCircleOutlineIcon fontSize="small"/>Add Product</button>
-                )}
-            </div>
-          </div>
-          <div className="grid gap-5 md:grid-cols-3">
-            {creator.products.slice(0,3).map(p => {
-              const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
-              const videos = Array.isArray(p.videos) ? p.videos.filter(Boolean) : [];
-              const features = Array.isArray(p.features) ? p.features.filter(Boolean) : [];
-              const hasVideo = videos.length > 0;
-              const imageCount = images.length;
-              const featureCount = features.length;
-              const price = (typeof p.base_price === 'number' && p.base_price >= 0) ? p.base_price : undefined;
-              return (
-  <Link href={`/product/${p.id}`} key={p.id} prefetch className="group border rounded-xl overflow-hidden bg-white hover:shadow-md transition relative block">
-                  <div className="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 text-xs overflow-hidden">
-                    {imageCount > 0 ? (
-          <img src={images[0]} alt={p.title} className="w-full h-full object-cover" />
-                    ) : (
-          <span className="text-gray-400">No media yet</span>
-                    )}
-                    <button type="button" onClick={(e)=>{e.preventDefault(); setShareProduct({ url: `${window.location.origin}/product/${p.id}`, title: p.title });}}
-                      className="absolute right-2 top-2 bg-white/90 hover:bg-white text-gray-700 rounded-full px-2.5 py-1 text-xs shadow">
-                      Share
-                    </button>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold mb-1 line-clamp-1">{p.title}</h3>
-                    <p className="text-xs text-gray-500 line-clamp-2 mb-2">{p.description}</p>
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex gap-1 flex-wrap">
-                        {hasVideo && (
-                          <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><PlayCircleIcon className="h-3 w-3"/>Video</span>
-                        )}
-                        {imageCount > 1 && (
-                          <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><StarIcon fontSize="inherit" style={{fontSize:'12px'}}/>{imageCount} Images</span>
-                        )}
-                        {featureCount > 0 && (
-                          <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><StarIcon fontSize="inherit" style={{fontSize:'12px'}}/>{featureCount} Feature{featureCount>1?'s':''}</span>
-                        )}
-                        {!hasVideo && imageCount <= 1 && featureCount === 0 && (
-                          <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full inline-flex items-center gap-1">Basic</span>
-                        )}
-                      </div>
-                      <span className="font-semibold text-blue-600">{price !== undefined ? `$${price}` : 'Free'}</span>
-                    </div>
-                  </div>
-  </Link>
-              );
-            })}
-            {creator.products.length === 0 && <p className="text-sm text-gray-500">No products yet.</p>}
-          </div>
-          {shareProduct && (
-            <ShareModal isOpen={!!shareProduct} onClose={()=>setShareProduct(null)} url={shareProduct.url} title={shareProduct.title} />
-          )}
-        </section>
-
-        {/* Reviews Slider Placeholder */}
-  <section className="bg-white rounded-2xl shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Client Reviews</h2>
-          <ReviewsSlider creatorId={creator.id} />
-        </section>
-
-        {/* Video Section */}
-  <section className="bg-white rounded-2xl shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Latest Video</h2>
-          {(() => {
-            // Attempt to derive a YouTube video id from social_links (e.g., full URL) or use fallback demo
-            const yt = creator.social_links?.youtube || creator.social_links?.YouTube || '';
-            let videoId = '';
-            if (yt) {
-              const match = yt.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
-              if (match) videoId = match[1];
-              else if (/^[A-Za-z0-9_-]{6,}$/.test(yt)) videoId = yt; // already id
-            }
-            if (!videoId) videoId = 'dQw4w9WgXcQ'; // fallback placeholder
-            return <YouTubeEmbed videoId={videoId} title="Featured Video" className="p-0" />;
-          })()}
-        </section>
-
-        {/* Recent Activity Feed */}
-        <section className="bg-white rounded-2xl shadow-sm border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">Recent Activity <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Live</span></h2>
-            {isOwner && (
-              <button onClick={()=>setAddPostOpen(true)} className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"><AddCircleOutlineIcon fontSize="small"/>Add Post</button>
-            )}
-          </div>
-          {activityLoading ? (
-            <div className="text-sm text-gray-500">Loading activity…</div>
-          ) : recentActivity.length === 0 ? (
-            <div className="text-sm text-gray-500">No recent activity.</div>
-          ) : (
-            <ul className="grid md:grid-cols-3 gap-4">
-              {recentActivity.map(a => (
-                <li key={a.id} className="p-4 rounded-xl border bg-gray-50 flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className={`px-2 py-0.5 rounded-full font-medium ${a.type==='product' ? 'bg-blue-100 text-blue-700' : a.type==='review' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>{a.type==='product'?'Product': a.type==='review' ? 'Review' : 'Post'}</span>
-                    <span className="text-gray-500">{new Date(a.created_at).toLocaleDateString(undefined,{month:'short', day:'numeric'})}</span>
-                  </div>
-                  <div className="text-sm font-semibold line-clamp-2">{a.title}</div>
-                  {a.extra && <p className="text-xs text-gray-600 line-clamp-3 whitespace-pre-line">{a.extra}</p>}
-                  {/* Render YT embed for posts with video */}
-                  {a.type==='post' && a.videoId && (
-                    <div className="aspect-video rounded-md overflow-hidden bg-black/5">
-                      <iframe
-                        src={`https://www.youtube.com/embed/${a.videoId}`}
-                        className="w-full h-full"
-                        frameBorder={0}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  )}
-                  {a.tags && a.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {a.tags.slice(0,4).map(t=> <span key={t} className="text-[10px] px-2 py-0.5 bg-gray-200 rounded-full text-gray-700">{t}</span>)}
-                    </div>
-                  )}
-                  {a.link && <a href={a.link} target="_blank" className="text-[11px] text-blue-600 hover:underline break-all">{a.link}</a>}
-                  {a.videoId && a.type!=='post' && <span className="text-[10px] text-red-600 font-medium">Video • {a.videoId}</span>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        {sectionOrder.map((sectionId) => renderSection(sectionId))}
       </div>
       {/* Add Product Modal */}
   {isOwner && addProductOpen && (
@@ -578,7 +1215,7 @@ export default function CreatorPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold flex items-center gap-2"><AddCircleOutlineIcon fontSize="small"/> Create New Product</h3>
-              <button onClick={()=>setAddProductOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+              <button onClick={()=>{setAddProductOpen(false); setMediaFiles([]); setDeliveryFiles([]);}} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
             </div>
             <div className="grid md:grid-cols-3 gap-3">
               {productTypes.map(pt => (
@@ -677,6 +1314,40 @@ export default function CreatorPage() {
                 <label className="block text-xs font-medium text-gray-600 mb-1">Tags (comma separated)</label>
                 <input value={productExtras.tags} onChange={e=>setProductExtras(x=>({...x,tags:e.target.value}))} placeholder="branding, logo, design" className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
+              {(selectedType==='digital' || selectedType==='course') && (
+                <div className="border rounded-xl p-4 bg-gray-50 space-y-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600">Deliverable Files</label>
+                      <p className="text-[11px] text-gray-500">Attach PDFs, ZIPs, or resources that buyers get instantly after payment.</p>
+                    </div>
+                    <label className="cursor-pointer text-sm font-medium text-blue-600 hover:underline whitespace-nowrap">
+                      Upload files
+                      <input type="file" multiple className="hidden" onChange={handleDeliveryFileInput} />
+                    </label>
+                  </div>
+                  {deliveryFiles.length > 0 ? (
+                    <ul className="space-y-2 max-h-36 overflow-auto text-xs">
+                      {deliveryFiles.map((file, idx) => (
+                        <li key={`${file.name}-${idx}`} className="flex items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2">
+                          <div className="flex-1 truncate pr-2">
+                            <p className="font-medium truncate">{file.name}</p>
+                            <p className="text-[11px] text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+                          </div>
+                          <button type="button" onClick={()=>handleRemoveDeliveryFile(idx)} className="text-[11px] text-red-600 hover:underline">Remove</button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-gray-500">No files selected yet.</p>
+                  )}
+                  {deliveryFiles.length > 0 && (
+                    <div className="text-right">
+                      <button type="button" onClick={()=>setDeliveryFiles([])} className="text-xs text-red-600 hover:underline">Clear all</button>
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Digital product specific */}
               {selectedType==='digital' && (
                 <div className="grid md:grid-cols-3 gap-4">
@@ -736,6 +1407,20 @@ export default function CreatorPage() {
                     <label className="block text-xs font-medium text-gray-600 mb-1">Curriculum Outline</label>
                     <textarea value={productExtras.courseCurriculum} onChange={e=>setProductExtras(x=>({...x,courseCurriculum:e.target.value}))} placeholder="Module 1: ...\nModule 2: ..." className="w-full border rounded-lg px-3 py-2 text-sm h-28" />
                   </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Course Access Links</label>
+                      <textarea value={productExtras.courseAccessLinks} onChange={e=>setProductExtras(x=>({...x,courseAccessLinks:e.target.value}))} placeholder="https://portal.example.com/class\nhttps://community.example.com" className="w-full border rounded-lg px-3 py-2 text-sm h-28" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Passkeys / Codes</label>
+                      <textarea value={productExtras.coursePasskeys} onChange={e=>setProductExtras(x=>({...x,coursePasskeys:e.target.value}))} placeholder="Batch-2025-Key\nVIP-ACCESS-123" className="w-full border rounded-lg px-3 py-2 text-sm h-28" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Access Notes</label>
+                    <textarea value={productExtras.courseAccessNotes} onChange={e=>setProductExtras(x=>({...x,courseAccessNotes:e.target.value}))} placeholder="Share how learners unlock the content or who to contact for support." className="w-full border rounded-lg px-3 py-2 text-sm h-24" />
+                  </div>
                 </div>
               )}
               <div className="border-t border-gray-100 pt-4">
@@ -763,7 +1448,7 @@ export default function CreatorPage() {
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">
-              <button onClick={()=>{setAddProductOpen(false); setAutoMessageEnabled(false); setAutoMessage('');}} className="px-4 py-2 text-sm rounded-lg border">Cancel</button>
+              <button onClick={()=>{setAddProductOpen(false); setAutoMessageEnabled(false); setAutoMessage(''); setMediaFiles([]); setDeliveryFiles([]);}} className="px-4 py-2 text-sm rounded-lg border">Cancel</button>
               <button disabled={savingProduct || !newProduct.title} onClick={async ()=>{
                 if (!creator || !newProduct.title) return;
                 setSavingProduct(true);
@@ -821,12 +1506,58 @@ export default function CreatorPage() {
                     imageUrls = results.filter(Boolean) as string[];
                     setUploadingCount(0);
                   }
-                  const insertPayload: any = {
+                  let digitalAssets: ProductDigitalAsset[] = [];
+                  let digitalUploadFailed = false;
+                  if ((selectedType === 'digital' || selectedType === 'course') && deliveryFiles.length) {
+                    const digitalTasks = deliveryFiles.map(async (file, idx) => {
+                      try {
+                        const stamp = Date.now() + idx;
+                        const rand = Math.random().toString(36).slice(2, 8);
+                        const path = `${creator.id}/${slug}/files/${stamp}-${rand}-${encodeURIComponent(file.name)}`;
+                        const bucket = 'digital-products';
+                        const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+                        if (upErr) throw upErr;
+                        const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
+                        return {
+                          name: file.name,
+                          url: `${pub.publicUrl}?v=${stamp}`,
+                          size: file.size,
+                          type: file.type || undefined
+                        } satisfies ProductDigitalAsset;
+                      } catch (digitalErr) {
+                        console.warn('Digital deliverable upload failed', digitalErr);
+                        if (!digitalUploadFailed) {
+                          pushToast({ type: 'error', title: 'Attachment upload skipped', message: 'Unable to upload one of the deliverable files. The rest will continue.' });
+                          digitalUploadFailed = true;
+                        }
+                        return null;
+                      }
+                    });
+                    const uploadedAssets = await Promise.all(digitalTasks);
+                    digitalAssets = uploadedAssets.filter(Boolean) as ProductDigitalAsset[];
+                  }
+
+                  let courseDeliveryPayload: CourseDeliveryPayload | null = null;
+                  if (selectedType === 'course') {
+                    const linkList = productExtras.courseAccessLinks.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+                    const passkeyList = productExtras.coursePasskeys.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+                    const notes = productExtras.courseAccessNotes.trim();
+                    if (linkList.length || passkeyList.length || notes) {
+                      courseDeliveryPayload = {
+                        links: linkList.length ? linkList : undefined,
+                        passkeys: passkeyList.length ? passkeyList : undefined,
+                        notes: notes || undefined
+                      };
+                    }
+                  }
+
+                  const resolvedPrice = Number.isFinite(priceNum) ? priceNum : 0;
+                  const insertPayload: NewProductInsert = {
                     title: newProduct.title,
                     description: newProduct.description,
-                    base_price: isNaN(priceNum)? 0 : priceNum,
+                    base_price: resolvedPrice,
                     creator_id: creator.id,
-                    type: typeMapping[selectedType] || 'product',
+                    type: typeMapping[selectedType] ?? 'product',
                     slug,
                     features: featureLines,
                     requirements,
@@ -835,47 +1566,80 @@ export default function CreatorPage() {
                     images: imageUrls,
                     auto_message_enabled: autoMessageEnabled,
                     auto_message: autoMessageEnabled ? autoMessage : null,
-                    status: 'active'
+                    status: 'active',
+                    digital_files: digitalAssets.length ? digitalAssets : null,
+                    course_delivery: courseDeliveryPayload,
+                    auto_deliver: selectedType === 'digital' || selectedType === 'course',
+                    is_digital: selectedType === 'digital'
                   };
-                  const { data, error } = await supabase.from('products').insert(insertPayload).select('id,created_at,features,requirements,tags,videos');
-                  if (!error && data) insertedId = (Array.isArray(data) ? data[0]?.id : (data as any)?.id) || insertedId;
-                  const created_at = (Array.isArray(data)? data[0]?.created_at : (data as any)?.created_at) || new Date().toISOString();
-                  // Create a default package so the product has a buy option immediately
-                  try {
-                    const defaultPkg = {
-                      product_id: insertedId,
-                      name: 'Standard',
-                      description: newProduct.description?.slice(0,160) || 'Standard package',
-                      price: isNaN(priceNum)? 0 : priceNum,
-                      delivery_time: 3,
-                      revisions: 1,
-                      features: (Array.isArray((Array.isArray(data)? data[0]?.features : (data as any)?.features))
-                        ? (Array.isArray(data)? data[0]?.features : (data as any)?.features)
-                        : featureLines),
-                      sort_order: 1
-                    } as any;
-                    await supabase.from('product_packages').insert(defaultPkg);
-                  } catch (e) {
-                    console.warn('Default package create failed', e);
+                  const { data, error } = await supabase
+                    .from('products')
+                    .insert(insertPayload)
+                    .select('id,created_at,features,requirements,tags,videos,images');
+                  if (error) throw error;
+                  const insertedRowCandidate: unknown = Array.isArray(data) ? data[0] : data;
+                  const insertedRow = isProductInsertRow(insertedRowCandidate) ? insertedRowCandidate : null;
+                  if (insertedRow) {
+                    insertedId = insertedRow.id;
                   }
-                  const productObj = {
+                  const created_at = insertedRow?.created_at ?? new Date().toISOString();
+                  const resolvedFeatures = insertedRow?.features ?? featureLines;
+                  const resolvedVideos = insertedRow?.videos ?? (videoId ? [videoId] : []);
+                  const resolvedImages = imageUrls.length > 0 ? imageUrls : (insertedRow?.images ?? []);
+                  if (!insertedId.startsWith('local-')) {
+                    try {
+                      const defaultPackage: ProductPackageInsert = {
+                        product_id: insertedId,
+                        name: 'Standard',
+                        description: newProduct.description?.slice(0, 160) || 'Standard package',
+                        price: resolvedPrice,
+                        delivery_time: 3,
+                        revisions: 1,
+                        features: resolvedFeatures,
+                        sort_order: 1
+                      };
+                      await supabase.from('product_packages').insert(defaultPackage);
+                    } catch (packageError) {
+                      console.warn('Default package create failed', packageError);
+                    }
+                  }
+                  const productObj: Product = {
                     id: insertedId,
                     title: newProduct.title,
                     description: newProduct.description,
                     created_at,
-                    images: imageUrls,
-                    videos: (Array.isArray(data)? data[0]?.videos : (data as any)?.videos) || (videoId?[videoId]:[]),
-                    features: (Array.isArray(data)? data[0]?.features : (data as any)?.features) || featureLines,
-                    base_price: isNaN(priceNum)? undefined: priceNum,
+                    images: resolvedImages,
+                    videos: resolvedVideos,
+                    features: resolvedFeatures,
+                    base_price: Number.isFinite(priceNum) ? priceNum : undefined,
                     auto_message_enabled: autoMessageEnabled,
                     auto_message: autoMessageEnabled ? autoMessage : null
                   };
                   setCreator(prev => prev ? { ...prev, products: [productObj, ...prev.products], totalProducts: prev.totalProducts + 1 } : prev);
                   setNewProduct({ title:'', description:'', price:'' });
-                  setProductExtras({ videoUrl:'', externalUrl:'', tags:'', fileFormat:'', downloadUrl:'', fileSize:'', licenseType:'', consultationDuration:'', consultationMethod:'', consultationAvailability:'', courseModules:'', courseHours:'', courseCurriculum:'', courseLevel:'' });
+                  setProductExtras({
+                    videoUrl:'',
+                    externalUrl:'',
+                    tags:'',
+                    fileFormat:'',
+                    downloadUrl:'',
+                    fileSize:'',
+                    licenseType:'',
+                    consultationDuration:'',
+                    consultationMethod:'',
+                    consultationAvailability:'',
+                    courseModules:'',
+                    courseHours:'',
+                    courseCurriculum:'',
+                    courseLevel:'',
+                    courseAccessLinks:'',
+                    coursePasskeys:'',
+                    courseAccessNotes:''
+                  });
                   setAutoMessageEnabled(false);
                   setAutoMessage('');
                   setMediaFiles([]);
+                  setDeliveryFiles([]);
                   setAddProductOpen(false);
                 } catch(e){ console.warn('Add product failed', e); }
                 finally { setSavingProduct(false);} 
@@ -894,7 +1658,17 @@ export default function CreatorPage() {
             </div>
             <div className="flex flex-col items-center text-center -mt-8">
               <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-white shadow mb-3 bg-gray-100 flex items-center justify-center">
-                {creator.avatar_url ? <img src={creator.avatar_url} alt={creator.full_name} className="w-full h-full object-cover"/> : <UserCircleIcon className="h-12 w-12 text-gray-300"/>}
+                {creator.avatar_url ? (
+                  <Image
+                    src={creator.avatar_url}
+                    alt={creator.full_name}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                  />
+                ) : (
+                  <UserCircleIcon className="h-12 w-12 text-gray-300"/>
+                )}
               </div>
               <h3 className="font-semibold mb-2">Subscribe to {creator.username}</h3>
               <form onSubmit={async e=>{e.preventDefault(); if(!subscribeEmail) return; setSubscribing(true); try { await supabase.from('newsletter_subscriptions').insert({ creator_id: creator.id, email: subscribeEmail, source: 'creator_profile' }); setSubscribeEmail(''); setSubscribeOpen(false); } catch(err){ console.warn('Subscribe failed', err);} finally { setSubscribing(false);} }} className="w-full flex rounded-lg overflow-hidden border focus-within:ring-2 focus-within:ring-blue-500">
@@ -957,11 +1731,23 @@ export default function CreatorPage() {
             <div className="flex justify-end gap-2">
               <button onClick={()=>setSettingsOpen(false)} className="px-4 py-2 text-sm rounded-lg border">Cancel</button>
               <button onClick={async ()=>{
-                const social = {
-                  twitter: settings.twitter, instagram: settings.instagram, youtube: settings.youtube,
-                  facebook: settings.facebook, linkedin: settings.linkedin
-                } as any;
-                const updates:any = { bio: settings.bio, website: settings.website, location: settings.location, social_links: social };
+                const socialEntries = {
+                  twitter: settings.twitter,
+                  instagram: settings.instagram,
+                  youtube: settings.youtube,
+                  facebook: settings.facebook,
+                  linkedin: settings.linkedin,
+                };
+                const socialLinks = Object.entries(socialEntries).reduce<Record<string, string>>((acc, [key, value]) => {
+                  if (value) acc[key] = value;
+                  return acc;
+                }, {});
+                const updates: CreatorProfileUpdate = {
+                  bio: settings.bio,
+                  website: settings.website,
+                  location: settings.location,
+                  social_links: socialLinks,
+                };
                 const { error } = await supabase.from('users').update(updates).eq('id', creator.id);
                 if (!error) {
                   setCreator(prev=> prev? { ...prev, ...updates }: prev);
@@ -974,34 +1760,133 @@ export default function CreatorPage() {
         </div>
       )}
       {/* Add Post Modal */}
-  {isOwner && addPostOpen && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50 overflow-y-auto py-10">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold">Add Post / Update</h3>
-              <button onClick={()=>setAddPostOpen(false)} className="text-gray-500 hover:text-gray-700 text-xl leading-none">×</button>
-            </div>
-            <input value={newPostTitle} onChange={e=>setNewPostTitle(e.target.value)} placeholder="Title *" className="w-full border rounded px-3 py-2 text-sm" />
-            <textarea value={newPostBody} onChange={e=>setNewPostBody(e.target.value)} placeholder="Body / Content" className="w-full border rounded px-3 py-2 text-sm h-40" />
-            <div className="grid md:grid-cols-2 gap-4">
+      {isOwner && addPostOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur flex items-start justify-center z-50 overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-5">
+            <div className="flex items-center justify-between">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Link (optional)</label>
-                <input value={newPostLink} onChange={e=>setNewPostLink(e.target.value)} placeholder="https://..." className="w-full border rounded px-3 py-2 text-sm" />
+                <h3 className="text-lg font-semibold">Share a new post</h3>
+                <p className="text-xs text-gray-500">Drop a quick update, image, or video for your audience.</p>
               </div>
+              <button type="button" onClick={closePostModal} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              {(['text', 'image', 'video'] as CreatorPost['post_type'][]).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => handlePostTypeSelection(type)}
+                  className={`rounded-lg border px-3 py-2 font-medium capitalize transition ${postType === type ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'}`}
+                  disabled={postSubmitting}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handlePostSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">YouTube Video</label>
-                <input value={newPostVideo} onChange={e=>setNewPostVideo(e.target.value)} placeholder="URL or ID" className="w-full border rounded px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-gray-600 mb-1">Caption</label>
+                <textarea
+                  value={postCaption}
+                  onChange={(e) => setPostCaption(e.target.value)}
+                  rows={4}
+                  placeholder={postType === 'text' ? 'Tell your audience what’s new…' : 'Add a caption'}
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={postSubmitting}
+                />
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Tags (comma)</label>
-              <input value={newPostTags} onChange={e=>setNewPostTags(e.target.value)} placeholder="update, launch" className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div className="flex justify-end gap-2 pt-1">
-              <button onClick={()=>setAddPostOpen(false)} className="px-3 py-2 text-sm rounded border">Cancel</button>
-              <button onClick={()=>{ if(!newPostTitle) return; const tags=newPostTags.split(',').map(t=>t.trim()).filter(Boolean); const match = newPostVideo.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/) || newPostVideo.match(/^([A-Za-z0-9_-]{6,})$/); const vid= match? match[1]: undefined; const act={ id:`post-${Date.now()}`, type:'post' as const, created_at:new Date().toISOString(), title:newPostTitle, extra:newPostBody.slice(0,160), tags, link:newPostLink||undefined, videoId:vid}; setRecentActivity(prev=>[act,...prev].slice(0,9)); setNewPostTitle(''); setNewPostBody(''); setNewPostLink(''); setNewPostVideo(''); setNewPostTags(''); setAddPostOpen(false); }} className="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">Publish</button>
-            </div>
-            <p className="text-[11px] text-gray-400">Posts are in-memory only right now – persist to a posts table later.</p>
+
+              {postType === 'video' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Video link</label>
+                  <input
+                    value={postVideoUrl}
+                    onChange={(e) => setPostVideoUrl(e.target.value)}
+                    placeholder="YouTube or Vimeo link"
+                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={postSubmitting}
+                  />
+                  <p className="mt-1 text-[11px] text-gray-500">We support public YouTube and Vimeo links.</p>
+                </div>
+              )}
+
+              {postType === 'image' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs text-gray-600">
+                    <span>Image</span>
+                    {postImagePreview && (
+                      <button
+                        type="button"
+                        className="text-red-500 hover:underline"
+                        onClick={() => {
+                          setPostImageFile(null);
+                          setPostImagePreview((prev) => {
+                            if (prev) URL.revokeObjectURL(prev);
+                            return null;
+                          });
+                        }}
+                        disabled={postSubmitting}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  {postImagePreview ? (
+                    <div className="relative aspect-square overflow-hidden rounded-xl border">
+                      <Image src={postImagePreview} alt="Post preview" fill className="object-cover" sizes="(min-width: 768px) 400px, 90vw" />
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-10 text-sm text-gray-500 cursor-pointer hover:bg-gray-100">
+                      <span>Tap to upload</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePostImageInput}
+                        disabled={postSubmitting}
+                      />
+                    </label>
+                  )}
+                  <p className="text-[11px] text-gray-500">High-res photos work best. We compress to keep loading fast.</p>
+                </div>
+              )}
+
+              <div className="grid gap-3 text-sm md:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Optional link</label>
+                  <input
+                    value={postLinkUrl}
+                    onChange={(e) => setPostLinkUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={postSubmitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Tags</label>
+                  <input
+                    value={postTags}
+                    onChange={(e) => setPostTags(e.target.value)}
+                    placeholder="launch, behind-the-scenes"
+                    className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={postSubmitting}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={closePostModal} className="px-4 py-2 text-sm rounded-lg border" disabled={postSubmitting}>Cancel</button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+                  disabled={postSubmitting || (postType === 'image' && !postImageFile)}
+                >
+                  {postSubmitting ? 'Publishing…' : 'Publish' }
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

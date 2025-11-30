@@ -6,6 +6,14 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholde
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+const extractStorageReference = (url: string | null | undefined): { bucket: string; path: string } | null => {
+  if (!url) return null
+  const cleanUrl = url.split('?')[0]
+  const match = cleanUrl.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/)
+  if (!match) return null
+  return { bucket: match[1], path: match[2] }
+}
+
 // Types
 export interface User {
   id: string
@@ -21,6 +29,19 @@ export interface User {
   updated_at: string
 }
 
+export interface ProductDigitalAsset {
+  name?: string | null
+  url: string
+  size?: number | null
+  type?: string | null
+}
+
+export interface CourseDeliveryPayload {
+  links?: string[] | null
+  passkeys?: string[] | null
+  notes?: string | null
+}
+
 export interface Product {
   id: string
   title: string
@@ -34,11 +55,33 @@ export interface Product {
   tags: string[]
   featured: boolean
   status: 'active' | 'inactive' | 'draft'
+  rating?: number
+  reviews_count?: number
   created_at: string
   updated_at: string
   creator?: User
   packages?: ProductPackage[]
   category?: Category
+  is_digital?: boolean | null
+  auto_deliver?: boolean | null
+  digital_files?: ProductDigitalAsset[] | null
+  course_delivery?: CourseDeliveryPayload | null
+}
+
+export interface CreatorPost {
+  id: string
+  creator_id: string
+  caption?: string | null
+  post_type: 'text' | 'image' | 'video'
+  media_url?: string | null
+  video_url?: string | null
+  video_provider?: string | null
+  video_id?: string | null
+  link_url?: string | null
+  tags?: string[] | null
+  is_public: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface ProductPackage {
@@ -328,6 +371,105 @@ export const getUserOrders = async (
   }
 }
 
+export const fetchCreatorPosts = async (creatorId: string, limit = 12): Promise<CreatorPost[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('creator_posts')
+      .select('*')
+      .eq('creator_id', creatorId)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) throw error
+    return (data as CreatorPost[]) || []
+  } catch (error) {
+    console.error('Error fetching creator posts:', error)
+    return []
+  }
+}
+
+export const createCreatorPost = async (payload: {
+  creator_id: string
+  caption?: string | null
+  post_type: CreatorPost['post_type']
+  media_url?: string | null
+  video_url?: string | null
+  video_provider?: string | null
+  video_id?: string | null
+  link_url?: string | null
+  tags?: string[]
+  is_public?: boolean
+}): Promise<CreatorPost | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('creator_posts')
+      .insert({
+        creator_id: payload.creator_id,
+        caption: payload.caption ?? null,
+        post_type: payload.post_type,
+        media_url: payload.media_url ?? null,
+        video_url: payload.video_url ?? null,
+        video_provider: payload.video_provider ?? null,
+        video_id: payload.video_id ?? null,
+        link_url: payload.link_url ?? null,
+        tags: payload.tags ?? [],
+        is_public: payload.is_public ?? true
+      })
+      .select('*')
+      .single()
+    if (error) throw error
+    return data as CreatorPost
+  } catch (error) {
+    console.error('Error creating creator post:', error)
+    return null
+  }
+}
+
+export const deleteCreatorPost = async (creatorId: string, postId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('creator_posts')
+      .delete()
+      .eq('id', postId)
+      .eq('creator_id', creatorId)
+      .select('media_url')
+      .single()
+
+    if (error) throw error
+
+    if (data?.media_url) {
+      const ref = extractStorageReference(data.media_url)
+      if (ref) {
+        const { error: storageError } = await supabase.storage.from(ref.bucket).remove([ref.path])
+        if (storageError) {
+          console.warn('Failed to remove post media from storage:', storageError.message)
+        }
+      }
+    }
+
+    return true
+  } catch (error) {
+    console.error('Error deleting creator post:', error)
+    return false
+  }
+}
+
+export const deleteProduct = async (creatorId: string, productId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', productId)
+      .eq('creator_id', creatorId)
+
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error deleting product:', error)
+    return false
+  }
+}
+
 type OrderWithRelations = Order & {
   product?: Product | null
   package?: ProductPackage | null
@@ -351,12 +493,17 @@ export const getOrderById = async (orderId: string): Promise<OrderWithRelations 
 
     if (error) throw error
     const orderData = data as OrderWithRelations
+    const pickFirst = <T>(value: T | T[] | null | undefined): T | undefined => {
+      if (!value) return undefined
+      if (Array.isArray(value)) return value[0]
+      return value
+    }
     return {
       ...orderData,
       product: orderData.product ?? undefined,
       package: orderData.package ?? undefined,
-      seller: orderData.seller ?? undefined,
-      buyer: orderData.buyer ?? undefined
+      seller: pickFirst(orderData.seller),
+      buyer: pickFirst(orderData.buyer)
     }
   } catch (error) {
     console.error('Error fetching order by id:', error)
@@ -489,6 +636,16 @@ export const updateOrderRequirements = async (
 }
 
 // Create a notification for a user
+const getNotificationsEndpoint = () => {
+  if (typeof window !== 'undefined') return '/api/notifications/create'
+
+  const hostEnv =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+
+  return `${hostEnv ?? 'http://localhost:3000'}/api/notifications/create`
+}
+
 export const createNotification = async (params: {
   user_id: string
   type: string
@@ -497,27 +654,26 @@ export const createNotification = async (params: {
   data?: JsonRecord
 }) => {
   try {
-    const { error } = await supabase.from('notifications').insert({
-      user_id: params.user_id,
-      type: params.type,
-      title: params.title,
-      message: params.message,
-      data: params.data || {}
+    const res = await fetch(getNotificationsEndpoint(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: params.user_id,
+        type: params.type,
+        title: params.title,
+        message: params.message,
+        data: params.data || {}
+      })
     })
-    if (error) throw error
+
+    if (!res.ok) {
+      const info = await res.json().catch(() => ({}))
+      throw new Error(info?.error?.message || info?.error || 'Failed to create notification')
+    }
+
     return true
   } catch (error) {
-    if (error && typeof error === 'object') {
-      const err = error as { message?: string; details?: string; hint?: string; code?: string }
-      console.error('Error creating notification:', {
-        message: err.message,
-        details: err.details,
-        hint: err.hint,
-        code: err.code
-      })
-    } else {
-      console.error('Error creating notification:', error)
-    }
+    console.error('Error creating notification:', error)
     return false
   }
 }

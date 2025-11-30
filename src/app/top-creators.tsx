@@ -27,6 +27,48 @@ export default async function TopCreatorsSection() {
     .limit(8)
 
   const topCreators = (data as Creator[]) || []
+  const creatorIds = topCreators.map((creator) => creator.id)
+
+  const statsMap = new Map<string, { rating: number; count: number }>()
+
+  if (creatorIds.length) {
+    type SellerRatingRow = { seller_id: string | null; seller_rating: number | null }
+    const { data: ratingRows } = await supabase
+      .from('reviews')
+      .select('seller_id, seller_rating')
+      .eq('is_public', true)
+      .in('seller_id', creatorIds)
+      .not('seller_rating', 'is', null)
+
+    const totals = new Map<string, { sum: number; count: number }>()
+
+    for (const row of (ratingRows as SellerRatingRow[] | null) ?? []) {
+      if (!row || !row.seller_id) continue
+      const ratingValue = Number(row.seller_rating)
+      if (!Number.isFinite(ratingValue) || ratingValue <= 0) continue
+      const current = totals.get(row.seller_id) ?? { sum: 0, count: 0 }
+      current.sum += ratingValue
+      current.count += 1
+      totals.set(row.seller_id, current)
+    }
+
+    for (const [sellerId, aggregate] of totals.entries()) {
+      if (aggregate.count === 0) continue
+      const average = Math.round((aggregate.sum / aggregate.count) * 10) / 10
+      statsMap.set(sellerId, { rating: average, count: aggregate.count })
+    }
+  }
+
+  const enrichedCreators = topCreators.map((creator) => {
+    const stats = statsMap.get(creator.id)
+    const derivedRating = stats?.rating ?? creator.rating ?? 0
+    const derivedCount = stats?.count ?? creator.total_reviews ?? 0
+    return {
+      ...creator,
+      rating: derivedRating,
+      total_reviews: derivedCount
+    }
+  })
 
   return (
     <section className="py-12 sm:py-16 bg-gray-100">
@@ -37,7 +79,7 @@ export default async function TopCreatorsSection() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          {topCreators.map((creator, index) => (
+          {enrichedCreators.map((creator, index) => (
             <Link
               key={creator.id}
               href={`/creator/${creator.username}`}
@@ -65,7 +107,7 @@ export default async function TopCreatorsSection() {
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                     <div className="flex items-center space-x-1 bg-yellow-50 px-2 sm:px-3 py-1 rounded-full">
                       <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium text-yellow-700 text-sm">{creator.rating ?? 0}</span>
+                      <span className="font-medium text-yellow-700 text-sm">{Number(creator.rating ?? 0).toFixed(1)}</span>
                       <span className="text-gray-500 text-xs sm:text-sm">({creator.total_reviews ?? 0})</span>
                     </div>
                     <span className="text-xs sm:text-sm text-emerald-700 font-medium bg-emerald-50 px-2 sm:px-3 py-1 rounded-full">{(creator.total_sales ?? 0).toLocaleString()} sales</span>

@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, getUserOrders } from '@/lib/supabase'
-import { UserCircle2, Mail, MapPin, Link as LinkIcon, Save, Loader2, ShoppingBag, BadgeCheck, Clock } from 'lucide-react'
+import { UserCircle2, Mail, MapPin, Link as LinkIcon, Save, Loader2, ShoppingBag, BadgeCheck, Clock, Camera } from 'lucide-react'
 import { ToastContainer, type ToastItem } from '@/components/Toast'
 
 type TabKey = 'overview' | 'edit'
@@ -15,6 +15,7 @@ export default function BuyerProfilePage() {
   const [user, setUser] = useState<any>(null)
   const [orders, setOrders] = useState<any[]>([])
   const [tab, setTab] = useState<TabKey>('overview')
+  const [avatarUploading, setAvatarUploading] = useState(false)
   const [form, setForm] = useState({
     full_name: '',
     username: '',
@@ -76,6 +77,37 @@ export default function BuyerProfilePage() {
       if (!error) { router.refresh(); pushToast('success','Your profile has been updated') }
     } finally {
       setSaving(false)
+    }
+  }
+
+  const onAvatarSelected = async (event: ChangeEvent<HTMLInputElement>) => {
+    if (!user) return
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    try {
+      setAvatarUploading(true)
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+      const path = `${user.id}/profile/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, cacheControl: '3600' })
+      if (uploadError) throw uploadError
+      const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(path)
+      const publicUrl = publicUrlData?.publicUrl ? `${publicUrlData.publicUrl}?v=${Date.now()}` : null
+      if (!publicUrl) throw new Error('Missing public URL for uploaded avatar')
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id)
+      if (updateError) throw updateError
+      setUser((prev: any) => (prev ? { ...prev, avatar_url: publicUrl } : prev))
+      pushToast('success', 'Profile photo updated')
+    } catch (error) {
+      console.error('Failed to update avatar', error)
+      pushToast('error', 'Could not update profile picture', 'Upload failed')
+    } finally {
+      setAvatarUploading(false)
     }
   }
 
@@ -195,9 +227,22 @@ export default function BuyerProfilePage() {
                 <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                   <UserCircle2 className="w-10 h-10 text-gray-400"/>
                 </div>
-                <div>
+                <div className="flex-1">
                   <div className="text-sm text-gray-600">Signed in as</div>
                   <div className="text-gray-900 font-medium">{user.email}</div>
+                  <div className="mt-3">
+                    <label className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
+                      <Camera className="w-4 h-4 text-gray-500" />
+                      <span>{avatarUploading ? 'Uploading…' : 'Update profile photo'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={onAvatarSelected}
+                        disabled={avatarUploading}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
 
