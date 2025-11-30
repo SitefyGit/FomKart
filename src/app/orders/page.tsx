@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle, Clock, Package, ArrowRight, AlertCircle, Loader2, Truck, Ban, RefreshCw } from 'lucide-react'
@@ -8,7 +8,7 @@ import { supabase, getUserOrders } from '@/lib/supabase'
 
 type TabKey = 'buying' | 'selling'
 
-export default function OrdersDashboardPage() {
+function OrdersDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<TabKey>('buying')
@@ -239,5 +239,17 @@ export default function OrdersDashboardPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function OrdersDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    }>
+      <OrdersDashboardContent />
+    </Suspense>
   )
 }
