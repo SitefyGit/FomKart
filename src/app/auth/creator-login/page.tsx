@@ -5,13 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Lock, Mail, ArrowRight } from 'lucide-react'
 
-// Dummy credentials for login
-const DUMMY_CREDENTIALS = {
-  email: 'creator@fomkart.com',
-  password: 'creator123',
-  username: 'designpro'
-}
-
 export default function CreatorLogin() {
   const [formData, setFormData] = useState({
     email: '',
@@ -80,13 +73,6 @@ export default function CreatorLogin() {
     }
   }
 
-  const fillDummyCredentials = () => {
-    setFormData({
-      email: DUMMY_CREDENTIALS.email,
-      password: DUMMY_CREDENTIALS.password
-    })
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -100,23 +86,6 @@ export default function CreatorLogin() {
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Creator Login</h1>
           <p className="text-gray-600">Sign in to manage your creator profile</p>
-        </div>
-
-        {/* Demo Credentials Card */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-blue-900">Demo Credentials</h3>
-            <button
-              onClick={fillDummyCredentials}
-              className="text-xs bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-700"
-            >
-              Auto Fill
-            </button>
-          </div>
-          <div className="text-sm text-blue-800">
-            <p><strong>Email:</strong> {DUMMY_CREDENTIALS.email}</p>
-            <p><strong>Password:</strong> {DUMMY_CREDENTIALS.password}</p>
-          </div>
         </div>
 
         {/* Login Form */}

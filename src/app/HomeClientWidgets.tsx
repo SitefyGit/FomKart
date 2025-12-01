@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 
 // Load heavy widgets only on the client
 const LeadCaptureForm = dynamic(() => import('@/components/LeadCaptureForm'))
-const CredentialsHelper = dynamic(() => import('@/components/CredentialsHelper'))
 
 export type LeadCaptureProps = {
   creatorId?: string
@@ -23,15 +22,10 @@ export function HomeLeadCapture(props: LeadCaptureProps) {
   return <LeadCaptureForm {...props} />
 }
 
-export function HomeCredentialsHelper() {
-  return <CredentialsHelper />
-}
-
 export default function HomeClientWidgets(props: LeadCaptureProps) {
   return (
     <>
       <HomeLeadCapture {...props} />
-      <HomeCredentialsHelper />
     </>
   )
 }

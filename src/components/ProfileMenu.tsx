@@ -8,15 +8,32 @@ import { supabase } from '@/lib/supabase'
 export default function ProfileMenu() {
   const [open, setOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const rootRef = useRef<HTMLDivElement | null>(null)
 
+  // Function to fetch user profile
+  const fetchUserProfile = async (authUser: any) => {
+    if (!authUser) {
+      setUser(null)
+      setLoading(false)
+      return
+    }
+    const { data } = await supabase.from('users').select('*').eq('id', authUser.id).single()
+    setUser(data || authUser)
+    setLoading(false)
+  }
+
   useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data } = await supabase.from('users').select('*').eq('id', user.id).single()
-      setUser(data || user)
-    })()
+    // Initial fetch
+    supabase.auth.getUser().then(({ data: { user: authUser } }) => {
+      fetchUserProfile(authUser)
+    })
+
+    // Listen for auth state changes (login, logout, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      fetchUserProfile(session?.user || null)
+    })
+
     const onDocClick = (e: MouseEvent) => {
       if (!rootRef.current) return
       if (!rootRef.current.contains(e.target as Node)) setOpen(false)
@@ -25,10 +42,17 @@ export default function ProfileMenu() {
     document.addEventListener('mousedown', onDocClick)
     document.addEventListener('keydown', onKey)
     return () => {
+      subscription.unsubscribe()
       document.removeEventListener('mousedown', onDocClick)
       document.removeEventListener('keydown', onKey)
     }
   }, [])
+
+  if (loading) {
+    return (
+      <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+    )
+  }
 
   if (!user) {
     return (

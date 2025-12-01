@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { TrendingUp, ArrowRight, ShieldCheck, BadgeCheck } from 'lucide-react'
 import { CubeIcon, BookOpenIcon, BoltIcon, SparklesIcon, CheckCircleIcon } from '@heroicons/react/24/solid'
-import { HomeLeadCapture, HomeCredentialsHelper } from './HomeClientWidgets'
+import { HomeLeadCapture } from './HomeClientWidgets'
 import TopCreatorsSection from '@/app/top-creators'
 import FeaturedServicesSection from '@/app/featured-services'
 
@@ -235,9 +235,6 @@ export default async function HomePage() {
           <p className="text-gray-300 hover:text-white transition-colors duration-200 text-sm sm:text-base">© 2025 FomKart. All rights reserved.</p>
         </div>
       </footer>
-
-      {/* Demo Credentials Helper */}
-  <HomeCredentialsHelper />
     </div>
   )
 }
