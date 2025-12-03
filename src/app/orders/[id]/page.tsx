@@ -387,7 +387,7 @@ export default function OrderPage({ params }: OrderPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ToastContainer toasts={toasts} removeToast={(id)=>setToasts(p=>p.filter(t=>t.id!==id))} />
+      <ToastContainer toasts={toasts} onClose={(id: string)=>setToasts(p=>p.filter(t=>t.id!==id))} />
       
       {inCall && order && currentUser && (
         <VideoCallRoom 
