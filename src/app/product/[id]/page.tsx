@@ -677,19 +677,23 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <div className="space-y-3">
                     <button
                       onClick={handleContinue}
-                      className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center font-medium"
+                      disabled={currentUserId === product.creator_id}
+                      className={`w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center font-medium ${currentUserId===product.creator_id ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       <ArrowRight className="w-5 h-5 mr-2" />
                       Continue (${selectedPackage.price})
                     </button>
                     <button
                       onClick={handleAddToCart}
-                      disabled={addingToCart}
-                      className="w-full border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center disabled:opacity-60"
+                      disabled={addingToCart || currentUserId === product.creator_id}
+                      className={`w-full border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center disabled:opacity-60 ${currentUserId===product.creator_id ? 'cursor-not-allowed' : ''}`}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       {addingToCart ? 'Adding…' : 'Add to Cart'}
                     </button>
+                    {currentUserId === product.creator_id && (
+                      <div className="text-center text-sm text-red-600">You cannot purchase your own product or service.</div>
+                    )}
                     {cartFeedback && (
                       <div className="text-center text-sm text-green-600">{cartFeedback}</div>
                     )}

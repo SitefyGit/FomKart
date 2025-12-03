@@ -305,6 +305,23 @@ export const addToCart = async (item: {
   try {
     const user = await getCurrentUser()
     if (!user) throw new Error('Not authenticated')
+    // Prevent users from adding their own products to cart
+    const { data: prod, error: prodErr } = await supabase
+      .from('products')
+      .select('id, creator_id')
+      .eq('id', item.product_id)
+      .single()
+
+    if (prodErr) {
+      console.error('Failed to validate product for addToCart:', prodErr)
+      throw prodErr
+    }
+
+    if (prod && prod.creator_id === user.id) {
+      // Silently refuse (caller will show feedback) but log for auditing
+      console.warn('User attempted to add their own product to cart:', user.id, item.product_id)
+      return false
+    }
 
     const { error } = await supabase
       .from('carts')

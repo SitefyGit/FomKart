@@ -246,6 +246,11 @@ export default function CreatorPage() {
     consultationDuration: '', // minutes
     consultationMethod: '',
     consultationAvailability: '',
+    consultationLiveEnabled: false,
+    consultationCallType: '',
+    consultationProvider: '',
+    serviceDuration: '',
+    serviceAvailability: '',
     courseModules: '',
     courseHours: '',
     courseCurriculum: '',
@@ -297,6 +302,7 @@ export default function CreatorPage() {
   const productTypes = [
     { key: 'digital', label: 'Digital Product', desc: 'Checklist, guide, e-book, protected videos, etc.' },
     { key: 'consultation', label: 'Consultation', desc: 'Book a consultation, webinar, lecture, etc.' },
+    { key: 'service', label: 'Service', desc: 'One-off services, hourly work, or live sessions (non-digital)' },
     { key: 'course', label: 'Course', desc: 'Training program with embedded lessons' }
   ];
   const [selectedType, setSelectedType] = useState('digital');
@@ -1384,8 +1390,57 @@ export default function CreatorPage() {
                     <label className="block text-xs font-medium text-gray-600 mb-1">Availability</label>
                     <input value={productExtras.consultationAvailability} onChange={e=>setProductExtras(x=>({...x,consultationAvailability:e.target.value}))} placeholder="Weekdays" className="w-full border rounded-lg px-3 py-2 text-sm" />
                   </div>
+                  <div className="md:col-span-3">
+                    <label className="flex items-start gap-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={productExtras.consultationLiveEnabled}
+                        onChange={(e)=>setProductExtras(x=>({...x,consultationLiveEnabled:e.target.checked}))}
+                        className="mt-1 h-4 w-4 text-emerald-600 border-gray-300 rounded"
+                      />
+                      <span>
+                        Enable live call (video / voice)
+                        <span className="block text-[11px] text-gray-500">If enabled, buyers can schedule a live session with you.</span>
+                      </span>
+                    </label>
+                    {productExtras.consultationLiveEnabled && (
+                      <div className="mt-3 grid md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Call Type</label>
+                          <select value={productExtras.consultationCallType} onChange={e=>setProductExtras(x=>({...x,consultationCallType:e.target.value}))} className="w-full border rounded-lg px-3 py-2 text-sm">
+                            <option value="">Select</option>
+                            <option value="video">Video</option>
+                            <option value="voice">Voice</option>
+                            <option value="both">Both</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Provider / Notes</label>
+                          <input value={productExtras.consultationProvider} onChange={e=>setProductExtras(x=>({...x,consultationProvider:e.target.value}))} placeholder="Zoom link / provider info" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
+              {/* Service specific */}
+              {selectedType==='service' && (
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Estimated Duration</label>
+                    <input value={productExtras.serviceDuration} onChange={e=>setProductExtras(x=>({...x,serviceDuration:e.target.value}))} placeholder="e.g. 2 hours" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Availability</label>
+                    <input value={productExtras.serviceAvailability} onChange={e=>setProductExtras(x=>({...x,serviceAvailability:e.target.value}))} placeholder="Weekdays, Evenings" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Location / Booking URL</label>
+                    <input value={productExtras.externalUrl} onChange={e=>setProductExtras(x=>({...x,externalUrl:e.target.value}))} placeholder="In-person location or booking URL" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  </div>
+                </div>
+              )}
+
               {/* Course specific */}
               {selectedType==='course' && (
                 <div className="grid gap-4">
@@ -1468,6 +1523,11 @@ export default function CreatorPage() {
                     if (productExtras.consultationDuration) featureLines.push(`Duration: ${productExtras.consultationDuration}min`);
                     if (productExtras.consultationMethod) featureLines.push(`Method: ${productExtras.consultationMethod}`);
                     if (productExtras.consultationAvailability) featureLines.push(`Availability: ${productExtras.consultationAvailability}`);
+                    if (productExtras.consultationLiveEnabled) featureLines.push(`Live call: ${productExtras.consultationCallType || 'enabled'}`);
+                    if (productExtras.consultationProvider) featureLines.push(`Provider: ${productExtras.consultationProvider}`);
+                  } else if (selectedType==='service') {
+                    if (productExtras.serviceDuration) featureLines.push(`Duration: ${productExtras.serviceDuration}`);
+                    if (productExtras.serviceAvailability) featureLines.push(`Availability: ${productExtras.serviceAvailability}`);
                   } else if (selectedType==='course') {
                     if (productExtras.courseModules) featureLines.push(`Modules: ${productExtras.courseModules}`);
                     if (productExtras.courseHours) featureLines.push(`Hours: ${productExtras.courseHours}`);
@@ -1477,7 +1537,7 @@ export default function CreatorPage() {
                   if (productExtras.externalUrl) requirements.push(`External: ${productExtras.externalUrl}`);
                   if (selectedType==='digital' && productExtras.downloadUrl) requirements.push(`Download: ${productExtras.downloadUrl}`);
                   if (selectedType==='course' && productExtras.courseCurriculum) requirements.push(`Curriculum: ${productExtras.courseCurriculum.slice(0,400)}`);
-                  const typeMapping: Record<string,'product'|'service'> = { digital:'product', consultation:'service', course:'service' };
+                  const typeMapping: Record<string,'product'|'service'> = { digital:'product', consultation:'service', service:'service', course:'service' };
                   const slugBase = newProduct.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
                   const slug = `${slugBase}-${Date.now().toString(36)}`;
                   // Upload selected media files (if any) and collect public URLs
@@ -1628,6 +1688,11 @@ export default function CreatorPage() {
                     consultationDuration:'',
                     consultationMethod:'',
                     consultationAvailability:'',
+                    consultationLiveEnabled: false,
+                    consultationCallType: '',
+                    consultationProvider: '',
+                    serviceDuration: '',
+                    serviceAvailability: '',
                     courseModules:'',
                     courseHours:'',
                     courseCurriculum:'',
