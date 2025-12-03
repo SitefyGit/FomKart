@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { CheckCircle, Clock, ArrowLeft, Paperclip, Send, AlertCircle, Upload, PackageOpen, Copy, Info, Megaphone, RefreshCcw, BadgeCheck, Video } from 'lucide-react'
 import { getOrderById, getOrderMessages, listDeliverables, sendOrderMessage, createDeliverable, updateOrderStatus, updateOrderRequirements, createNotification, supabase } from '@/lib/supabase'
 import { ToastContainer, type ToastItem } from '@/components/Toast'
-import VideoCallRoom from '@/components/VideoCallRoom'
+import WebRTCVideoCall from '@/components/WebRTCVideoCall'
 
 type TabKey = 'activity' | 'details' | 'requirements' | 'delivery'
 
@@ -385,14 +385,51 @@ export default function OrderPage({ params }: OrderPageProps) {
 
   const isLiveCallEnabled = order?.product?.features?.some((f: string) => f.toLowerCase().includes('live call'))
 
+  const handleJoinCall = async () => {
+    setInCall(true)
+    if (!order || !currentUser) return
+
+    // Send system message
+    try {
+      await sendOrderMessage({
+        order_id: order.id,
+        sender_id: currentUser.id,
+        message: 'Started a live call',
+        is_system_message: true
+      })
+    } catch (e) {
+      console.warn('Failed to send call system message', e)
+    }
+
+    // Notify other party
+    const otherPartyId = currentUser.id === order.buyer?.id ? order.seller?.id : order.buyer?.id
+    if (otherPartyId) {
+      try {
+        await fetch('/api/notifications/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: otherPartyId,
+            type: 'call_started',
+            title: 'Live Call Started',
+            message: `Join the live call for Order #${orderShort}`,
+            data: { order_id: order.id }
+          })
+        })
+      } catch (e) {
+        console.warn('Failed to send call notification', e)
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ToastContainer toasts={toasts} onClose={(id: string)=>setToasts(p=>p.filter(t=>t.id!==id))} />
       
       {inCall && order && currentUser && (
-        <VideoCallRoom 
-          roomName={`fomkart-order-${order.id}`}
-          displayName={currentUser.user_metadata?.full_name || currentUser.email || 'User'}
+        <WebRTCVideoCall 
+          orderId={order.id}
+          currentUser={currentUser}
           onLeave={() => setInCall(false)}
         />
       )}
@@ -424,7 +461,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                 <div className="flex items-center gap-3">
                   {isLiveCallEnabled && (
                     <button 
-                      onClick={() => setInCall(true)}
+                      onClick={handleJoinCall}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
                     >
                       <Video className="w-4 h-4" />
