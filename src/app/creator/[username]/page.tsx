@@ -1198,7 +1198,7 @@ export default function CreatorPage() {
               <div className="relative">
                 <button onClick={()=>setMoreOpen(o=>!o)} className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200 inline-flex items-center gap-1"><MoreHorizIcon fontSize="small"/>More</button>
                 {moreOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg text-sm z-20">
+                  <div className="absolute right-0 mt-2 w-48 bg-white text-gray-900 border rounded-lg shadow-lg text-sm z-20">
                     <button onClick={()=>{navigator.clipboard.writeText(window.location.href); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50">Copy Link</button>
                     <button onClick={()=>{setShareOpen(true); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50">Share</button>
                     <button onClick={()=>{alert('Report submitted (stub)'); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600">Report</button>
@@ -1218,7 +1218,7 @@ export default function CreatorPage() {
       {/* Add Product Modal */}
   {isOwner && addProductOpen && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-start justify-center z-50 overflow-y-auto py-10">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white text-gray-900 rounded-2xl shadow-xl w-full max-w-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold flex items-center gap-2"><AddCircleOutlineIcon fontSize="small"/> Create New Product</h3>
               <button onClick={()=>{setAddProductOpen(false); setMediaFiles([]); setDeliveryFiles([]);}} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
@@ -1717,7 +1717,7 @@ export default function CreatorPage() {
       {/* Subscribe Modal */}
       {subscribeOpen && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 space-y-5">
+          <div className="bg-white text-gray-900 rounded-2xl shadow-lg w-full max-w-md p-6 space-y-5">
             <div className="flex justify-end">
               <button onClick={()=>setSubscribeOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
             </div>
@@ -1748,7 +1748,7 @@ export default function CreatorPage() {
       {/* Message Modal */}
   {messageOpen && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
+          <div className="bg-white text-gray-900 rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-semibold">Message {creator.full_name}</h3>
               <button onClick={()=>setMessageOpen(false)} className="text-gray-500 hover:text-gray-700 text-xl leading-none">×</button>
@@ -1765,7 +1765,7 @@ export default function CreatorPage() {
       {/* Settings Modal */}
   {isOwner && settingsOpen && creator && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg p-6 space-y-4">
+          <div className="bg-white text-gray-900 rounded-2xl shadow-lg w-full max-w-lg p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Profile Settings</h3>
               <button onClick={()=>setSettingsOpen(false)} className="text-gray-500 hover:text-gray-700 text-xl leading-none">×</button>
@@ -1827,7 +1827,7 @@ export default function CreatorPage() {
       {/* Add Post Modal */}
       {isOwner && addPostOpen && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur flex items-start justify-center z-50 overflow-y-auto py-10 px-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-5">
+          <div className="bg-white text-gray-900 rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold">Share a new post</h3>
