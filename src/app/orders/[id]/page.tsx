@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle, Clock, ArrowLeft, Paperclip, Send, AlertCircle, Upload, PackageOpen, Copy, Info, Megaphone, RefreshCcw, BadgeCheck } from 'lucide-react'
+import { CheckCircle, Clock, ArrowLeft, Paperclip, Send, AlertCircle, Upload, PackageOpen, Copy, Info, Megaphone, RefreshCcw, BadgeCheck, Video } from 'lucide-react'
 import { getOrderById, getOrderMessages, listDeliverables, sendOrderMessage, createDeliverable, updateOrderStatus, updateOrderRequirements, createNotification, supabase } from '@/lib/supabase'
 import { ToastContainer, type ToastItem } from '@/components/Toast'
+import VideoCallRoom from '@/components/VideoCallRoom'
 
 type TabKey = 'activity' | 'details' | 'requirements' | 'delivery'
 
@@ -35,6 +36,7 @@ export default function OrderPage({ params }: OrderPageProps) {
   const [existingReview, setExistingReview] = useState<any>(null)
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '', sellerRating: 0, sellerComment: '' })
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [inCall, setInCall] = useState(false)
 
   const pushToast = (type: ToastItem['type'], message: string, title?: string) => {
     const id = Math.random().toString(36).slice(2)
@@ -381,8 +383,20 @@ export default function OrderPage({ params }: OrderPageProps) {
     )
   }
 
+  const isLiveCallEnabled = order?.product?.features?.some((f: string) => f.toLowerCase().includes('live call'))
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <ToastContainer toasts={toasts} removeToast={(id)=>setToasts(p=>p.filter(t=>t.id!==id))} />
+      
+      {inCall && order && currentUser && (
+        <VideoCallRoom 
+          roomName={`fomkart-order-${order.id}`}
+          displayName={currentUser.user_metadata?.full_name || currentUser.email || 'User'}
+          onLeave={() => setInCall(false)}
+        />
+      )}
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         <button onClick={() => router.back()} className="mb-6 flex items-center text-gray-600 hover:text-gray-800 transition-colors">
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
@@ -407,7 +421,18 @@ export default function OrderPage({ params }: OrderPageProps) {
             <div className="bg-white rounded-xl shadow border border-gray-100 p-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Order #{orderShort}</h1>
-                <div className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 capitalize">{(order.status||'confirmed').replace('_',' ')}</div>
+                <div className="flex items-center gap-3">
+                  {isLiveCallEnabled && (
+                    <button 
+                      onClick={() => setInCall(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
+                    >
+                      <Video className="w-4 h-4" />
+                      Join Live Call
+                    </button>
+                  )}
+                  <div className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 capitalize">{(order.status||'confirmed').replace('_',' ')}</div>
+                </div>
               </div>
 
               <div className="mt-5 flex gap-2 border-b">
