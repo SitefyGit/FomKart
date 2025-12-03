@@ -84,9 +84,36 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
         channelRef.current = channel
 
         channel
+          .on('broadcast', { event: 'ready' }, async () => {
+            if (!pc) return
+            console.log('Received ready signal')
+            // If we are already connected or connecting, ignore
+            if (pc.signalingState !== 'stable' || pc.connectionState === 'connected') return
+            
+            // We are the existing peer, so we initiate the offer
+            console.log('Creating offer for new peer')
+            try {
+              const offer = await pc.createOffer()
+              await pc.setLocalDescription(offer)
+              channel.send({
+                type: 'broadcast',
+                event: 'offer',
+                payload: offer,
+              })
+            } catch (e) {
+              console.error('Error creating offer:', e)
+            }
+          })
           .on('broadcast', { event: 'offer' }, async ({ payload }: any) => {
             if (!pc) return
             console.log('Received offer')
+            if (pc.signalingState !== 'stable') {
+              // Glare handling: if we are also trying to offer, we might need to rollback or ignore
+              // For simplicity, if we have a local offer but receive a remote one, we can try to accept it if we haven't sent ours yet?
+              // Or just ignore. But with the "Ready" protocol, this shouldn't happen often.
+              console.warn('Received offer while not stable, ignoring to avoid glare')
+              return
+            }
             await pc.setRemoteDescription(new RTCSessionDescription(payload))
             const answer = await pc.createAnswer()
             await pc.setLocalDescription(answer)
@@ -112,25 +139,11 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
           .subscribe(async (status: string) => {
             if (status === 'SUBSCRIBED') {
               setStatus('Waiting for peer...')
-              // Create offer if we are the initiator (simple logic: just try to create offer after a delay or button press, 
-              // but for simplicity let's say whoever joins last might trigger, or we need a "start call" button.
-              // Better: Just announce we are here.
-              
-              // For this simple implementation, let's try to create an offer immediately.
-              // In a real app, you'd handle "polite peer" logic to avoid glare.
-              // We'll assume the caller (seller) initiates usually, but here both might join.
-              // Let's add a manual "Start Call" button or auto-start if we are the first?
-              // Actually, with Supabase broadcast, we don't know who is there easily without presence.
-              // Let's just send an offer. If we get an offer back while making one, we might have a collision.
-              // Simple fix: Random delay before offering to reduce collision chance?
-              
-              // Let's rely on a "Connect" button or just auto-offer.
-              const offer = await pc.createOffer()
-              await pc.setLocalDescription(offer)
+              // Announce we are here
               channel.send({
                 type: 'broadcast',
-                event: 'offer',
-                payload: offer,
+                event: 'ready',
+                payload: {},
               })
             }
           })
