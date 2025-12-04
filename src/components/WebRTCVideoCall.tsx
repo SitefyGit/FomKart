@@ -96,7 +96,10 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
         })
       } catch (err) {
         console.error('Error accessing media:', err)
-        setStatus('Media access failed - attempting to connect anyway')
+        setStatus('Media access failed - joining as viewer')
+        // Add recvonly transceivers so we can still see/hear the other person
+        pc.addTransceiver('video', { direction: 'recvonly' })
+        pc.addTransceiver('audio', { direction: 'recvonly' })
       }
 
       // 3. Connect to Supabase (Signaling)
@@ -354,7 +357,9 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
               <div className="animate-pulse w-20 h-20 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <Video className="w-8 h-8 text-gray-500" />
               </div>
-              <p className="text-gray-400">Waiting for other participant...</p>
+              <p className="text-gray-400">
+                {status === 'Connected' ? 'Connected (No remote video)' : 'Waiting for other participant...'}
+              </p>
             </div>
           )}
           <div className="absolute bottom-4 left-4 bg-black/50 px-3 py-1 rounded text-sm">
