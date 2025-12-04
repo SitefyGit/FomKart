@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 interface WebRTCVideoCallProps {
   orderId: string
   currentUser: any
+  remoteUserName?: string
   onLeave: () => void
 }
 
@@ -17,7 +18,7 @@ const ICE_SERVERS = {
   ],
 }
 
-export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRTCVideoCallProps) {
+export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, onLeave }: WebRTCVideoCallProps) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
   const [isMuted, setIsMuted] = useState(false)
@@ -53,10 +54,17 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
 
       // Handle remote tracks
       pc.ontrack = (event) => {
-        console.log('Received remote track')
-        setRemoteStream(event.streams[0])
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = event.streams[0]
+        console.log('Received remote track:', event.track.kind)
+        const stream = event.streams[0]
+        if (stream) {
+          setRemoteStream(stream)
+          // Force video element update
+          setTimeout(() => {
+            if (remoteVideoRef.current && stream) {
+              remoteVideoRef.current.srcObject = stream
+              remoteVideoRef.current.play().catch(e => console.log('Autoplay prevented:', e))
+            }
+          }, 100)
         }
       }
 
@@ -319,8 +327,16 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
     }
   }
 
+  // Set srcObject whenever remoteStream changes
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream
+      remoteVideoRef.current.play().catch(e => console.log('Autoplay prevented:', e))
+    }
+  }, [remoteStream])
+
   return (
-    <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col text-white">
+    <div className="fixed inset-0 z-[9999] bg-gray-900 flex flex-col text-white" style={{ height: '100vh', width: '100vw' }}>
       {/* Header */}
       <div className="bg-gray-800 px-4 py-3 flex items-center justify-between shrink-0 shadow-md">
         <div className="flex items-center gap-3">
@@ -342,28 +358,29 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
       </div>
 
       {/* Video Grid */}
-      <div className="flex-1 relative p-4 flex gap-4 items-center justify-center bg-black">
+      <div className="flex-1 relative p-2 sm:p-4 bg-black overflow-hidden">
         {/* Remote Video (Large) */}
-        <div className="relative flex-1 h-full max-h-full bg-gray-800 rounded-xl overflow-hidden flex items-center justify-center">
-          {remoteStream ? (
-            <video 
-              ref={remoteVideoRef} 
-              autoPlay 
-              playsInline 
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <div className="text-center p-8">
-              <div className="animate-pulse w-20 h-20 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <Video className="w-8 h-8 text-gray-500" />
+        <div className="relative w-full h-full bg-gray-800 rounded-xl overflow-hidden flex items-center justify-center">
+          <video 
+            ref={remoteVideoRef} 
+            autoPlay 
+            playsInline 
+            className={`w-full h-full object-contain ${!remoteStream ? 'hidden' : ''}`}
+          />
+          {!remoteStream && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center p-8">
+                <div className="animate-pulse w-20 h-20 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <Video className="w-8 h-8 text-gray-500" />
+                </div>
+                <p className="text-gray-400">
+                  {status === 'Connected' ? 'Connected - Waiting for video...' : 'Waiting for other participant...'}
+                </p>
               </div>
-              <p className="text-gray-400">
-                {status === 'Connected' ? 'Connected (No remote video)' : 'Waiting for other participant...'}
-              </p>
             </div>
           )}
-          <div className="absolute bottom-4 left-4 bg-black/50 px-3 py-1 rounded text-sm">
-            Remote User
+          <div className="absolute bottom-4 left-4 bg-black/70 px-3 py-1.5 rounded-lg text-sm font-medium">
+            {remoteUserName || 'Other Participant'}
           </div>
         </div>
 
