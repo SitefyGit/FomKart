@@ -195,37 +195,26 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
       })
       channelRef.current = channel
 
-      // Handle presence
-      channel.on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState()
-        const userIds = Object.keys(state)
-        log(`Presence sync: ${userIds.length} users: ${userIds.join(', ')}`)
-        
-        const otherUsers = userIds.filter(id => id !== currentUser.id)
-        if (otherUsers.length > 0) {
-          remoteUserId.current = otherUsers[0]
-          isPolite.current = currentUser.id < otherUsers[0]
-          log(`Remote user: ${remoteUserId.current}, I am ${isPolite.current ? 'polite' : 'impolite'}`)
-        }
-      })
-
-      channel.on('presence', { event: 'join' }, async ({ key, newPresences }: any) => {
-        if (key === currentUser.id) {
-          log('I joined the channel')
+      // Function to initiate call when we detect another user
+      const initiateCallIfNeeded = async (otherUserId: string) => {
+        if (!pc || pc.connectionState === 'connected' || pc.connectionState === 'connecting') {
+          log('Already connected or connecting, skipping initiation')
           return
         }
         
-        log(`*** User joined: ${key} ***`)
-        remoteUserId.current = key
-        isPolite.current = currentUser.id < key
-        log(`I am ${isPolite.current ? 'polite' : 'impolite'} peer`)
+        remoteUserId.current = otherUserId
+        // Higher ID is "impolite" and creates the offer
+        isPolite.current = currentUser.id < otherUserId
+        log(`Detected user ${otherUserId}. I am ${isPolite.current ? 'polite' : 'impolite'}`)
         
-        // Impolite peer (higher ID) creates the offer
-        if (!isPolite.current && pc && pc.signalingState === 'stable') {
-          log('I am impolite, creating offer...')
+        // The person who was here FIRST (regardless of ID) should initiate
+        // OR the impolite peer (higher ID) initiates
+        // To simplify: whoever detects the other user and has stable state, creates offer
+        
+        if (pc.signalingState === 'stable' && pc.connectionState === 'new') {
+          log('Creating offer to initiate connection...')
           
-          // Small delay to ensure both sides are ready
-          await new Promise(r => setTimeout(r, 500))
+          await new Promise(r => setTimeout(r, 300)) // Small delay for stability
           
           try {
             const offer = await pc.createOffer()
@@ -240,10 +229,44 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
                 senderId: currentUser.id 
               },
             })
-            log('Offer sent!')
+            log('Offer sent to ' + otherUserId)
           } catch (err: any) {
-            log(`Error creating initial offer: ${err.message}`)
+            log(`Error creating offer: ${err.message}`)
           }
+        }
+      }
+
+      // Handle presence sync - fires when presence state changes
+      channel.on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState()
+        const userIds = Object.keys(state)
+        log(`Presence sync: ${userIds.length} users: ${userIds.join(', ')}`)
+        
+        const otherUsers = userIds.filter(id => id !== currentUser.id)
+        if (otherUsers.length > 0 && !remoteUserId.current) {
+          // First time seeing another user via sync
+          initiateCallIfNeeded(otherUsers[0])
+        }
+      })
+
+      // Handle presence join - fires when a specific user joins
+      channel.on('presence', { event: 'join' }, async ({ key }: any) => {
+        if (key === currentUser.id) {
+          log('I joined the channel')
+          return
+        }
+        
+        log(`*** User joined: ${key} ***`)
+        initiateCallIfNeeded(key)
+      })
+
+      // Handle presence leave - when someone leaves
+      channel.on('presence', { event: 'leave' }, ({ key }: any) => {
+        if (key !== currentUser.id) {
+          log(`User left: ${key}`)
+          setStatus('Participant left')
+          setRemoteStream(null)
+          remoteUserId.current = null
         }
       })
 

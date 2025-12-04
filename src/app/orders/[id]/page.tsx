@@ -449,7 +449,11 @@ export default function OrderPage({ params }: OrderPageProps) {
         <WebRTCVideoCall 
           orderId={order.id}
           currentUser={currentUser}
-          remoteUserName={currentUser.id === order.buyer?.id ? order.seller?.display_name : order.buyer?.display_name}
+          remoteUserName={
+            currentUser.id === order.buyer?.id 
+              ? (order.seller?.full_name || order.seller?.username || 'Seller')
+              : (order.buyer?.full_name || order.buyer?.username || 'Buyer')
+          }
           onLeave={() => setInCall(false)}
         />
       )}
