@@ -383,6 +383,26 @@ export default function OrderPage({ params }: OrderPageProps) {
     )
   }
 
+  const [callActive, setCallActive] = useState(false)
+
+  // Check for active call presence
+  useEffect(() => {
+    if (!resolvedParams?.id || inCall) return
+    
+    const channel = supabase.channel(`call-${resolvedParams.id}`)
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState()
+        const users = Object.values(state).flat()
+        setCallActive(users.length > 0)
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [resolvedParams?.id, inCall])
+
   const isLiveCallEnabled = order?.product?.features?.some((f: string) => f.toLowerCase().includes('live call'))
 
   const handleJoinCall = async () => {
@@ -462,10 +482,10 @@ export default function OrderPage({ params }: OrderPageProps) {
                   {isLiveCallEnabled && (
                     <button 
                       onClick={handleJoinCall}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm ${callActive ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
                     >
                       <Video className="w-4 h-4" />
-                      Join Live Call
+                      {callActive ? 'Join Active Call' : 'Start Live Call'}
                     </button>
                   )}
                   <div className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 capitalize">{(order.status||'confirmed').replace('_',' ')}</div>

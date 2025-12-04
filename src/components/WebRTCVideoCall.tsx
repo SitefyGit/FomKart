@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Video, Mic, MicOff, VideoOff, PhoneOff, Copy, Check, Monitor, MonitorOff } from 'lucide-react'
+import { Video, Mic, MicOff, VideoOff, PhoneOff, Copy, Check, Monitor, MonitorOff, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface WebRTCVideoCallProps {
@@ -14,6 +14,9 @@ const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
   ],
 }
 
@@ -25,11 +28,24 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [status, setStatus] = useState('Initializing...')
   const [copied, setCopied] = useState(false)
+  const [peers, setPeers] = useState<any[]>([])
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
   const peerConnection = useRef<RTCPeerConnection | null>(null)
   const channelRef = useRef<any>(null)
+  const iceCandidatesQueue = useRef<RTCIceCandidate[]>([])
+
+  const sendReadySignal = () => {
+    if (channelRef.current) {
+      console.log('Sending manual ready signal')
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'ready',
+        payload: {},
+      })
+    }
+  }
 
   useEffect(() => {
     const init = async () => {
@@ -76,6 +92,8 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
             setStatus('Connected')
           } else if (pc.connectionState === 'disconnected') {
             setStatus('Disconnected')
+          } else if (pc.connectionState === 'failed') {
+            setStatus('Connection failed')
           }
         }
 
@@ -84,6 +102,12 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
         channelRef.current = channel
 
         channel
+          .on('presence', { event: 'sync' }, () => {
+            const state = channel.presenceState()
+            const users = Object.values(state).flat()
+            setPeers(users)
+            console.log('Presence sync:', users)
+          })
           .on('broadcast', { event: 'ready' }, async () => {
             if (!pc) return
             console.log('Received ready signal')
@@ -108,13 +132,17 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
             if (!pc) return
             console.log('Received offer')
             if (pc.signalingState !== 'stable') {
-              // Glare handling: if we are also trying to offer, we might need to rollback or ignore
-              // For simplicity, if we have a local offer but receive a remote one, we can try to accept it if we haven't sent ours yet?
-              // Or just ignore. But with the "Ready" protocol, this shouldn't happen often.
               console.warn('Received offer while not stable, ignoring to avoid glare')
               return
             }
             await pc.setRemoteDescription(new RTCSessionDescription(payload))
+            
+            // Process queued candidates
+            while (iceCandidatesQueue.current.length > 0) {
+              const candidate = iceCandidatesQueue.current.shift()
+              if (candidate) await pc.addIceCandidate(candidate)
+            }
+
             const answer = await pc.createAnswer()
             await pc.setLocalDescription(answer)
             channel.send({
@@ -131,7 +159,12 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
           .on('broadcast', { event: 'ice-candidate' }, async ({ payload }: any) => {
             if (!pc) return
             try {
-              await pc.addIceCandidate(new RTCIceCandidate(payload))
+              const candidate = new RTCIceCandidate(payload)
+              if (pc.remoteDescription) {
+                await pc.addIceCandidate(candidate)
+              } else {
+                iceCandidatesQueue.current.push(candidate)
+              }
             } catch (e) {
               console.error('Error adding received ice candidate', e)
             }
@@ -139,6 +172,7 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
           .subscribe(async (status: string) => {
             if (status === 'SUBSCRIBED') {
               setStatus('Waiting for peer...')
+              await channel.track({ user_id: currentUser.id, online_at: new Date().toISOString() })
               // Announce we are here
               channel.send({
                 type: 'broadcast',
@@ -299,6 +333,13 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
 
       {/* Controls */}
       <div className="bg-gray-800 p-4 flex justify-center gap-4 shrink-0">
+        <button 
+          onClick={sendReadySignal}
+          className="p-4 rounded-full bg-gray-700 hover:bg-gray-600 transition"
+          title="Retry Connection"
+        >
+          <RefreshCw className="w-6 h-6" />
+        </button>
         <button 
           onClick={toggleMute}
           className={`p-4 rounded-full transition ${isMuted ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-700 hover:bg-gray-600'}`}
