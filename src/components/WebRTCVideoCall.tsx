@@ -14,9 +14,6 @@ const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
   ],
 }
 
@@ -117,22 +114,21 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
           if (!pc) return
           console.log('Received ready signal from', payload?.senderId)
           
-          // Collision handling: If we are both stable (simultaneous join), use ID to decide who offers
           // If we are already connected, ignore
           if (pc.connectionState === 'connected') return
 
-          const isStable = pc.signalingState === 'stable'
           const remoteId = payload?.senderId
           const myId = currentUser.id
 
-          // If we are stable, we usually offer. But if both are stable and both send Ready, we need a tie-breaker.
-          // If I am "dominant" (myId > remoteId), I offer.
-          // If I am "submissive" (myId < remoteId), I wait.
-          // If remoteId is missing (old version), we default to offering (risk of glare).
+          // Polite Wait Strategy:
+          // If I receive 'ready', I should offer.
+          // BUT to avoid glare if we both joined and sent 'ready' at same time:
+          // If myId > remoteId: Offer immediately.
+          // If myId < remoteId: Wait 1s. If no offer received, then offer.
           
-          const shouldOffer = !remoteId || (myId > remoteId)
+          const isDominant = !remoteId || (myId > remoteId)
 
-          if (isStable && shouldOffer) {
+          if (isDominant) {
             console.log('Creating offer (Dominant peer)')
             try {
               const offer = await pc.createOffer()
@@ -146,7 +142,23 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
               console.error('Error creating offer:', e)
             }
           } else {
-            console.log('Waiting for offer (Submissive peer)')
+            console.log('Waiting for offer (Submissive peer) - will offer in 1s if needed')
+            setTimeout(async () => {
+              if (pc.signalingState === 'stable' && pc.connectionState !== 'connected') {
+                 console.log('Timeout reached, creating offer (Submissive peer fallback)')
+                 try {
+                  const offer = await pc.createOffer()
+                  await pc.setLocalDescription(offer)
+                  channel.send({
+                    type: 'broadcast',
+                    event: 'offer',
+                    payload: { sdp: offer, senderId: myId },
+                  })
+                } catch (e) {
+                  console.error('Error creating fallback offer:', e)
+                }
+              }
+            }, 1000)
           }
         })
         .on('broadcast', { event: 'offer' }, async ({ payload }: any) => {
