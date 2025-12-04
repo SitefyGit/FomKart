@@ -270,6 +270,17 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
         }
       })
 
+      // Handle explicit user-joined broadcast (backup for presence)
+      channel.on('broadcast', { event: 'user-joined' }, async ({ payload }: any) => {
+        if (!mounted || payload.userId === currentUser.id) return
+        log(`Received user-joined broadcast from ${payload.userId}`)
+        
+        // If we haven't started a connection yet, initiate one
+        if (!remoteUserId.current || (pc && pc.connectionState === 'new')) {
+          initiateCallIfNeeded(payload.userId)
+        }
+      })
+
       // Handle signaling messages
       channel.on('broadcast', { event: 'signal' }, async ({ payload }: any) => {
         if (!pc || !mounted) return
@@ -349,11 +360,31 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
         log(`Channel subscription status: ${subStatus}`)
         if (subStatus === 'SUBSCRIBED' && mounted) {
           setStatus('Waiting for participant...')
+          
+          // Track our presence
           await channel.track({ 
             online_at: new Date().toISOString(),
             user_id: currentUser.id
           })
           log('Presence tracked!')
+          
+          // Check if anyone is already here after a short delay
+          setTimeout(() => {
+            const state = channel.presenceState()
+            const userIds = Object.keys(state)
+            const otherUsers = userIds.filter(id => id !== currentUser.id)
+            log(`Initial presence check: ${otherUsers.length} other users`)
+            if (otherUsers.length > 0 && !remoteUserId.current && mounted) {
+              initiateCallIfNeeded(otherUsers[0])
+            }
+          }, 1000)
+          
+          // Also send a "hello" broadcast so existing users know we joined
+          channel.send({
+            type: 'broadcast',
+            event: 'user-joined',
+            payload: { userId: currentUser.id }
+          })
         }
       })
     }
@@ -452,23 +483,41 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
 
     setStatus('Retrying...')
     
-    try {
-      // ICE restart
-      const offer = await pc.createOffer({ iceRestart: true })
-      await pc.setLocalDescription(offer)
-      
-      channel.send({
-        type: 'broadcast',
-        event: 'signal',
-        payload: { 
-          type: 'offer',
-          sdp: pc.localDescription, 
-          senderId: currentUser.id 
-        },
-      })
-      log('ICE restart offer sent')
-    } catch (e: any) {
-      log(`Retry error: ${e.message}`)
+    // First, broadcast that we're here
+    channel.send({
+      type: 'broadcast',
+      event: 'user-joined',
+      payload: { userId: currentUser.id }
+    })
+    
+    // Check presence and try to initiate
+    const state = channel.presenceState()
+    const userIds = Object.keys(state)
+    const otherUsers = userIds.filter(id => id !== currentUser.id)
+    log(`Retry: Found ${otherUsers.length} other users: ${otherUsers.join(', ')}`)
+    
+    if (otherUsers.length > 0) {
+      try {
+        // Create a fresh offer
+        const offer = await pc.createOffer({ iceRestart: true })
+        await pc.setLocalDescription(offer)
+        
+        channel.send({
+          type: 'broadcast',
+          event: 'signal',
+          payload: { 
+            type: 'offer',
+            sdp: pc.localDescription, 
+            senderId: currentUser.id 
+          },
+        })
+        log('Retry offer sent')
+      } catch (e: any) {
+        log(`Retry error: ${e.message}`)
+      }
+    } else {
+      setStatus('No participants found - waiting...')
+      log('No other users in the room')
     }
   }
 
