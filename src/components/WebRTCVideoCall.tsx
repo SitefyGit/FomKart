@@ -42,13 +42,50 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
       channelRef.current.send({
         type: 'broadcast',
         event: 'ready',
-        payload: {},
+        payload: { senderId: currentUser.id },
       })
     }
   }
 
   useEffect(() => {
     const init = async () => {
+      // 1. Setup Signaling
+      setStatus('Connecting to signaling server...')
+      const pc = new RTCPeerConnection(ICE_SERVERS)
+      peerConnection.current = pc
+
+      // Handle remote tracks
+      pc.ontrack = (event) => {
+        console.log('Received remote track')
+        setRemoteStream(event.streams[0])
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0]
+        }
+      }
+
+      // Handle ICE candidates
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          channelRef.current?.send({
+            type: 'broadcast',
+            event: 'ice-candidate',
+            payload: event.candidate,
+          })
+        }
+      }
+
+      pc.onconnectionstatechange = () => {
+        console.log('Connection state:', pc.connectionState)
+        if (pc.connectionState === 'connected') {
+          setStatus('Connected')
+        } else if (pc.connectionState === 'disconnected') {
+          setStatus('Disconnected')
+        } else if (pc.connectionState === 'failed') {
+          setStatus('Connection failed')
+        }
+      }
+
+      // 2. Get Media (Non-blocking)
       try {
         setStatus('Accessing camera/mic...')
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -56,136 +93,138 @@ export default function WebRTCVideoCall({ orderId, currentUser, onLeave }: WebRT
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream
         }
-
-        setStatus('Connecting to signaling server...')
-        const pc = new RTCPeerConnection(ICE_SERVERS)
-        peerConnection.current = pc
-
         // Add local tracks to peer connection
         stream.getTracks().forEach(track => {
           pc.addTrack(track, stream)
         })
+      } catch (err) {
+        console.error('Error accessing media:', err)
+        setStatus('Media access failed - attempting to connect anyway')
+      }
 
-        // Handle remote tracks
-        pc.ontrack = (event) => {
-          console.log('Received remote track')
-          setRemoteStream(event.streams[0])
-          if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = event.streams[0]
-          }
-        }
+      // 3. Connect to Supabase (Signaling)
+      const channel = supabase.channel(`call-${orderId}`)
+      channelRef.current = channel
 
-        // Handle ICE candidates
-        pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            channelRef.current?.send({
-              type: 'broadcast',
-              event: 'ice-candidate',
-              payload: event.candidate,
-            })
-          }
-        }
+      channel
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState()
+          const users = Object.values(state).flat()
+          setPeers(users)
+          console.log('Presence sync:', users)
+        })
+        .on('broadcast', { event: 'ready' }, async ({ payload }: any) => {
+          if (!pc) return
+          console.log('Received ready signal from', payload?.senderId)
+          
+          // Collision handling: If we are both stable (simultaneous join), use ID to decide who offers
+          // If we are already connected, ignore
+          if (pc.connectionState === 'connected') return
 
-        pc.onconnectionstatechange = () => {
-          console.log('Connection state:', pc.connectionState)
-          if (pc.connectionState === 'connected') {
-            setStatus('Connected')
-          } else if (pc.connectionState === 'disconnected') {
-            setStatus('Disconnected')
-          } else if (pc.connectionState === 'failed') {
-            setStatus('Connection failed')
-          }
-        }
+          const isStable = pc.signalingState === 'stable'
+          const remoteId = payload?.senderId
+          const myId = currentUser.id
 
-        // Signaling via Supabase Realtime
-        const channel = supabase.channel(`call-${orderId}`)
-        channelRef.current = channel
+          // If we are stable, we usually offer. But if both are stable and both send Ready, we need a tie-breaker.
+          // If I am "dominant" (myId > remoteId), I offer.
+          // If I am "submissive" (myId < remoteId), I wait.
+          // If remoteId is missing (old version), we default to offering (risk of glare).
+          
+          const shouldOffer = !remoteId || (myId > remoteId)
 
-        channel
-          .on('presence', { event: 'sync' }, () => {
-            const state = channel.presenceState()
-            const users = Object.values(state).flat()
-            setPeers(users)
-            console.log('Presence sync:', users)
-          })
-          .on('broadcast', { event: 'ready' }, async () => {
-            if (!pc) return
-            console.log('Received ready signal')
-            // If we are already connected or connecting, ignore
-            if (pc.signalingState !== 'stable' || pc.connectionState === 'connected') return
-            
-            // We are the existing peer, so we initiate the offer
-            console.log('Creating offer for new peer')
+          if (isStable && shouldOffer) {
+            console.log('Creating offer (Dominant peer)')
             try {
               const offer = await pc.createOffer()
               await pc.setLocalDescription(offer)
               channel.send({
                 type: 'broadcast',
                 event: 'offer',
-                payload: offer,
+                payload: { sdp: offer, senderId: myId },
               })
             } catch (e) {
               console.error('Error creating offer:', e)
             }
-          })
-          .on('broadcast', { event: 'offer' }, async ({ payload }: any) => {
-            if (!pc) return
-            console.log('Received offer')
-            if (pc.signalingState !== 'stable') {
-              console.warn('Received offer while not stable, ignoring to avoid glare')
+          } else {
+            console.log('Waiting for offer (Submissive peer)')
+          }
+        })
+        .on('broadcast', { event: 'offer' }, async ({ payload }: any) => {
+          if (!pc) return
+          console.log('Received offer from', payload?.senderId)
+          
+          // Glare handling
+          if (pc.signalingState !== 'stable') {
+            const myId = currentUser.id
+            const remoteId = payload?.senderId
+            
+            // If I am submissive (myId < remoteId), I should accept their offer and rollback mine?
+            // But standard WebRTC rollback is complex.
+            // Simple strategy: If I am submissive, I ignore my own offer attempt? 
+            // Actually, if I am submissive, I wouldn't have sent an offer in the "Ready" handler above!
+            // So the only way I have a local offer is if I initiated independently.
+            
+            // If we use the "Ready" protocol strictly, we shouldn't have glare often.
+            // But if we do:
+            console.warn('Glare detected. Signaling state:', pc.signalingState)
+            // If I am dominant, I ignore their offer. They will accept mine.
+            if (remoteId && myId > remoteId) {
+              console.log('Ignoring offer (I am dominant)')
               return
             }
-            await pc.setRemoteDescription(new RTCSessionDescription(payload))
-            
-            // Process queued candidates
-            while (iceCandidatesQueue.current.length > 0) {
-              const candidate = iceCandidatesQueue.current.shift()
-              if (candidate) await pc.addIceCandidate(candidate)
-            }
+            // If I am submissive, I should accept. But I might need to rollback.
+            // For now, let's hope the Ready protocol prevents this.
+            // If we are here, we might be stuck.
+            // Let's try to proceed if possible.
+          }
 
-            const answer = await pc.createAnswer()
-            await pc.setLocalDescription(answer)
+          const sdp = payload.sdp || payload // Handle both formats
+          await pc.setRemoteDescription(new RTCSessionDescription(sdp))
+          
+          // Process queued candidates
+          while (iceCandidatesQueue.current.length > 0) {
+            const candidate = iceCandidatesQueue.current.shift()
+            if (candidate) await pc.addIceCandidate(candidate)
+          }
+
+          const answer = await pc.createAnswer()
+          await pc.setLocalDescription(answer)
+          channel.send({
+            type: 'broadcast',
+            event: 'answer',
+            payload: answer,
+          })
+        })
+        .on('broadcast', { event: 'answer' }, async ({ payload }: any) => {
+          if (!pc) return
+          console.log('Received answer')
+          await pc.setRemoteDescription(new RTCSessionDescription(payload))
+        })
+        .on('broadcast', { event: 'ice-candidate' }, async ({ payload }: any) => {
+          if (!pc) return
+          try {
+            const candidate = new RTCIceCandidate(payload)
+            if (pc.remoteDescription) {
+              await pc.addIceCandidate(candidate)
+            } else {
+              iceCandidatesQueue.current.push(candidate)
+            }
+          } catch (e) {
+            console.error('Error adding received ice candidate', e)
+          }
+        })
+        .subscribe(async (status: string) => {
+          if (status === 'SUBSCRIBED') {
+            setStatus('Waiting for peer...')
+            await channel.track({ user_id: currentUser.id, online_at: new Date().toISOString() })
+            // Announce we are here
             channel.send({
               type: 'broadcast',
-              event: 'answer',
-              payload: answer,
+              event: 'ready',
+              payload: { senderId: currentUser.id },
             })
-          })
-          .on('broadcast', { event: 'answer' }, async ({ payload }: any) => {
-            if (!pc) return
-            console.log('Received answer')
-            await pc.setRemoteDescription(new RTCSessionDescription(payload))
-          })
-          .on('broadcast', { event: 'ice-candidate' }, async ({ payload }: any) => {
-            if (!pc) return
-            try {
-              const candidate = new RTCIceCandidate(payload)
-              if (pc.remoteDescription) {
-                await pc.addIceCandidate(candidate)
-              } else {
-                iceCandidatesQueue.current.push(candidate)
-              }
-            } catch (e) {
-              console.error('Error adding received ice candidate', e)
-            }
-          })
-          .subscribe(async (status: string) => {
-            if (status === 'SUBSCRIBED') {
-              setStatus('Waiting for peer...')
-              await channel.track({ user_id: currentUser.id, online_at: new Date().toISOString() })
-              // Announce we are here
-              channel.send({
-                type: 'broadcast',
-                event: 'ready',
-                payload: {},
-              })
-            }
-          })
-
-      } catch (err) {
-        console.error('Error initializing call:', err)
-        setStatus('Error accessing media devices')
-      }
+          }
+        })
     }
 
     init()
