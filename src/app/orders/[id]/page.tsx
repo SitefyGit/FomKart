@@ -37,6 +37,7 @@ export default function OrderPage({ params }: OrderPageProps) {
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '', sellerRating: 0, sellerComment: '' })
   const [submittingReview, setSubmittingReview] = useState(false)
   const [inCall, setInCall] = useState(false)
+  const [callActive, setCallActive] = useState(false)
 
   const pushToast = (type: ToastItem['type'], message: string, title?: string) => {
     const id = Math.random().toString(36).slice(2)
@@ -54,6 +55,24 @@ export default function OrderPage({ params }: OrderPageProps) {
     }
     resolveParams()
   }, [params])
+
+  // Check for active call presence
+  useEffect(() => {
+    if (!resolvedParams?.id || inCall) return
+    
+    const channel = supabase.channel(`call-${resolvedParams.id}`)
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState()
+        const users = Object.values(state).flat()
+        setCallActive(users.length > 0)
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [resolvedParams?.id, inCall])
 
   useEffect(() => {
     if (!resolvedParams?.id) return
@@ -382,26 +401,6 @@ export default function OrderPage({ params }: OrderPageProps) {
       </div>
     )
   }
-
-  const [callActive, setCallActive] = useState(false)
-
-  // Check for active call presence
-  useEffect(() => {
-    if (!resolvedParams?.id || inCall) return
-    
-    const channel = supabase.channel(`call-${resolvedParams.id}`)
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState()
-        const users = Object.values(state).flat()
-        setCallActive(users.length > 0)
-      })
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [resolvedParams?.id, inCall])
 
   const isLiveCallEnabled = order?.product?.features?.some((f: string) => f.toLowerCase().includes('live call'))
 
