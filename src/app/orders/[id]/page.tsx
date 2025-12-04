@@ -60,12 +60,11 @@ export default function OrderPage({ params }: OrderPageProps) {
   useEffect(() => {
     if (!resolvedParams?.id || inCall) return
     
-    const channel = supabase.channel(`call-${resolvedParams.id}`)
+    // Must match the channel name used in WebRTCVideoCall component
+    const channel = supabase.channel(`video-call-presence-${resolvedParams.id}`)
     channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState()
-        const users = Object.values(state).flat()
-        setCallActive(users.length > 0)
+      .on('broadcast', { event: 'call-status' }, ({ payload }) => {
+        setCallActive(payload.active)
       })
       .subscribe()
 

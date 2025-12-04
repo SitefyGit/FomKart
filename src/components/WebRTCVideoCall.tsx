@@ -18,6 +18,22 @@ const ICE_SERVERS: RTCConfiguration = {
   ],
 }
 
+// Broadcast call status to presence channel (for "Join Active Call" button)
+const broadcastCallStatus = (orderId: string, active: boolean) => {
+  const presenceChannel = supabase.channel(`video-call-presence-${orderId}`)
+  presenceChannel.subscribe((status) => {
+    if (status === 'SUBSCRIBED') {
+      presenceChannel.send({
+        type: 'broadcast',
+        event: 'call-status',
+        payload: { active }
+      })
+      // Unsubscribe after sending
+      setTimeout(() => supabase.removeChannel(presenceChannel), 1000)
+    }
+  })
+}
+
 export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, onLeave }: WebRTCVideoCallProps) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
@@ -26,6 +42,7 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [status, setStatus] = useState('Initializing...')
   const [logs, setLogs] = useState<string[]>([])
+  const [participantLeft, setParticipantLeft] = useState(false)
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
@@ -39,6 +56,14 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
     console.log(`[WebRTC ${time}] ${msg}`)
     setLogs(prev => [...prev.slice(-20), `${time}: ${msg}`])
   }
+
+  // Broadcast call active status when component mounts/unmounts
+  useEffect(() => {
+    broadcastCallStatus(orderId, true)
+    return () => {
+      broadcastCallStatus(orderId, false)
+    }
+  }, [orderId])
 
   useEffect(() => {
     let mounted = true
@@ -113,16 +138,34 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
 
       pc.oniceconnectionstatechange = () => {
         addLog(`ICE state: ${pc?.iceConnectionState}`)
+        // Detect when peer disconnects
+        if (pc?.iceConnectionState === 'disconnected' || pc?.iceConnectionState === 'failed') {
+          if (mounted) {
+            setParticipantLeft(true)
+            setStatus('Participant disconnected')
+            setRemoteStream(null)
+          }
+        }
       }
 
       pc.onconnectionstatechange = () => {
         const state = pc?.connectionState
         addLog(`Connection state: ${state}`)
         if (mounted) {
-          if (state === 'connected') setStatus('Connected!')
+          if (state === 'connected') {
+            setStatus('Connected!')
+            setParticipantLeft(false)
+          }
           else if (state === 'connecting') setStatus('Connecting...')
-          else if (state === 'failed') setStatus('Connection failed')
-          else if (state === 'disconnected') setStatus('Disconnected')
+          else if (state === 'failed') {
+            setStatus('Connection failed')
+            setParticipantLeft(true)
+          }
+          else if (state === 'disconnected') {
+            setStatus('Participant disconnected')
+            setParticipantLeft(true)
+            setRemoteStream(null)
+          }
         }
       }
 
@@ -132,6 +175,16 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
       
       channel = supabase.channel(channelName)
       channelRef.current = channel
+
+      // Handle participant leaving
+      channel.on('broadcast', { event: 'leave' }, ({ payload }) => {
+        if (payload.from !== currentUser.id && mounted) {
+          addLog('Participant left the call')
+          setParticipantLeft(true)
+          setStatus('Participant left')
+          setRemoteStream(null)
+        }
+      })
 
       // Handle WebRTC signaling
       channel.on('broadcast', { event: 'webrtc' }, async ({ payload }) => {
@@ -244,10 +297,20 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
     return () => {
       mounted = false
       addLog('Cleaning up...')
+      // Broadcast that we're leaving
+      if (channelRef.current) {
+        channelRef.current.send({
+          type: 'broadcast',
+          event: 'leave',
+          payload: { from: currentUser.id }
+        })
+      }
       localStreamRef.current?.getTracks().forEach(t => t.stop())
       pcRef.current?.close()
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current)
+        setTimeout(() => {
+          if (channelRef.current) supabase.removeChannel(channelRef.current)
+        }, 500)
       }
     }
   }, [orderId, currentUser.id])
@@ -358,11 +421,29 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
           />
           {!remoteStream && (
             <div className="text-center text-white">
-              <div className="w-20 h-20 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse">
-                <Video className="w-8 h-8 text-gray-500" />
-              </div>
-              <p className="text-gray-400">{status}</p>
-              <p className="text-gray-500 text-sm mt-1">{remoteUserName || 'Waiting for participant...'}</p>
+              {participantLeft ? (
+                <>
+                  <div className="w-20 h-20 bg-red-900/50 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <PhoneOff className="w-8 h-8 text-red-400" />
+                  </div>
+                  <p className="text-red-400 font-medium">Participant Left</p>
+                  <p className="text-gray-500 text-sm mt-1">{remoteUserName} has ended the call</p>
+                  <button 
+                    onClick={onLeave}
+                    className="mt-4 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm"
+                  >
+                    Leave Call
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="w-20 h-20 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse">
+                    <Video className="w-8 h-8 text-gray-500" />
+                  </div>
+                  <p className="text-gray-400">{status}</p>
+                  <p className="text-gray-500 text-sm mt-1">{remoteUserName || 'Waiting for participant...'}</p>
+                </>
+              )}
             </div>
           )}
           {remoteStream && (
