@@ -246,12 +246,12 @@ export function LeadCaptureForm({
   }
 
   return (
-    <div className={`bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 
-                    border border-emerald-200 dark:border-emerald-700 rounded-xl p-6 ${className}`}>
+    <div className={`bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-gray-800 dark:to-gray-800 
+                    border border-emerald-200 dark:border-gray-600 rounded-xl p-6 ${className}`}>
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 dark:bg-emerald-800 
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 dark:bg-emerald-600 
                        rounded-full mb-4">
-          <Mail className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+          <Mail className="h-6 w-6 text-emerald-600 dark:text-white" />
         </div>
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
         <p className="text-gray-600 dark:text-gray-300">{subtitle}</p>
@@ -264,7 +264,7 @@ export function LeadCaptureForm({
             Email Address *
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
             <input
               type="email"
               id="email"
@@ -274,7 +274,7 @@ export function LeadCaptureForm({
               required
               className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg
                        focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
-                       bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
               disabled={formState.isSubmitting}
             />
           </div>
@@ -287,7 +287,7 @@ export function LeadCaptureForm({
               Name (Optional)
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 id="name"
@@ -296,7 +296,7 @@ export function LeadCaptureForm({
                 placeholder="Your name"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg
                          focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
-                         bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                         bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
                 disabled={formState.isSubmitting}
               />
             </div>

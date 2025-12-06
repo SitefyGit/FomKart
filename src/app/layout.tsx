@@ -53,18 +53,18 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         {/* Global Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-4">
             <div className="flex items-center gap-6">
               <Link href="/" prefetch className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center text-white font-bold">F</div>
-                <span className="font-semibold text-gray-900">FomKart</span>
+                <span className="font-semibold text-gray-900 dark:text-white">FomKart</span>
               </Link>
               <nav className="hidden md:flex items-center gap-6 text-sm">
-              <Link href="/category/digital-products" prefetch className="text-gray-600 hover:text-emerald-600">Digital Products</Link>
-              <Link href="/category/courses" prefetch className="text-gray-600 hover:text-emerald-600">Courses</Link>
-              <Link href="/category/services" prefetch className="text-gray-600 hover:text-emerald-600">Services</Link>
-              <Link href="/orders" prefetch className="text-gray-600 hover:text-emerald-600">Orders</Link>
+              <Link href="/category/digital-products" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Digital Products</Link>
+              <Link href="/category/courses" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Courses</Link>
+              <Link href="/category/services" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Services</Link>
+              <Link href="/orders" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Orders</Link>
               <Link href="/auth/login" prefetch className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium">Login</Link>
               </nav>
             </div>
