@@ -851,14 +851,14 @@ export default function CreatorPage() {
         return (
           <section
             key="links"
-            className={`bg-white rounded-2xl shadow-md p-6 transition ${dragHighlight}`}
+            className={`bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 transition ${dragHighlight}`}
             {...sectionDropHandlers('links')}
           >
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2">
                   {renderDragHandle('links')}
-                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <h2 className="text-xl font-semibold flex items-center gap-2 dark:text-white">
                     Links
                     {latestPost && (
                       <span className="text-xs font-medium text-gray-400 flex items-center gap-1">
@@ -871,13 +871,13 @@ export default function CreatorPage() {
                   </h2>
                 </div>
                 {latestPostEntry?.extra && latestPost?.post_type === 'text' && (
-                  <p className="text-xs text-gray-500 line-clamp-1">{latestPostEntry.extra}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{latestPostEntry.extra}</p>
                 )}
               </div>
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setShowAllPosts(!showAllPosts)}
-                  className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50 inline-flex items-center gap-1"
+                  className="px-3 py-1.5 text-sm rounded-lg border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white inline-flex items-center gap-1"
                 >
                   {showAllPosts ? 'Show Less' : 'View All'}
                 </button>
@@ -926,9 +926,9 @@ export default function CreatorPage() {
                 {posts.map((post) => {
                   const entry = buildActivityEntryFromPost(post);
                   return (
-                    <article key={post.id} className="rounded-xl border bg-gray-50 p-3 space-y-2">
-                      <div className="flex items-center justify-between text-[11px] text-gray-500">
-                        <span className="inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 capitalize text-gray-700">{post.post_type}</span>
+                    <article key={post.id} className="rounded-xl border dark:border-gray-700 bg-gray-50 dark:bg-gray-700 p-3 space-y-2">
+                      <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400">
+                        <span className="inline-flex items-center gap-1 rounded-full border dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-0.5 capitalize text-gray-700 dark:text-gray-300">{post.post_type}</span>
                         <div className="flex items-center gap-2">
                           <span>{new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                           {isOwner && (
@@ -942,9 +942,9 @@ export default function CreatorPage() {
                           )}
                         </div>
                       </div>
-                      <div className="text-sm font-semibold line-clamp-2">{entry.title}</div>
+                      <div className="text-sm font-semibold line-clamp-2 dark:text-white">{entry.title}</div>
                       {post.post_type === 'image' && entry.imageUrl && (
-                        <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+                        <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
                           <Image src={entry.imageUrl} alt={entry.title} fill className="object-cover" sizes="200px" />
                         </div>
                       )}
@@ -960,10 +960,10 @@ export default function CreatorPage() {
                         </div>
                       )}
                       {post.post_type === 'text' && entry.extra && (
-                        <p className="text-xs text-gray-600 line-clamp-4 whitespace-pre-line">{entry.extra}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-4 whitespace-pre-line">{entry.extra}</p>
                       )}
                       {entry.link && (
-                        <a href={entry.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline break-words">
+                        <a href={entry.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:underline break-words">
                           <LinkIcon className="h-3 w-3"/>{entry.link}
                         </a>
                       )}
@@ -1748,14 +1748,14 @@ export default function CreatorPage() {
       {/* Message Modal */}
   {messageOpen && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
-          <div className="bg-white text-gray-900 rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold">Message {creator.full_name}</h3>
-              <button onClick={()=>setMessageOpen(false)} className="text-gray-500 hover:text-gray-700 text-xl leading-none">×</button>
+              <h3 className="text-lg font-semibold dark:text-white">Message {creator.full_name}</h3>
+              <button onClick={()=>setMessageOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl leading-none">×</button>
             </div>
-            <textarea value={messageBody} onChange={e=>setMessageBody(e.target.value)} placeholder="Write your message..." className="w-full border rounded px-3 py-2 text-sm h-40" />
+            <textarea value={messageBody} onChange={e=>setMessageBody(e.target.value)} placeholder="Write your message..." className="w-full border dark:border-gray-600 rounded px-3 py-2 text-sm h-40 dark:bg-gray-700 dark:text-white" />
             <div className="flex justify-end gap-2">
-              <button onClick={()=>setMessageOpen(false)} className="px-3 py-2 text-sm rounded border">Cancel</button>
+              <button onClick={()=>setMessageOpen(false)} className="px-3 py-2 text-sm rounded border dark:border-gray-600 dark:text-white">Cancel</button>
               <button onClick={()=>{ console.log('Send message (stub):', messageBody); setMessageBody(''); setMessageOpen(false); }} className="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">Send</button>
             </div>
             <p className="text-[11px] text-gray-400">Stub only – hook into real messaging service later.</p>
@@ -1765,36 +1765,36 @@ export default function CreatorPage() {
       {/* Settings Modal */}
   {isOwner && settingsOpen && creator && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
-          <div className="bg-white text-gray-900 rounded-2xl shadow-lg w-full max-w-lg p-6 space-y-4">
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-2xl shadow-lg w-full max-w-lg p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Profile Settings</h3>
-              <button onClick={()=>setSettingsOpen(false)} className="text-gray-500 hover:text-gray-700 text-xl leading-none">×</button>
+              <h3 className="text-lg font-semibold dark:text-white">Profile Settings</h3>
+              <button onClick={()=>setSettingsOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl leading-none">×</button>
             </div>
             <div className="grid gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Bio</label>
-                <textarea value={settings.bio} onChange={e=>setSettings(s=>({...s,bio:e.target.value}))} className="w-full border rounded-lg px-3 py-2 text-sm h-24" />
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Bio</label>
+                <textarea value={settings.bio} onChange={e=>setSettings(s=>({...s,bio:e.target.value}))} className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm h-24 dark:bg-gray-700 dark:text-white" />
               </div>
               <div className="grid md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Website</label>
-                  <input value={settings.website} onChange={e=>setSettings(s=>({...s,website:e.target.value}))} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Website</label>
+                  <input value={settings.website} onChange={e=>setSettings(s=>({...s,website:e.target.value}))} className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Location</label>
-                  <input value={settings.location} onChange={e=>setSettings(s=>({...s,location:e.target.value}))} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Location</label>
+                  <input value={settings.location} onChange={e=>setSettings(s=>({...s,location:e.target.value}))} className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                 </div>
               </div>
               <div className="grid md:grid-cols-2 gap-3">
-                <input placeholder="Twitter" value={settings.twitter} onChange={e=>setSettings(s=>({...s,twitter:e.target.value}))} className="border rounded-lg px-3 py-2 text-sm" />
-                <input placeholder="Instagram" value={settings.instagram} onChange={e=>setSettings(s=>({...s,instagram:e.target.value}))} className="border rounded-lg px-3 py-2 text-sm" />
-                <input placeholder="YouTube" value={settings.youtube} onChange={e=>setSettings(s=>({...s,youtube:e.target.value}))} className="border rounded-lg px-3 py-2 text-sm" />
-                <input placeholder="Facebook" value={settings.facebook} onChange={e=>setSettings(s=>({...s,facebook:e.target.value}))} className="border rounded-lg px-3 py-2 text-sm" />
-                <input placeholder="LinkedIn" value={settings.linkedin} onChange={e=>setSettings(s=>({...s,linkedin:e.target.value}))} className="border rounded-lg px-3 py-2 text-sm md:col-span-2" />
+                <input placeholder="Twitter" value={settings.twitter} onChange={e=>setSettings(s=>({...s,twitter:e.target.value}))} className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
+                <input placeholder="Instagram" value={settings.instagram} onChange={e=>setSettings(s=>({...s,instagram:e.target.value}))} className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
+                <input placeholder="YouTube" value={settings.youtube} onChange={e=>setSettings(s=>({...s,youtube:e.target.value}))} className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
+                <input placeholder="Facebook" value={settings.facebook} onChange={e=>setSettings(s=>({...s,facebook:e.target.value}))} className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
+                <input placeholder="LinkedIn" value={settings.linkedin} onChange={e=>setSettings(s=>({...s,linkedin:e.target.value}))} className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm md:col-span-2 dark:bg-gray-700 dark:text-white" />
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={()=>setSettingsOpen(false)} className="px-4 py-2 text-sm rounded-lg border">Cancel</button>
+              <button onClick={()=>setSettingsOpen(false)} className="px-4 py-2 text-sm rounded-lg border dark:border-gray-600 dark:text-white">Cancel</button>
               <button onClick={async ()=>{
                 const socialEntries = {
                   twitter: settings.twitter,
@@ -1827,13 +1827,13 @@ export default function CreatorPage() {
       {/* Add Post Modal */}
       {isOwner && addPostOpen && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur flex items-start justify-center z-50 overflow-y-auto py-10 px-4">
-          <div className="bg-white text-gray-900 rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-5">
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Share a new post</h3>
-                <p className="text-xs text-gray-500">Drop a quick update, image, or video for your audience.</p>
+                <h3 className="text-lg font-semibold dark:text-white">Share a new post</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Drop a quick update, image, or video for your audience.</p>
               </div>
-              <button type="button" onClick={closePostModal} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+              <button type="button" onClick={closePostModal} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none">×</button>
             </div>
 
             <div className="grid grid-cols-3 gap-2 text-sm">
@@ -1865,12 +1865,12 @@ export default function CreatorPage() {
 
               {postType === 'video' && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Video link</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Video link</label>
                   <input
                     value={postVideoUrl}
                     onChange={(e) => setPostVideoUrl(e.target.value)}
                     placeholder="YouTube or Vimeo link"
-                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border dark:border-gray-600 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     disabled={postSubmitting}
                   />
                   <p className="mt-1 text-[11px] text-gray-500">We support public YouTube and Vimeo links.</p>
@@ -1920,29 +1920,29 @@ export default function CreatorPage() {
 
               <div className="grid gap-3 text-sm md:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Optional link</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Optional link</label>
                   <input
                     value={postLinkUrl}
                     onChange={(e) => setPostLinkUrl(e.target.value)}
                     placeholder="https://..."
-                    className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     disabled={postSubmitting}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Tags</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tags</label>
                   <input
                     value={postTags}
                     onChange={(e) => setPostTags(e.target.value)}
                     placeholder="launch, behind-the-scenes"
-                    className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     disabled={postSubmitting}
                   />
                 </div>
               </div>
 
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={closePostModal} className="px-4 py-2 text-sm rounded-lg border" disabled={postSubmitting}>Cancel</button>
+                <button type="button" onClick={closePostModal} className="px-4 py-2 text-sm rounded-lg border dark:border-gray-600 dark:text-white" disabled={postSubmitting}>Cancel</button>
                 <button
                   type="submit"
                   className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
