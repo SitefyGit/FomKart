@@ -88,7 +88,7 @@ export default async function HomePage() {
               Browse Services
             </Link>
             <Link
-              href="/auth/creator-login"
+              href="/auth/login"
               prefetch
               className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-emerald-600 transition-all duration-200 hover:scale-105 transform text-center"
             >

@@ -92,7 +92,7 @@ export default function CreatorSignUpPage() {
 
         setLoading(false)
         alert('Creator account created successfully! Please check your email to confirm your account.')
-        router.push('/auth/creator-login')
+        router.push('/auth/login')
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Sign up failed'
@@ -331,7 +331,7 @@ export default function CreatorSignUpPage() {
           <p className="text-gray-600">
             Already have a creator account?{' '}
             <Link
-              href="/auth/creator-login"
+              href="/auth/login"
               className="text-emerald-600 hover:text-emerald-700 font-medium"
             >
               Sign in here

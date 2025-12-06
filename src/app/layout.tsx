@@ -65,7 +65,7 @@ export default function RootLayout({
               <Link href="/category/courses" prefetch className="text-gray-600 hover:text-emerald-600">Courses</Link>
               <Link href="/category/services" prefetch className="text-gray-600 hover:text-emerald-600">Services</Link>
               <Link href="/orders" prefetch className="text-gray-600 hover:text-emerald-600">Orders</Link>
-              <Link href="/auth/creator-login" prefetch className="text-emerald-600 hover:text-emerald-700 font-medium">Creator Login</Link>
+              <Link href="/auth/login" prefetch className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium">Login</Link>
               </nav>
             </div>
             {/* Right actions always visible */}

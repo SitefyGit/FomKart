@@ -17,7 +17,7 @@ export function QuickNavigation() {
           </Link>
           
           <Link
-            href="/auth/creator-login"
+            href="/auth/login"
             className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded-lg text-sm transition-colors"
           >
             <LogIn className="h-4 w-4 text-blue-600" />

@@ -6,7 +6,7 @@ export default function TestNavigation() {
       <h3 className="font-semibold text-gray-900 mb-3">Quick Test Links</h3>
       <div className="space-y-2">
         <a 
-          href="/auth/creator-login"
+          href="/auth/login"
           className="block text-blue-600 hover:text-blue-700 text-sm underline"
           target="_blank"
         >

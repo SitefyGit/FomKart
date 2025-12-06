@@ -89,7 +89,7 @@ export default function CredentialsHelper() {
       
       <div className="mt-4 space-y-2">
         <a
-          href="/auth/creator-login"
+          href="/auth/login"
           className="block w-full text-center bg-gradient-to-r from-emerald-600 to-blue-600 text-white py-3 rounded-lg text-sm font-medium hover:from-emerald-700 hover:to-blue-700 transition-all duration-200 hover:scale-105 hover:shadow-lg"
         >
           Go to Login
