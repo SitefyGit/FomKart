@@ -727,8 +727,8 @@ export default function CreatorPage() {
           const featureCount = features.length
           const price = (typeof p.base_price === 'number' && p.base_price >= 0) ? p.base_price : undefined
           return (
-            <Link href={`/product/${p.id}`} key={p.id} prefetch className="group border rounded-xl overflow-hidden bg-white hover:shadow-md transition relative block h-full">
-              <div className="relative aspect-video bg-gray-100 text-gray-400 text-xs overflow-hidden">
+            <Link href={`/product/${p.id}`} key={p.id} prefetch className="group border dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-800 hover:shadow-md transition relative block h-full">
+              <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-xs overflow-hidden">
                 {imageCount > 0 ? (
                   <Image
                     src={images[0]}
@@ -761,8 +761,8 @@ export default function CreatorPage() {
                 )}
               </div>
               <div className="p-4">
-                <h3 className="font-semibold mb-1 line-clamp-1">{p.title}</h3>
-                <p className="text-xs text-gray-500 line-clamp-2 mb-2">{p.description}</p>
+                <h3 className="font-semibold mb-1 line-clamp-1 dark:text-white">{p.title}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">{p.description}</p>
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex gap-1 flex-wrap">
                     {hasVideo && (
@@ -775,10 +775,10 @@ export default function CreatorPage() {
                       <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><StarIcon fontSize="inherit" style={{fontSize:'12px'}}/>{featureCount} Feature{featureCount>1?'s':''}</span>
                     )}
                     {!hasVideo && imageCount <= 1 && featureCount === 0 && (
-                      <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full inline-flex items-center gap-1">Basic</span>
+                      <span className="bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full inline-flex items-center gap-1">Basic</span>
                     )}
                   </div>
-                  <span className="font-semibold text-blue-600">{price !== undefined ? `$${price}` : 'Free'}</span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">{price !== undefined ? `$${price}` : 'Free'}</span>
                 </div>
               </div>
             </Link>
@@ -788,15 +788,15 @@ export default function CreatorPage() {
         return (
           <section
             key="products"
-            className={`bg-white rounded-2xl shadow-md p-6 transition ${dragHighlight}`}
+            className={`bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 transition ${dragHighlight}`}
             {...sectionDropHandlers('products')}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 {renderDragHandle('products')}
-                <h2 className="text-xl font-semibold flex items-center gap-2">
+                <h2 className="text-xl font-semibold flex items-center gap-2 dark:text-white">
                   Featured Products
-                  <span className="text-sm text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{creator?.totalProducts ?? 0}</span>
+                  <span className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">{creator?.totalProducts ?? 0}</span>
                 </h2>
               </div>
               <div className="flex gap-2">
@@ -837,12 +837,12 @@ export default function CreatorPage() {
         return (
           <section
             key="reviews"
-            className={`bg-white rounded-2xl shadow-md p-6 transition ${dragHighlight}`}
+            className={`bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 transition ${dragHighlight}`}
             {...sectionDropHandlers('reviews')}
           >
             <div className="flex items-center gap-2 mb-4">
               {renderDragHandle('reviews')}
-              <h2 className="text-xl font-semibold">Customer Reviews</h2>
+              <h2 className="text-xl font-semibold dark:text-white">Customer Reviews</h2>
             </div>
             <ReviewsSlider creatorId={creator?.id || ''} />
           </section>
@@ -1098,12 +1098,12 @@ export default function CreatorPage() {
     };
   }, [creator, buildActivityEntryFromPost]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600">Loading…</div>;
-  if (!creator) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600">Creator not found.</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400">Loading…</div>;
+  if (!creator) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400">Creator not found.</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="relative h-80 w-full bg-gray-200 overflow-hidden group">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="relative h-80 w-full bg-gray-200 dark:bg-gray-800 overflow-hidden group">
         {creator.background_image ? (
           <Image
             src={creator.background_image}
@@ -1140,9 +1140,9 @@ export default function CreatorPage() {
 
       {/* Floating Profile Card */}
       <div className="max-w-6xl mx-auto px-6 -mt-24 relative z-10">
-  <div className="bg-white rounded-2xl shadow-xl p-6 flex flex-col md:flex-row gap-8">
+  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 flex flex-col md:flex-row gap-8">
           <div className="relative w-40 shrink-0">
-            <div className="relative w-40 h-40 rounded-full overflow-hidden ring-4 ring-white shadow-lg flex items-center justify-center bg-gray-100 group/avatar">
+            <div className="relative w-40 h-40 rounded-full overflow-hidden ring-4 ring-white dark:ring-gray-700 shadow-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700 group/avatar">
               {creator.avatar_url ? (
                 <Image
                   src={creator.avatar_url}
@@ -1166,25 +1166,25 @@ export default function CreatorPage() {
             </div>
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">{creator.full_name}</h1>
-            <p className="text-gray-600 mb-4 max-w-2xl">{creator.bio}</p>
+            <h1 className="text-3xl font-bold mb-2 flex items-center gap-2 dark:text-white">{creator.full_name}</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-2xl">{creator.bio}</p>
             <SocialIconsBar links={creator.social_links} className="mb-6" />
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
               {creator.location && <span className="flex items-center gap-1"><MapPinIcon className="h-4 w-4"/> {creator.location}</span>}
               <span>Joined {new Date(creator.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric'})}</span>
-              {creator.website && <a href={creator.website} target="_blank" className="text-blue-600 hover:underline inline-flex items-center gap-1"><LinkIcon className="h-4 w-4"/>Website</a>}
+              {creator.website && <a href={creator.website} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"><LinkIcon className="h-4 w-4"/>Website</a>}
             </div>
             <div className="flex gap-10 mb-6">
               <div>
-                <div className="text-xl font-semibold">{creator.totalProducts}</div>
-                <div className="text-xs uppercase tracking-wide text-gray-500">Live Products</div>
+                <div className="text-xl font-semibold dark:text-white">{creator.totalProducts}</div>
+                <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-500">Live Products</div>
               </div>
             </div>
             <div className="flex gap-3">
               {!isOwner && (
                 <button onClick={()=>{ if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 inline-flex items-center gap-1"><ChatBubbleLeftRightIcon className="h-4 w-4"/>Message</button>
               )}
-              <button onClick={()=>setShareOpen(true)} className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200 inline-flex items-center gap-1"><ShareIcon className="h-4 w-4"/>Share</button>
+              <button onClick={()=>setShareOpen(true)} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 inline-flex items-center gap-1"><ShareIcon className="h-4 w-4"/>Share</button>
               {isOwner && (
               <button onClick={()=>{ if (!creator) return; setSettings({
                 bio: creator.bio || '', website: creator.website || '', location: creator.location || '',
@@ -1193,15 +1193,15 @@ export default function CreatorPage() {
                 youtube: creator.social_links?.youtube || creator.social_links?.YouTube || '',
                 facebook: creator.social_links?.facebook || '',
                 linkedin: creator.social_links?.linkedin || ''
-              }); setSettingsOpen(true); }} className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200">Settings</button>
+              }); setSettingsOpen(true); }} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600">Settings</button>
               )}
               <div className="relative">
-                <button onClick={()=>setMoreOpen(o=>!o)} className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200 inline-flex items-center gap-1"><MoreHorizIcon fontSize="small"/>More</button>
+                <button onClick={()=>setMoreOpen(o=>!o)} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 inline-flex items-center gap-1"><MoreHorizIcon fontSize="small"/>More</button>
                 {moreOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white text-gray-900 border rounded-lg shadow-lg text-sm z-20">
-                    <button onClick={()=>{navigator.clipboard.writeText(window.location.href); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50">Copy Link</button>
-                    <button onClick={()=>{setShareOpen(true); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50">Share</button>
-                    <button onClick={()=>{alert('Report submitted (stub)'); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600">Report</button>
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border dark:border-gray-700 rounded-lg shadow-lg text-sm z-20">
+                    <button onClick={()=>{navigator.clipboard.writeText(window.location.href); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700">Copy Link</button>
+                    <button onClick={()=>{setShareOpen(true); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700">Share</button>
+                    <button onClick={()=>{alert('Report submitted (stub)'); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 dark:text-red-400">Report</button>
                   </div>
                 )}
               </div>
@@ -1308,26 +1308,26 @@ export default function CreatorPage() {
               {/* Common extra fields */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Promo YouTube Video</label>
-                  <input value={productExtras.videoUrl} onChange={e=>setProductExtras(x=>({...x,videoUrl:e.target.value}))} placeholder="https://youtu.be/.. or ID" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Promo YouTube Video</label>
+                  <input value={productExtras.videoUrl} onChange={e=>setProductExtras(x=>({...x,videoUrl:e.target.value}))} placeholder="https://youtu.be/.. or ID" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">External / Demo Link</label>
-                  <input value={productExtras.externalUrl} onChange={e=>setProductExtras(x=>({...x,externalUrl:e.target.value}))} placeholder="https://example.com" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">External / Demo Link</label>
+                  <input value={productExtras.externalUrl} onChange={e=>setProductExtras(x=>({...x,externalUrl:e.target.value}))} placeholder="https://example.com" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Tags (comma separated)</label>
-                <input value={productExtras.tags} onChange={e=>setProductExtras(x=>({...x,tags:e.target.value}))} placeholder="branding, logo, design" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tags (comma separated)</label>
+                <input value={productExtras.tags} onChange={e=>setProductExtras(x=>({...x,tags:e.target.value}))} placeholder="branding, logo, design" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
               </div>
               {(selectedType==='digital' || selectedType==='course') && (
-                <div className="border rounded-xl p-4 bg-gray-50 space-y-3">
+                <div className="border dark:border-gray-600 rounded-xl p-4 bg-gray-50 dark:bg-gray-700 space-y-3">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600">Deliverable Files</label>
-                      <p className="text-[11px] text-gray-500">Attach PDFs, ZIPs, or resources that buyers get instantly after payment.</p>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">Deliverable Files</label>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">Attach PDFs, ZIPs, or resources that buyers get instantly after payment.</p>
                     </div>
-                    <label className="cursor-pointer text-sm font-medium text-blue-600 hover:underline whitespace-nowrap">
+                    <label className="cursor-pointer text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap">
                       Upload files
                       <input type="file" multiple className="hidden" onChange={handleDeliveryFileInput} />
                     </label>
@@ -1335,21 +1335,21 @@ export default function CreatorPage() {
                   {deliveryFiles.length > 0 ? (
                     <ul className="space-y-2 max-h-36 overflow-auto text-xs">
                       {deliveryFiles.map((file, idx) => (
-                        <li key={`${file.name}-${idx}`} className="flex items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2">
+                        <li key={`${file.name}-${idx}`} className="flex items-center justify-between gap-2 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2">
                           <div className="flex-1 truncate pr-2">
-                            <p className="font-medium truncate">{file.name}</p>
-                            <p className="text-[11px] text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+                            <p className="font-medium truncate dark:text-white">{file.name}</p>
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400">{(file.size / 1024).toFixed(1)} KB</p>
                           </div>
-                          <button type="button" onClick={()=>handleRemoveDeliveryFile(idx)} className="text-[11px] text-red-600 hover:underline">Remove</button>
+                          <button type="button" onClick={()=>handleRemoveDeliveryFile(idx)} className="text-[11px] text-red-600 dark:text-red-400 hover:underline">Remove</button>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-xs text-gray-500">No files selected yet.</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">No files selected yet.</p>
                   )}
                   {deliveryFiles.length > 0 && (
                     <div className="text-right">
-                      <button type="button" onClick={()=>setDeliveryFiles([])} className="text-xs text-red-600 hover:underline">Clear all</button>
+                      <button type="button" onClick={()=>setDeliveryFiles([])} className="text-xs text-red-600 dark:text-red-400 hover:underline">Clear all</button>
                     </div>
                   )}
                 </div>
@@ -1717,12 +1717,12 @@ export default function CreatorPage() {
       {/* Subscribe Modal */}
       {subscribeOpen && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
-          <div className="bg-white text-gray-900 rounded-2xl shadow-lg w-full max-w-md p-6 space-y-5">
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-2xl shadow-lg w-full max-w-md p-6 space-y-5">
             <div className="flex justify-end">
-              <button onClick={()=>setSubscribeOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+              <button onClick={()=>setSubscribeOpen(false)} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none">×</button>
             </div>
             <div className="flex flex-col items-center text-center -mt-8">
-              <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-white shadow mb-3 bg-gray-100 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-white dark:ring-gray-700 shadow mb-3 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                 {creator.avatar_url ? (
                   <Image
                     src={creator.avatar_url}
@@ -1735,12 +1735,12 @@ export default function CreatorPage() {
                   <UserCircleIcon className="h-12 w-12 text-gray-300"/>
                 )}
               </div>
-              <h3 className="font-semibold mb-2">Subscribe to {creator.username}</h3>
-              <form onSubmit={async e=>{e.preventDefault(); if(!subscribeEmail) return; setSubscribing(true); try { await supabase.from('newsletter_subscriptions').insert({ creator_id: creator.id, email: subscribeEmail, source: 'creator_profile' }); setSubscribeEmail(''); setSubscribeOpen(false); } catch(err){ console.warn('Subscribe failed', err);} finally { setSubscribing(false);} }} className="w-full flex rounded-lg overflow-hidden border focus-within:ring-2 focus-within:ring-blue-500">
-                <input type="email" required placeholder="Sign Up" value={subscribeEmail} onChange={e=>setSubscribeEmail(e.target.value)} className="flex-1 px-3 py-2 text-sm outline-none" />
-                <button disabled={subscribing} className="px-4 bg-gray-800 text-white text-sm font-medium hover:bg-black disabled:opacity-50">{subscribing? '...' : 'Submit'}</button>
+              <h3 className="font-semibold mb-2 dark:text-white">Subscribe to {creator.username}</h3>
+              <form onSubmit={async e=>{e.preventDefault(); if(!subscribeEmail) return; setSubscribing(true); try { await supabase.from('newsletter_subscriptions').insert({ creator_id: creator.id, email: subscribeEmail, source: 'creator_profile' }); setSubscribeEmail(''); setSubscribeOpen(false); } catch(err){ console.warn('Subscribe failed', err);} finally { setSubscribing(false);} }} className="w-full flex rounded-lg overflow-hidden border dark:border-gray-600 focus-within:ring-2 focus-within:ring-blue-500">
+                <input type="email" required placeholder="Sign Up" value={subscribeEmail} onChange={e=>setSubscribeEmail(e.target.value)} className="flex-1 px-3 py-2 text-sm outline-none dark:bg-gray-700 dark:text-white" />
+                <button disabled={subscribing} className="px-4 bg-gray-800 dark:bg-gray-700 text-white text-sm font-medium hover:bg-black dark:hover:bg-gray-600 disabled:opacity-50">{subscribing? '...' : 'Submit'}</button>
               </form>
-              <p className="text-[11px] text-gray-500 mt-2">We respect your inbox. Unsubscribe anytime.</p>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">We respect your inbox. Unsubscribe anytime.</p>
             </div>
           </div>
         </div>
