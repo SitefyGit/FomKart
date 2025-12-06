@@ -124,27 +124,27 @@ export const ReviewsSlider: React.FC<ReviewsSliderProps> = ({ creatorId, limit =
     scrollRef.current.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
   }
 
-  if (loading) return <div className="h-40 flex items-center justify-center text-sm text-gray-500">Loading reviews…</div>;
-  if (error) return <div className="h-40 flex items-center justify-center text-sm text-red-500">{error}</div>;
-  if (reviews.length === 0) return <div className="text-sm text-gray-500">No reviews yet.</div>;
+  if (loading) return <div className="h-40 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">Loading reviews…</div>;
+  if (error) return <div className="h-40 flex items-center justify-center text-sm text-red-500 dark:text-red-400">{error}</div>;
+  if (reviews.length === 0) return <div className="text-sm text-gray-500 dark:text-gray-400">No reviews yet.</div>;
 
   return (
     <div className="relative">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <span>{reviews.length} review{reviews.length!==1 && 's'}</span>
         </div>
         <div className="flex gap-2">
-          <button onClick={()=>scroll('left')} className="p-2 rounded-full border hover:bg-gray-50" aria-label="Prev"><ChevronLeftIcon fontSize="small"/></button>
-          <button onClick={()=>scroll('right')} className="p-2 rounded-full border hover:bg-gray-50" aria-label="Next"><ChevronRightIcon fontSize="small"/></button>
+          <button onClick={()=>scroll('left')} className="p-2 rounded-full border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700" aria-label="Prev"><ChevronLeftIcon fontSize="small"/></button>
+          <button onClick={()=>scroll('right')} className="p-2 rounded-full border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700" aria-label="Next"><ChevronRightIcon fontSize="small"/></button>
         </div>
       </div>
       <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-thin pb-2" style={{scrollSnapType:'x mandatory'}}>
         {reviews.map(r => (
-          <div key={r.id} className="min-w-[300px] max-w-[300px] bg-white border rounded-xl p-4 shadow-sm scroll-snap-align-start">
+          <div key={r.id} className="min-w-[300px] max-w-[300px] bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-xl p-4 shadow-sm scroll-snap-align-start">
             <div className="flex items-center justify-between mb-2">
               <div className="flex -space-x-2 items-center">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                   {r.reviewer?.avatar_url ? (
                     <Image
                       src={r.reviewer.avatar_url}
@@ -154,28 +154,28 @@ export const ReviewsSlider: React.FC<ReviewsSliderProps> = ({ creatorId, limit =
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-[10px] font-medium text-gray-500">{(r.reviewer?.full_name||r.reviewer?.username||'?').slice(0,2).toUpperCase()}</span>
+                    <span className="text-[10px] font-medium text-gray-500 dark:text-gray-300">{(r.reviewer?.full_name||r.reviewer?.username||'?').slice(0,2).toUpperCase()}</span>
                   )}
                 </div>
-                <span className="text-xs text-gray-600 ml-2 line-clamp-1">
+                <span className="text-xs text-gray-600 dark:text-gray-300 ml-2 line-clamp-1">
                   {r.reviewer?.full_name || r.reviewer?.username || 'Anonymous'}
                 </span>
               </div>
               <div className="flex items-center gap-1 text-amber-500">
-                {Array.from({length:5}).map((_,i)=>(<StarIcon key={i} fontSize="inherit" className={i < r.rating ? 'text-amber-500' : 'text-gray-300'} style={{fontSize:'14px'}}/>))}
+                {Array.from({length:5}).map((_,i)=>(<StarIcon key={i} fontSize="inherit" className={i < r.rating ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600'} style={{fontSize:'14px'}}/>))}
               </div>
             </div>
-            {r.comment ? <p className="text-xs text-gray-600 line-clamp-4 mb-3">{r.comment}</p> : <p className="text-xs text-gray-500 italic mb-3">No comment provided.</p>}
+            {r.comment ? <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-4 mb-3">{r.comment}</p> : <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-3">No comment provided.</p>}
             {typeof r.seller_rating === 'number' || r.seller_response ? (
-              <div className="text-[11px] text-gray-600 mb-2 border-t border-dashed border-gray-200 pt-2">
+              <div className="text-[11px] text-gray-600 dark:text-gray-300 mb-2 border-t border-dashed border-gray-200 dark:border-gray-600 pt-2">
                 {typeof r.seller_rating === 'number' ? (
-                  <span className="block font-semibold text-gray-800">Seller rating: {r.seller_rating}/5</span>
+                  <span className="block font-semibold text-gray-800 dark:text-gray-200">Seller rating: {r.seller_rating}/5</span>
                 ) : null}
-                {r.seller_response ? <span className="block mt-1 text-gray-500">Seller response: {r.seller_response}</span> : null}
+                {r.seller_response ? <span className="block mt-1 text-gray-500 dark:text-gray-400">Seller response: {r.seller_response}</span> : null}
               </div>
             ) : null}
-            {r.product && <div className="text-[11px] font-medium text-blue-600 bg-blue-50 inline-block px-2 py-0.5 rounded">{r.product.title}</div>}
-            <div className="mt-3 text-[10px] text-gray-400">{new Date(r.created_at).toLocaleDateString()}</div>
+            {r.product && <div className="text-[11px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40 inline-block px-2 py-0.5 rounded">{r.product.title}</div>}
+            <div className="mt-3 text-[10px] text-gray-400 dark:text-gray-500">{new Date(r.created_at).toLocaleDateString()}</div>
           </div>
         ))}
       </div>

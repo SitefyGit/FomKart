@@ -904,9 +904,9 @@ export default function CreatorPage() {
             </div>
 
             {postsLoading ? (
-              <div className="text-sm text-gray-500">Loading recent posts…</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Loading recent posts…</div>
             ) : !latestPost ? (
-              <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center text-sm text-gray-500">
+              <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-300">
                 {isOwner ? (
                   <div className="space-y-3">
                     <p>Add your favorite links, updates, or embeds to showcase your work.</p>
@@ -949,7 +949,7 @@ export default function CreatorPage() {
                         </div>
                       )}
                       {post.post_type === 'video' && entry.embedUrl && (
-                        <div className="aspect-video overflow-hidden rounded-lg bg-black/5">
+                        <div className="aspect-video overflow-hidden rounded-lg bg-black/5 dark:bg-black/40">
                           <iframe
                             src={entry.embedUrl}
                             className="h-full w-full"
@@ -975,7 +975,7 @@ export default function CreatorPage() {
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="md:col-span-2 space-y-3">
                   {latestPost.post_type === 'video' && latestPostEntry?.embedUrl && (
-                    <div className="aspect-video overflow-hidden rounded-xl bg-black/5">
+                    <div className="aspect-video overflow-hidden rounded-xl bg-black/5 dark:bg-black/40">
                       <iframe
                         src={latestPostEntry.embedUrl}
                         className="h-full w-full"
@@ -986,24 +986,24 @@ export default function CreatorPage() {
                     </div>
                   )}
                   {latestPost.post_type === 'image' && latestPost.media_url && (
-                    <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
+                    <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800">
                       <Image src={latestPost.media_url} alt={latestPostEntry?.title || 'Creator post'} fill className="object-cover" sizes="(min-width: 768px) 60vw, 100vw" />
                     </div>
                   )}
                   {latestPost.post_type === 'text' && latestPostEntry?.extra && (
-                    <div className="rounded-xl border bg-gray-50 p-4 text-sm text-gray-700 whitespace-pre-line">
+                    <div className="rounded-xl border dark:border-gray-700 bg-gray-50 dark:bg-gray-700 p-4 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                       {latestPostEntry.extra}
                     </div>
                   )}
                   {latestPost.post_type !== 'text' && latestPostEntry?.extra && (
-                    <p className="text-sm text-gray-700 whitespace-pre-line">{latestPostEntry.extra}</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{latestPostEntry.extra}</p>
                   )}
                   {latestPost.link_url && (
                     <a
                       href={latestPost.link_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline break-words"
+                      className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline break-words"
                     >
                       <LinkIcon className="h-4 w-4"/>{latestPost.link_url}
                     </a>
@@ -1011,19 +1011,19 @@ export default function CreatorPage() {
                   {latestPost.tags && latestPost.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {latestPost.tags.map((tag) => (
-                        <span key={tag} className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">#{tag}</span>
+                        <span key={tag} className="rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1 text-xs text-gray-700 dark:text-gray-300">#{tag}</span>
                       ))}
                     </div>
                   )}
                 </div>
                 <div className="space-y-3">
                   {secondaryPostEntries.length === 0 ? (
-                    <div className="rounded-xl border bg-gray-50 p-4 text-sm text-gray-500">No other links yet.</div>
+                    <div className="rounded-xl border dark:border-gray-700 bg-gray-50 dark:bg-gray-700 p-4 text-sm text-gray-500 dark:text-gray-300">No other links yet.</div>
                   ) : (
                     secondaryPostEntries.map(({ post, entry }) => (
-                      <article key={post.id} className="rounded-xl border bg-gray-50 p-3 space-y-2">
-                        <div className="flex items-center justify-between text-[11px] text-gray-500">
-                          <span className="inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 capitalize text-gray-700">{post.post_type}</span>
+                      <article key={post.id} className="rounded-xl border dark:border-gray-700 bg-gray-50 dark:bg-gray-700 p-3 space-y-2">
+                        <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400">
+                          <span className="inline-flex items-center gap-1 rounded-full border dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-0.5 capitalize text-gray-700 dark:text-gray-300">{post.post_type}</span>
                           <div className="flex items-center gap-2">
                             <span>{new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                             {isOwner && (
@@ -1037,14 +1037,14 @@ export default function CreatorPage() {
                             )}
                           </div>
                         </div>
-                        <div className="text-sm font-semibold line-clamp-2">{entry.title}</div>
+                        <div className="text-sm font-semibold line-clamp-2 dark:text-white">{entry.title}</div>
                         {post.post_type === 'image' && entry.imageUrl && (
-                          <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+                          <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
                             <Image src={entry.imageUrl} alt={entry.title} fill className="object-cover" sizes="200px" />
                           </div>
                         )}
                         {post.post_type === 'video' && entry.embedUrl && (
-                          <div className="aspect-video overflow-hidden rounded-lg bg-black/5">
+                          <div className="aspect-video overflow-hidden rounded-lg bg-black/5 dark:bg-black/40">
                             <iframe
                               src={entry.embedUrl}
                               className="h-full w-full"
@@ -1055,10 +1055,10 @@ export default function CreatorPage() {
                           </div>
                         )}
                         {post.post_type === 'text' && entry.extra && (
-                          <p className="text-xs text-gray-600 line-clamp-4 whitespace-pre-line">{entry.extra}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-4 whitespace-pre-line">{entry.extra}</p>
                         )}
                         {entry.link && (
-                          <a href={entry.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline break-words">
+                          <a href={entry.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:underline break-words">
                             <LinkIcon className="h-3 w-3"/>{entry.link}
                           </a>
                         )}
