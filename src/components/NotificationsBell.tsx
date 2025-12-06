@@ -11,6 +11,7 @@ export default function NotificationsBell() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [items, setItems] = useState<Notification[]>([])
   const [toasts, setToasts] = useState<ToastItem[]>([])
@@ -24,6 +25,7 @@ export default function NotificationsBell() {
   }
 
   useEffect(() => {
+    setMounted(true)
     let channel: any
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -85,31 +87,33 @@ export default function NotificationsBell() {
 
   return (
     <div className="relative" ref={rootRef}>
-      <button onClick={() => setOpen(v => !v)} className="relative p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-        <Bell className="w-5 h-5 text-gray-700" />
-        {userId && unread > 0 && (
+      <button onClick={() => setOpen(v => !v)} className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+        <Bell className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+        {mounted && userId && unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[10px] leading-none px-1.5 py-0.5 rounded-full">{unread}</span>
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
-          <div className="px-4 py-2.5 border-b bg-gray-50/80 flex items-center justify-between sticky top-0">
-            <div className="text-sm font-semibold text-gray-900">Notifications</div>
-            {userId ? (
-              <button onClick={markAll} className="text-xs text-blue-600 hover:underline">Mark all read</button>
+        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+          <div className="px-4 py-2.5 border-b bg-gray-50/80 dark:bg-gray-900/50 dark:border-gray-700 flex items-center justify-between sticky top-0">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</div>
+            {mounted && userId ? (
+              <button onClick={markAll} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">Mark all read</button>
             ) : null}
           </div>
           <div className="max-h-96 overflow-auto">
-            {!userId ? (
-              <div className="p-6 text-sm text-gray-700">
-                <div className="font-medium mb-1">You’re not signed in</div>
+            {!mounted ? (
+              <div className="p-4 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/> Loading…</div>
+            ) : !userId ? (
+              <div className="p-6 text-sm text-gray-700 dark:text-gray-300">
+                <div className="font-medium mb-1 dark:text-white">You're not signed in</div>
                 <div>Sign in to receive order updates and alerts.</div>
-                <div className="mt-3"><Link href="/auth/login" className="text-blue-600 hover:underline">Sign in</Link></div>
+                <div className="mt-3"><Link href="/auth/login" className="text-blue-600 dark:text-blue-400 hover:underline">Sign in</Link></div>
               </div>
             ) : loading ? (
-              <div className="p-4 text-sm text-gray-600 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/> Loading…</div>
+              <div className="p-4 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/> Loading…</div>
             ) : items.length === 0 ? (
-              <div className="p-6 text-sm text-gray-600">No notifications</div>
+              <div className="p-6 text-sm text-gray-600 dark:text-gray-400">No notifications</div>
             ) : (
               <ul className="divide-y divide-gray-100 px-2 py-2">
                 {items.map(n => {

@@ -113,24 +113,24 @@ export default function BuyerProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center text-gray-600"><Loader2 className="w-6 h-6 animate-spin inline-block mr-2"/> Loading profile…</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center text-gray-600 dark:text-gray-400"><Loader2 className="w-6 h-6 animate-spin inline-block mr-2"/> Loading profile…</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-gray-100">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-800/60 border-b border-gray-100 dark:border-gray-700">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">Your Profile</h1>
-              <p className="text-gray-600">Manage your account details</p>
+              <h1 className="text-2xl font-bold dark:text-white">Your Profile</h1>
+              <p className="text-gray-600 dark:text-gray-400">Manage your account details</p>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={()=>setTab('overview')} className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${tab==='overview'?'bg-blue-600 text-white border-blue-600 shadow-sm':'bg-white text-gray-800 hover:bg-gray-50 border-gray-200'}`}>Overview</button>
-              <button onClick={()=>setTab('edit')} className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${tab==='edit'?'bg-blue-600 text-white border-blue-600 shadow-sm':'bg-white text-gray-800 hover:bg-gray-50 border-gray-200'}`}>Edit Profile</button>
+              <button onClick={()=>setTab('overview')} className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${tab==='overview'?'bg-blue-600 text-white border-blue-600 shadow-sm':'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'}`}>Overview</button>
+              <button onClick={()=>setTab('edit')} className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${tab==='edit'?'bg-blue-600 text-white border-blue-600 shadow-sm':'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'}`}>Edit Profile</button>
             </div>
           </div>
         </div>
@@ -139,25 +139,25 @@ export default function BuyerProfilePage() {
         {tab === 'overview' ? (
           <>
             {/* Profile Header */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
               <div className="flex items-start gap-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
                   {user.avatar_url ? (
                     <img src={user.avatar_url} alt={user.full_name || user.username} className="w-full h-full object-cover" />
                   ) : (
-                    <UserCircle2 className="w-10 h-10 text-gray-400"/>
+                    <UserCircle2 className="w-10 h-10 text-gray-400 dark:text-gray-500"/>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xl font-semibold text-gray-900">{user.full_name || user.username}</div>
-                  <div className="text-sm text-gray-600">@{user.username}</div>
-                  <div className="mt-2 text-gray-800 whitespace-pre-wrap">{user.bio || 'No bio provided yet.'}</div>
-                  <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                  <div className="text-xl font-semibold text-gray-900 dark:text-white">{user.full_name || user.username}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">@{user.username}</div>
+                  <div className="mt-2 text-gray-800 dark:text-gray-300 whitespace-pre-wrap">{user.bio || 'No bio provided yet.'}</div>
+                  <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                     <div className="inline-flex items-center gap-1"><Mail className="w-4 h-4"/>{user.email}</div>
                     {user.location && <div className="inline-flex items-center gap-1"><MapPin className="w-4 h-4"/>{user.location}</div>}
-                    {user.website && <div className="inline-flex items-center gap-1"><LinkIcon className="w-4 h-4"/><a href={user.website} target="_blank" className="text-blue-600 hover:underline">{user.website}</a></div>}
-                    <div className="inline-flex items-center gap-1 text-gray-500">Joined {user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}</div>
+                    {user.website && <div className="inline-flex items-center gap-1"><LinkIcon className="w-4 h-4"/><a href={user.website} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline">{user.website}</a></div>}
+                    <div className="inline-flex items-center gap-1 text-gray-500 dark:text-gray-500">Joined {user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}</div>
                   </div>
                 </div>
               </div>
@@ -165,74 +165,74 @@ export default function BuyerProfilePage() {
 
             {/* Stats */}
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-xl border border-gray-100 p-4">
-                <div className="text-sm text-gray-600">Total orders</div>
-                <div className="mt-1 text-2xl font-semibold">{stats.total}</div>
-                <div className="mt-2 text-xs text-gray-500 inline-flex items-center gap-1"><ShoppingBag className="w-3 h-3"/> Purchases</div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Total orders</div>
+                <div className="mt-1 text-2xl font-semibold dark:text-white">{stats.total}</div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-500 inline-flex items-center gap-1"><ShoppingBag className="w-3 h-3"/> Purchases</div>
               </div>
-              <div className="bg-white rounded-xl border border-gray-100 p-4">
-                <div className="text-sm text-gray-600">Completed</div>
-                <div className="mt-1 text-2xl font-semibold">{stats.completed}</div>
-                <div className="mt-2 text-xs text-gray-500 inline-flex items-center gap-1"><BadgeCheck className="w-3 h-3"/> Finished</div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Completed</div>
+                <div className="mt-1 text-2xl font-semibold dark:text-white">{stats.completed}</div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-500 inline-flex items-center gap-1"><BadgeCheck className="w-3 h-3"/> Finished</div>
               </div>
-              <div className="bg-white rounded-xl border border-gray-100 p-4">
-                <div className="text-sm text-gray-600">Open</div>
-                <div className="mt-1 text-2xl font-semibold">{stats.open}</div>
-                <div className="mt-2 text-xs text-gray-500 inline-flex items-center gap-1"><Clock className="w-3 h-3"/> In progress</div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Open</div>
+                <div className="mt-1 text-2xl font-semibold dark:text-white">{stats.open}</div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-500 inline-flex items-center gap-1"><Clock className="w-3 h-3"/> In progress</div>
               </div>
-              <div className="bg-white rounded-xl border border-gray-100 p-4">
-                <div className="text-sm text-gray-600">Total spent</div>
-                <div className="mt-1 text-2xl font-semibold">${stats.spent.toFixed(2)}</div>
-                <div className="mt-2 text-xs text-gray-500">Across all purchases</div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Total spent</div>
+                <div className="mt-1 text-2xl font-semibold dark:text-white">${stats.spent.toFixed(2)}</div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">Across all purchases</div>
               </div>
             </div>
 
             {/* Recent orders */}
-            <div className="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Recent orders</h2>
-                <a href="/orders" className="text-sm text-blue-600 hover:underline">View all</a>
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                <h2 className="text-lg font-semibold dark:text-white">Recent orders</h2>
+                <a href="/orders" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">View all</a>
               </div>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {orders.slice(0,5).map((o:any) => (
-                  <a key={o.id} href={`/orders/${o.id}`} className="px-6 py-4 flex items-center gap-3 hover:bg-gray-50">
-                    <div className="w-10 h-10 rounded bg-gray-100 overflow-hidden flex items-center justify-center">
+                  <a key={o.id} href={`/orders/${o.id}`} className="px-6 py-4 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <div className="w-10 h-10 rounded bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
                       {o.product?.images?.[0] ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={o.product.images[0]} alt="thumb" className="w-full h-full object-cover"/>
                       ) : (
-                        <span className="text-xs text-gray-400">No image</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">No image</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-gray-900 truncate">{o.product?.title || 'Product'}</div>
-                      <div className="text-xs text-gray-600">Placed {o.created_at ? new Date(o.created_at).toLocaleString() : ''}</div>
+                      <div className="font-medium text-gray-900 dark:text-white truncate">{o.product?.title || 'Product'}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Placed {o.created_at ? new Date(o.created_at).toLocaleString() : ''}</div>
                     </div>
                     <div>
-                      <span className="px-2 py-1 rounded-full text-xs capitalize bg-gray-100 text-gray-800">{(o.status||'confirmed').replace('_',' ')}</span>
+                      <span className="px-2 py-1 rounded-full text-xs capitalize bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">{(o.status||'confirmed').replace('_',' ')}</span>
                     </div>
                   </a>
                 ))}
                 {orders.length === 0 && (
-                  <div className="px-6 py-10 text-sm text-gray-600">No orders yet. Explore services to get started.</div>
+                  <div className="px-6 py-10 text-sm text-gray-600 dark:text-gray-400">No orders yet. Explore services to get started.</div>
                 )}
               </div>
             </div>
           </>
         ) : (
           <>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 space-y-6">
               <div className="flex items-center gap-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
-                  <UserCircle2 className="w-10 h-10 text-gray-400"/>
+                <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                  <UserCircle2 className="w-10 h-10 text-gray-400 dark:text-gray-500"/>
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm text-gray-600">Signed in as</div>
-                  <div className="text-gray-900 font-medium">{user.email}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Signed in as</div>
+                  <div className="text-gray-900 dark:text-white font-medium">{user.email}</div>
                   <div className="mt-3">
-                    <label className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                      <Camera className="w-4 h-4 text-gray-500" />
+                    <label className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition dark:text-gray-300">
+                      <Camera className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       <span>{avatarUploading ? 'Uploading…' : 'Update profile photo'}</span>
                       <input
                         type="file"
@@ -248,30 +248,30 @@ export default function BuyerProfilePage() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Full name</label>
-                  <input className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20" value={form.full_name} onChange={e=>setForm(f=>({...f, full_name:e.target.value}))}/>
+                  <label className="block text-sm font-medium mb-1 dark:text-gray-300">Full name</label>
+                  <input className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20" value={form.full_name} onChange={e=>setForm(f=>({...f, full_name:e.target.value}))}/>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Username</label>
-                  <input className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20" value={form.username} onChange={e=>setForm(f=>({...f, username:e.target.value}))}/>
-                  <div className="text-xs text-gray-500 mt-1">Your public handle; also used for your creator URL if you enable creator mode.</div>
+                  <label className="block text-sm font-medium mb-1 dark:text-gray-300">Username</label>
+                  <input className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20" value={form.username} onChange={e=>setForm(f=>({...f, username:e.target.value}))}/>
+                  <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">Your public handle; also used for your creator URL if you enable creator mode.</div>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1">Bio</label>
-                  <textarea className="w-full border border-gray-200 rounded-lg px-3 py-2 h-24 focus:outline-none focus:ring-2 focus:ring-blue-500/20" value={form.bio} onChange={e=>setForm(f=>({...f, bio:e.target.value}))}/>
+                  <label className="block text-sm font-medium mb-1 dark:text-gray-300">Bio</label>
+                  <textarea className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 h-24 focus:outline-none focus:ring-2 focus:ring-blue-500/20" value={form.bio} onChange={e=>setForm(f=>({...f, bio:e.target.value}))}/>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Website</label>
-                  <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 gap-2">
-                    <LinkIcon className="w-4 h-4 text-gray-500"/>
-                    <input className="flex-1 outline-none" value={form.website} onChange={e=>setForm(f=>({...f, website:e.target.value}))} placeholder="https://"/>
+                  <label className="block text-sm font-medium mb-1 dark:text-gray-300">Website</label>
+                  <div className="flex items-center border border-gray-200 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 gap-2">
+                    <LinkIcon className="w-4 h-4 text-gray-500 dark:text-gray-400"/>
+                    <input className="flex-1 outline-none dark:bg-gray-700 dark:text-white" value={form.website} onChange={e=>setForm(f=>({...f, website:e.target.value}))} placeholder="https://"/>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Location</label>
-                  <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 gap-2">
-                    <MapPin className="w-4 h-4 text-gray-500"/>
-                    <input className="flex-1 outline-none" value={form.location} onChange={e=>setForm(f=>({...f, location:e.target.value}))} placeholder="City, Country"/>
+                  <label className="block text-sm font-medium mb-1 dark:text-gray-300">Location</label>
+                  <div className="flex items-center border border-gray-200 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 gap-2">
+                    <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400"/>
+                    <input className="flex-1 outline-none dark:bg-gray-700 dark:text-white" value={form.location} onChange={e=>setForm(f=>({...f, location:e.target.value}))} placeholder="City, Country"/>
                   </div>
                 </div>
               </div>
@@ -284,11 +284,11 @@ export default function BuyerProfilePage() {
               </div>
             </div>
 
-            <div className="mt-8 bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-              <h2 className="text-lg font-semibold mb-3">Purchases & sales</h2>
-              <p className="text-sm text-gray-600">Visit the Orders page to view your purchases and sales activity.</p>
+            <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+              <h2 className="text-lg font-semibold mb-3 dark:text-white">Purchases & sales</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Visit the Orders page to view your purchases and sales activity.</p>
               <div className="mt-3">
-                <a href="/orders" className="text-blue-600 hover:underline text-sm">Go to Orders</a>
+                <a href="/orders" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">Go to Orders</a>
               </div>
             </div>
           </>
