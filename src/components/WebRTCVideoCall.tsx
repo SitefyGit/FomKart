@@ -9,6 +9,7 @@ interface WebRTCVideoCallProps {
   currentUser: any
   remoteUserName?: string
   onLeave: () => void
+  audioOnly?: boolean
 }
 
 const ICE_SERVERS: RTCConfiguration = {
@@ -34,11 +35,11 @@ const broadcastCallStatus = (orderId: string, active: boolean) => {
   })
 }
 
-export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, onLeave }: WebRTCVideoCallProps) {
+export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, onLeave, audioOnly = false }: WebRTCVideoCallProps) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
   const [isMuted, setIsMuted] = useState(false)
-  const [isVideoOff, setIsVideoOff] = useState(false)
+  const [isVideoOff, setIsVideoOff] = useState(audioOnly)
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [status, setStatus] = useState('Initializing...')
   const [logs, setLogs] = useState<string[]>([])
@@ -77,7 +78,7 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
       let stream: MediaStream | null = null
       try {
         stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
+          video: !audioOnly, 
           audio: true 
         })
         addLog(`Got media: ${stream.getTracks().map(t => t.kind).join(', ')}`)
@@ -493,20 +494,24 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
         >
           {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
         </button>
-        <button 
-          onClick={toggleVideo}
-          disabled={!localStream}
-          className={`p-3 rounded-full ${isVideoOff ? 'bg-red-500' : 'bg-gray-700'} ${!localStream ? 'opacity-50' : 'hover:bg-gray-600'} text-white`}
-        >
-          {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
-        </button>
-        <button 
-          onClick={toggleScreenShare}
-          disabled={!localStream}
-          className={`p-3 rounded-full ${isScreenSharing ? 'bg-blue-500' : 'bg-gray-700'} ${!localStream ? 'opacity-50' : 'hover:bg-gray-600'} text-white`}
-        >
-          {isScreenSharing ? <MonitorOff className="w-6 h-6" /> : <Monitor className="w-6 h-6" />}
-        </button>
+        {!audioOnly && (
+          <>
+            <button 
+              onClick={toggleVideo}
+              disabled={!localStream}
+              className={`p-3 rounded-full ${isVideoOff ? 'bg-red-500' : 'bg-gray-700'} ${!localStream ? 'opacity-50' : 'hover:bg-gray-600'} text-white`}
+            >
+              {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+            </button>
+            <button 
+              onClick={toggleScreenShare}
+              disabled={!localStream}
+              className={`p-3 rounded-full ${isScreenSharing ? 'bg-blue-500' : 'bg-gray-700'} ${!localStream ? 'opacity-50' : 'hover:bg-gray-600'} text-white`}
+            >
+              {isScreenSharing ? <MonitorOff className="w-6 h-6" /> : <Monitor className="w-6 h-6" />}
+            </button>
+          </>
+        )}
       </div>
     </div>
   )

@@ -393,14 +393,14 @@ export default function ProductPage({ params }: ProductPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Breadcrumb */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex items-center text-sm text-gray-500">
+          <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400">
             <button
               onClick={() => window.history.back()}
-              className="flex items-center text-gray-600 hover:text-emerald-600 transition-colors mr-2"
+              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-emerald-600 transition-colors mr-2"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
             </button>
@@ -408,7 +408,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             <span className="mx-2">/</span>
             <Link href="/category/digital-products" className="hover:text-emerald-600">Products</Link>
             <span className="mx-2">/</span>
-            <span className="text-gray-900 truncate">{product.title}</span>
+            <span className="text-gray-900 dark:text-white truncate">{product.title}</span>
           </nav>
         </div>
       </div>
@@ -418,7 +418,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           {/* Left Column - Media and Description */}
           <div className="lg:col-span-2 space-y-8">
             {/* Image Gallery */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
               <ProductMediaGallery
                 images={product.images}
                 youtubeVideoId={product.youtubeVideoId}
@@ -442,14 +442,14 @@ export default function ProductPage({ params }: ProductPageProps) {
             </div>
 
             {/* Product Description */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
               {/* Title & quick actions */}
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-                <h1 className="text-2xl font-bold text-gray-900 leading-tight flex-1">{product.title}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight flex-1">{product.title}</h1>
                 <div className="flex items-center gap-2 self-start">
                   <button
                     onClick={() => setShowShareModal(true)}
-                    className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <Share2 className="w-4 h-4" />
                     Share
@@ -457,19 +457,19 @@ export default function ProductPage({ params }: ProductPageProps) {
                   {currentUserId && product.creator_id === currentUserId && (
                     <button
                       onClick={() => router.push(`/product/${product.id}/edit`)}
-                      className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       Edit
                     </button>
                   )}
                 </div>
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">About This Service</h2>
-              <p className="text-gray-700 leading-relaxed mb-6">{product.description}</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">About This Service</h2>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">{product.description}</p>
               {product.features && product.features.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-2">Key Features</h3>
-                  <ul className="grid md:grid-cols-2 gap-2 text-sm text-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Key Features</h3>
+                  <ul className="grid md:grid-cols-2 gap-2 text-sm text-gray-700 dark:text-gray-300">
                     {product.features.map((f,i)=>(
                       <li key={i} className="flex items-start gap-2"><Check className="w-4 h-4 text-green-600 mt-0.5" /> <span>{f}</span></li>
                     ))}
@@ -478,11 +478,11 @@ export default function ProductPage({ params }: ProductPageProps) {
               )}
               {product.requirements && product.requirements.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-2">Included / Links</h3>
-                  <ul className="space-y-1 text-sm text-gray-700 break-all">
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Included / Links</h3>
+                  <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300 break-all">
                     {product.requirements.map((r,i)=>{
                       const isLink = /https?:\/\//i.test(r);
-                      return <li key={i}>{isLink ? <a href={r.replace(/^External:\s*/,'').replace(/^Download:\s*/,'').trim()} target="_blank" className="text-blue-600 hover:underline">{r.replace(/^External:\s*/,'').replace(/^Download:\s*/,'').trim()}</a> : r}</li>
+                      return <li key={i}>{isLink ? <a href={r.replace(/^External:\s*/,'').replace(/^Download:\s*/,'').trim()} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline">{r.replace(/^External:\s*/,'').replace(/^Download:\s*/,'').trim()}</a> : r}</li>
                     })}
                   </ul>
                 </div>
@@ -494,7 +494,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                   {product.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                      className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm"
                     >
                       {tag}
                     </span>
@@ -503,39 +503,39 @@ export default function ProductPage({ params }: ProductPageProps) {
               )}
 
               {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-gray-200">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{product.totalSales}</div>
-                  <div className="text-sm text-gray-500">Sales</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{product.totalSales}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Sales</div>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center mb-1">
                     <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-lg font-bold text-gray-900 ml-1">{product.avgRating}</span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white ml-1">{product.avgRating}</span>
                   </div>
-                  <div className="text-sm text-gray-500">Rating</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Rating</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     {selectedPackage ? `${selectedPackage.delivery_time}` : '—'}
                   </div>
-                  <div className="text-sm text-gray-500">Delivery</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Delivery</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     {selectedPackage?.revisions || 'Unlimited'}
                   </div>
-                  <div className="text-sm text-gray-500">Revisions</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Revisions</div>
                 </div>
               </div>
             </div>
 
             {/* Reviews Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Reviews ({product.reviewCount ?? reviews.length})</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Reviews ({product.reviewCount ?? reviews.length})</h2>
               <div className="space-y-6">
                 {reviews.length === 0 ? (
-                  <p className="text-sm text-gray-500">No reviews yet.</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No reviews yet.</p>
                 ) : reviews.map((review) => (
                   <div key={review.id} className="flex space-x-4">
                     <Image
@@ -547,7 +547,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                     />
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className="font-semibold text-gray-900">{review.reviewer.full_name}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{review.reviewer.full_name}</span>
                         {review.reviewer.verified && (
                           <Check className="w-4 h-4 text-green-600" />
                         )}
@@ -558,14 +558,14 @@ export default function ProductPage({ params }: ProductPageProps) {
                               className={`w-4 h-4 ${
                                 i < review.rating
                                   ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
+                                  : 'text-gray-300 dark:text-gray-600'
                               }`}
                             />
                           ))}
                         </div>
                       </div>
-                      <p className="text-gray-700 mb-2">{review.comment}</p>
-                      <span className="text-sm text-gray-500">
+                      <p className="text-gray-700 dark:text-gray-300 mb-2">{review.comment}</p>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         {new Date(review.created_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -579,7 +579,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           <div className="space-y-6">
             {/* Creator Info */}
             {product.creator && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                 <Link
                   href={`/creator/${product.creator.username}`}
                   className="flex items-center space-x-4 mb-4 group"
@@ -593,27 +593,27 @@ export default function ProductPage({ params }: ProductPageProps) {
                   />
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">{product.creator.full_name}</span>
+                      <span className="font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">{product.creator.full_name}</span>
                       {product.creator.verified && (
                         <Check className="w-5 h-5 text-green-600" />
                       )}
                     </div>
-                    <span className="text-sm text-gray-600">@{product.creator.username}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">@{product.creator.username}</span>
                     <div className="flex items-center space-x-1 mt-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">{product.avgRating}</span>
-                      <span className="text-sm text-gray-500">({product.reviewCount ?? 0} reviews)</span>
+                      <span className="text-sm font-medium dark:text-gray-200">{product.avgRating}</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviewCount ?? 0} reviews)</span>
                     </div>
                   </div>
                 </Link>
-                <p className="text-gray-700 text-sm mb-4">{product.creator.bio}</p>
+                <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">{product.creator.bio}</p>
                 <button
                   onClick={() => {
                     if (product?.creator?.username) {
                       router.push(`/creator/${product.creator.username}?contact=1`);
                     }
                   }}
-                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Contact Creator
@@ -622,8 +622,8 @@ export default function ProductPage({ params }: ProductPageProps) {
             )}
 
             {/* Package Selection */}
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="border-b border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+              <div className="border-b border-gray-200 dark:border-gray-700">
                 <div className="flex">
                   {product.packages?.map((pkg) => (
                     <button
@@ -631,8 +631,8 @@ export default function ProductPage({ params }: ProductPageProps) {
                       onClick={() => setSelectedPackage(pkg)}
                       className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                         selectedPackage?.id === pkg.id
-                          ? 'border-blue-600 text-blue-600 bg-blue-50'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                          ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                     >
                       {pkg.name}
@@ -645,28 +645,28 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <div className="p-6">
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-bold text-gray-900">{selectedPackage.name}</h3>
-                      <div className="text-2xl font-bold text-blue-600">${selectedPackage.price}</div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">{selectedPackage.name}</h3>
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">${selectedPackage.price}</div>
                     </div>
-                    <p className="text-gray-600 text-sm mb-4">{selectedPackage.description}</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{selectedPackage.description}</p>
                   </div>
 
                   <div className="space-y-3 mb-6">
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                       <Clock className="w-4 h-4 mr-2" />
                       <span className="font-semibold">{selectedPackage.delivery_time} delivery</span>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                       <ArrowRight className="w-4 h-4 mr-2" />
                       <span className="font-semibold">{selectedPackage.revisions} revisions</span>
                     </div>
                   </div>
 
                   <div className="mb-6">
-                    <h4 className="font-semibold text-gray-900 mb-3">What you get:</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">What you get:</h4>
                     <div className="space-y-2">
                       {selectedPackage.features.map((feature, index) => (
-                        <div key={index} className="flex items-center text-sm text-gray-700">
+                        <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
                           <Check className="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
                           {feature}
                         </div>
@@ -686,16 +686,16 @@ export default function ProductPage({ params }: ProductPageProps) {
                     <button
                       onClick={handleAddToCart}
                       disabled={addingToCart || currentUserId === product.creator_id}
-                      className={`w-full border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center disabled:opacity-60 ${currentUserId===product.creator_id ? 'cursor-not-allowed' : ''}`}
+                      className={`w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center disabled:opacity-60 ${currentUserId===product.creator_id ? 'cursor-not-allowed' : ''}`}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       {addingToCart ? 'Adding…' : 'Add to Cart'}
                     </button>
                     {currentUserId === product.creator_id && (
-                      <div className="text-center text-sm text-red-600">You cannot purchase your own product or service.</div>
+                      <div className="text-center text-sm text-red-600 dark:text-red-400">You cannot purchase your own product or service.</div>
                     )}
                     {cartFeedback && (
-                      <div className="text-center text-sm text-green-600">{cartFeedback}</div>
+                      <div className="text-center text-sm text-green-600 dark:text-green-400">{cartFeedback}</div>
                     )}
                   </div>
                 </div>
@@ -712,12 +712,12 @@ export default function ProductPage({ params }: ProductPageProps) {
             className="absolute inset-0 bg-black/20 backdrop-blur-[1.5px]"
             onClick={() => setShowPurchaseModal(false)}
           />
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
+          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Purchase Details</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Purchase Details</h3>
               <button
                 onClick={() => setShowPurchaseModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 aria-label="Close"
               >
                 ✕
@@ -725,41 +725,41 @@ export default function ProductPage({ params }: ProductPageProps) {
             </div>
 
             <div className="mb-4">
-              <div className="font-medium text-gray-900">{product.title}</div>
-              <div className="text-sm text-gray-600">Package: {selectedPackage.name}</div>
-              <div className="text-sm text-gray-900 font-semibold">${selectedPackage.price}</div>
+              <div className="font-medium text-gray-900 dark:text-white">{product.title}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Package: {selectedPackage.name}</div>
+              <div className="text-sm text-gray-900 dark:text-white font-semibold">${selectedPackage.price}</div>
             </div>
 
             <form onSubmit={handleSubmitPurchase} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Your name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Your name</label>
                 <input
                   type="text"
                   required
                   value={purchaseForm.name}
                   onChange={(e) => setPurchaseForm({ ...purchaseForm, name: e.target.value })}
-                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="John Doe"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                 <input
                   type="email"
                   required
                   value={purchaseForm.email}
                   onChange={(e) => setPurchaseForm({ ...purchaseForm, email: e.target.value })}
-                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="you@example.com"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Requirements / Notes</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Requirements / Notes</label>
                 <textarea
                   rows={4}
                   value={purchaseForm.requirements}
                   onChange={(e) => setPurchaseForm({ ...purchaseForm, requirements: e.target.value })}
-                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Share any details that will help fulfill this order."
                 />
               </div>
@@ -768,7 +768,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <button
                   type="button"
                   onClick={() => setShowPurchaseModal(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
