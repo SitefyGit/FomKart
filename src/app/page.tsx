@@ -97,12 +97,12 @@ export default async function HomePage() {
       <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6 sm:mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200 text-xs font-medium mb-3">
               <SparklesIcon className="w-4 h-4" />
               Curated for quality
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Explore our categories</h2>
-            <p className="text-base sm:text-lg text-gray-600">Discover the perfect service for your needs</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">Explore our categories</h2>
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Discover the perfect service for your needs</p>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
@@ -111,23 +111,23 @@ export default async function HomePage() {
                 key={category.slug}
                 href={`/category/${category.slug}`}
                 prefetch={true}
-                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.03] hover:-translate-y-2 border border-gray-100"
+                className="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.03] hover:-translate-y-2 border border-gray-100 dark:border-gray-700"
                 style={{animationDelay: `${index * 0.1}s`}}
               >
                 <div className="p-6 sm:p-8 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-transparent to-gray-50 rounded-full transform translate-x-16 -translate-y-16 group-hover:scale-150 transition-transform duration-500"></div>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-transparent to-gray-50 dark:to-gray-900/40 rounded-full transform translate-x-16 -translate-y-16 group-hover:scale-150 transition-transform duration-500"></div>
                   <div className={`w-12 h-12 sm:w-16 sm:h-16 ${category.color} rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-all duration-300 relative z-10 group-hover:rotate-6 shadow-[0_8px_20px_rgba(0,0,0,0.12)]`}>
                     <category.icon className="h-6 w-6 sm:h-8 sm:w-8 text-white drop-shadow" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors duration-300">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-emerald-600 transition-colors duration-300">
                     {category.name}
                   </h3>
-                  <p className="text-sm sm:text-base text-gray-600 mb-4 group-hover:text-gray-700 transition-colors">{category.description}</p>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">{category.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1">
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1">
                       <TrendingUp className="w-3 h-3" /> {category.count}
                     </span>
-                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-2 transition-all duration-300" />
+                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500 group-hover:text-emerald-600 group-hover:translate-x-2 transition-all duration-300" />
                   </div>
                 </div>
               </Link>
@@ -136,25 +136,25 @@ export default async function HomePage() {
 
           {/* Trust badges */}
           <div className="grid sm:grid-cols-3 gap-4 mt-8">
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
               <BadgeCheck className="w-4 h-4 text-emerald-600" />
               <div>
-                <div className="text-sm font-semibold text-gray-900">Verified creators</div>
-                <div className="text-xs text-gray-500">Handpicked quality profiles</div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">Verified creators</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Handpicked quality profiles</div>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <div>
-                <div className="text-sm font-semibold text-gray-900">Secure payments</div>
-                <div className="text-xs text-gray-500">Protected checkout flow</div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">Secure payments</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Protected checkout flow</div>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
               <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
               <div>
-                <div className="text-sm font-semibold text-gray-900">Satisfaction focus</div>
-                <div className="text-xs text-gray-500">Clear deliverables, refund policy</div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">Satisfaction focus</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Clear deliverables, refund policy</div>
               </div>
             </div>
           </div>

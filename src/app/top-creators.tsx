@@ -71,11 +71,11 @@ export default async function TopCreatorsSection() {
   })
 
   return (
-    <section className="py-12 sm:py-16 bg-gray-100">
+    <section className="py-12 sm:py-16 bg-gray-100 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Meet our top creators</h2>
-          <p className="text-base sm:text-lg text-gray-600">Talented professionals ready to help your business succeed</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Meet our top creators</h2>
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Talented professionals ready to help your business succeed</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
@@ -84,7 +84,7 @@ export default async function TopCreatorsSection() {
               key={creator.id}
               href={`/creator/${creator.username}`}
               prefetch
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-4 sm:p-6 lg:p-8 transform hover:scale-[1.02] hover:-translate-y-1"
+              className="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-4 sm:p-6 lg:p-8 transform hover:scale-[1.02] hover:-translate-y-1 border border-transparent dark:border-gray-700"
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <div className="flex items-center space-x-4 sm:space-x-6">
@@ -98,22 +98,22 @@ export default async function TopCreatorsSection() {
                   {creator.is_verified ? <BadgeCheck className="absolute -bottom-1 -right-1 w-4 h-4 text-emerald-600" /> : null}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors truncate">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-emerald-600 transition-colors truncate">
                     {creator.full_name || creator.username}
                   </h3>
                   {creator.bio ? (
-                    <p className="text-sm sm:text-base text-gray-600 mb-3 group-hover:text-gray-700 transition-colors line-clamp-2">{creator.bio}</p>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-3 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors line-clamp-2">{creator.bio}</p>
                   ) : null}
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                    <div className="flex items-center space-x-1 bg-yellow-50 px-2 sm:px-3 py-1 rounded-full">
+                    <div className="flex items-center space-x-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 sm:px-3 py-1 rounded-full">
                       <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium text-yellow-700 text-sm">{Number(creator.rating ?? 0).toFixed(1)}</span>
-                      <span className="text-gray-500 text-xs sm:text-sm">({creator.total_reviews ?? 0})</span>
+                      <span className="font-medium text-yellow-700 dark:text-yellow-200 text-sm">{Number(creator.rating ?? 0).toFixed(1)}</span>
+                      <span className="text-gray-500 dark:text-gray-300 text-xs sm:text-sm">({creator.total_reviews ?? 0})</span>
                     </div>
-                    <span className="text-xs sm:text-sm text-emerald-700 font-medium bg-emerald-50 px-2 sm:px-3 py-1 rounded-full">{(creator.total_sales ?? 0).toLocaleString()} sales</span>
+                    <span className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-200 font-medium bg-emerald-50 dark:bg-emerald-900/30 px-2 sm:px-3 py-1 rounded-full">{(creator.total_sales ?? 0).toLocaleString()} sales</span>
                   </div>
                 </div>
-                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-2 transition-all duration-300 flex-shrink-0" />
+                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500 group-hover:text-emerald-600 group-hover:translate-x-2 transition-all duration-300 flex-shrink-0" />
               </div>
             </Link>
           ))}
