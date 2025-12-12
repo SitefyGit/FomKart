@@ -345,6 +345,41 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           mapped = mapped.filter(p => !hasTerm(p.title) && !(p.tags?.some(tag => hasTerm(tag))))
         }
 
+        // Derive rating + review count from the reviews table (keeps consistent with homepage)
+        // This prevents stale/empty product.rating and product.reviews_count values from showing 0.
+        const productIds = mapped.map((p) => p.id)
+        if (productIds.length) {
+          type ProductRatingRow = { product_id: string | null; rating: number | null }
+          const { data: ratingRows } = await supabase
+            .from('reviews')
+            .select('product_id, rating')
+            .eq('is_public', true)
+            .in('product_id', productIds)
+            .not('rating', 'is', null)
+
+          const totals = new Map<string, { sum: number; count: number }>()
+          for (const row of (ratingRows as ProductRatingRow[] | null) ?? []) {
+            if (!row?.product_id) continue
+            const ratingValue = Number(row.rating)
+            if (!Number.isFinite(ratingValue) || ratingValue <= 0) continue
+            const current = totals.get(row.product_id) ?? { sum: 0, count: 0 }
+            current.sum += ratingValue
+            current.count += 1
+            totals.set(row.product_id, current)
+          }
+
+          mapped = mapped.map((product) => {
+            const aggregate = totals.get(product.id)
+            if (!aggregate || aggregate.count === 0) return product
+            const average = Math.round((aggregate.sum / aggregate.count) * 10) / 10
+            return {
+              ...product,
+              rating: average,
+              reviews: aggregate.count
+            }
+          })
+        }
+
         setProducts(mapped)
         // Filtering will be handled by the applyFilters effect
       } finally {
