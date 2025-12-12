@@ -59,7 +59,7 @@ type Service = {
 
 export default async function HomePage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white py-12 sm:py-16 lg:py-20 animate-gradient relative overflow-hidden">
@@ -168,7 +168,7 @@ export default async function HomePage() {
       <FeaturedServicesSection />
 
       {/* Newsletter Section */}
-      <section className="py-16 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10">
+      <section className="py-16 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
