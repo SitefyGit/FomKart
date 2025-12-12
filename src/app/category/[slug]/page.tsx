@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { 
   Search, 
@@ -11,7 +11,7 @@ import {
   ChevronDown, 
   TrendingUp,
   CheckCircle,
-  
+  X,
 } from 'lucide-react'
 import { 
   DevicePhoneMobileIcon,
@@ -145,23 +145,118 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
   const [filteredProducts, setFilteredProducts] = useState<ProductCard[]>([])
   const [isLoading, setIsLoading] = useState(false)
   
+  // Filter states
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null)
+  const [budgetRange, setBudgetRange] = useState<string | null>(null)
+  const [deliveryTime, setDeliveryTime] = useState<string | null>(null)
+  const [sellerLevel, setSellerLevel] = useState<string | null>(null)
+  const [showAllFilters, setShowAllFilters] = useState(false)
+  
+  // Dropdown visibility states
+  const [showBudgetDropdown, setShowBudgetDropdown] = useState(false)
+  const [showDeliveryDropdown, setShowDeliveryDropdown] = useState(false)
+  const [showLevelDropdown, setShowLevelDropdown] = useState(false)
+  
+  // Refs for click-outside handling
+  const filterBarRef = useRef<HTMLDivElement>(null)
+  
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterBarRef.current && !filterBarRef.current.contains(event.target as Node)) {
+        setShowBudgetDropdown(false)
+        setShowDeliveryDropdown(false)
+        setShowLevelDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+  
   const category = categories[resolvedParams.slug as keyof typeof categories]
   const subs = subcategories[resolvedParams.slug as keyof typeof subcategories] || []
   
   // Search functionality
   const handleSearchChange = useCallback((value: string) => {
     setSearchTerm(value)
-    if (value.trim() === '') {
-      setFilteredProducts(products)
-    } else {
-      const filtered = products.filter(product =>
-        product.title.toLowerCase().includes(value.toLowerCase()) ||
-        product.creatorName.toLowerCase().includes(value.toLowerCase()) ||
-        (product.tags || []).some(tag => tag.toLowerCase().includes(value.toLowerCase()))
+  }, [])
+
+  // Apply all filters
+  const applyFilters = useCallback((productsList: ProductCard[]) => {
+    let filtered = [...productsList]
+    
+    // Search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase()
+      filtered = filtered.filter(product =>
+        product.title.toLowerCase().includes(term) ||
+        product.creatorName.toLowerCase().includes(term) ||
+        (product.tags || []).some(tag => tag.toLowerCase().includes(term))
       )
-      setFilteredProducts(filtered)
     }
-  }, [products])
+    
+    // Subcategory filter
+    if (selectedSubcategory) {
+      const subLower = selectedSubcategory.toLowerCase()
+      filtered = filtered.filter(product =>
+        product.title.toLowerCase().includes(subLower) ||
+        (product.tags || []).some(tag => tag.toLowerCase().includes(subLower))
+      )
+    }
+    
+    // Budget filter
+    if (budgetRange) {
+      switch (budgetRange) {
+        case 'under-25':
+          filtered = filtered.filter(p => p.price < 25)
+          break
+        case '25-50':
+          filtered = filtered.filter(p => p.price >= 25 && p.price <= 50)
+          break
+        case '50-100':
+          filtered = filtered.filter(p => p.price >= 50 && p.price <= 100)
+          break
+        case '100-200':
+          filtered = filtered.filter(p => p.price >= 100 && p.price <= 200)
+          break
+        case 'over-200':
+          filtered = filtered.filter(p => p.price > 200)
+          break
+      }
+    }
+    
+    // Delivery time filter
+    if (deliveryTime) {
+      filtered = filtered.filter(product => {
+        if (!product.deliveryTime) return false
+        const time = product.deliveryTime.toLowerCase()
+        switch (deliveryTime) {
+          case '24h':
+            return time.includes('24') || time.includes('1 day') || time.includes('express')
+          case '3days':
+            return time.includes('1') || time.includes('2') || time.includes('3')
+          case '7days':
+            return !time.includes('week') || time.includes('1 week')
+          default:
+            return true
+        }
+      })
+    }
+    
+    // Seller level filter
+    if (sellerLevel) {
+      if (sellerLevel === 'verified') {
+        filtered = filtered.filter(p => p.level === 'Verified')
+      }
+    }
+    
+    return filtered
+  }, [searchTerm, selectedSubcategory, budgetRange, deliveryTime, sellerLevel])
+
+  // Update filtered products when filters change
+  useEffect(() => {
+    setFilteredProducts(applyFilters(products))
+  }, [products, applyFilters])
 
   // Initialize search from URL parameters
   React.useEffect(() => {
@@ -227,17 +322,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         }
 
         setProducts(mapped)
-        // If no active search term, show all; else re-apply filter
-        if (!searchTerm.trim()) {
-          setFilteredProducts(mapped)
-        } else {
-          const term = searchTerm.toLowerCase()
-          setFilteredProducts(mapped.filter((product) =>
-            product.title.toLowerCase().includes(term) ||
-            product.creatorName.toLowerCase().includes(term) ||
-            (product.tags || []).some(tag => tag.toLowerCase().includes(term))
-          ))
-        }
+        // Filtering will be handled by the applyFilters effect
       } finally {
         setIsLoading(false)
       }
@@ -335,7 +420,15 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Explore {category.name}</h2>
           <div className="flex flex-wrap gap-2">
             {subs.map((sub, index) => (
-              <button key={index} className="px-3 sm:px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 text-gray-700 dark:text-gray-300 rounded-full text-sm transition-colors">
+              <button 
+                key={index} 
+                onClick={() => setSelectedSubcategory(selectedSubcategory === sub ? null : sub)}
+                className={`px-3 sm:px-4 py-2 rounded-full text-sm transition-colors ${
+                  selectedSubcategory === sub 
+                    ? 'bg-emerald-600 text-white' 
+                    : 'bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 text-gray-700 dark:text-gray-300'
+                }`}
+              >
                 {sub}
               </button>
             ))}
@@ -346,7 +439,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Filter Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm space-y-4 sm:space-y-0">
+        <div ref={filterBarRef} className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm space-y-4 sm:space-y-0">
           <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
             {/* In-page Search */}
             <div className="relative w-full sm:w-80">
@@ -356,27 +449,97 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                 placeholder={`Search in ${category.name}...`}
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
-            <button className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+            
+            {/* All Filters Button */}
+            <button 
+              onClick={() => setShowAllFilters(!showAllFilters)}
+              className={`flex items-center space-x-2 px-3 sm:px-4 py-2 border rounded-lg text-sm transition-colors ${
+                showAllFilters ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+            >
               <Filter className="h-4 w-4" />
               <span>All Filters</span>
             </button>
-            <button className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
-              <span>Budget</span>
-              <ChevronDown className="h-4 w-4" />
-            </button>
-            <button className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
-              <span className="hidden sm:inline">Delivery Time</span>
-              <span className="sm:hidden">Delivery</span>
-              <ChevronDown className="h-4 w-4" />
-            </button>
-            <button className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
-              <span className="hidden sm:inline">Seller Level</span>
-              <span className="sm:hidden">Level</span>
-              <ChevronDown className="h-4 w-4" />
-            </button>
+            
+            {/* Budget Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setShowBudgetDropdown(!showBudgetDropdown)
+                  setShowDeliveryDropdown(false)
+                  setShowLevelDropdown(false)
+                }}
+                className={`flex items-center space-x-2 px-3 sm:px-4 py-2 border rounded-lg text-sm transition-colors ${
+                  budgetRange ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                <span>{budgetRange ? `$${budgetRange.replace('-', ' - $').replace('under-', 'Under $').replace('over-', 'Over $')}` : 'Budget'}</span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              {showBudgetDropdown && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                  <button onClick={() => { setBudgetRange(null); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Any Budget</button>
+                  <button onClick={() => { setBudgetRange('under-25'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Under $25</button>
+                  <button onClick={() => { setBudgetRange('25-50'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">$25 - $50</button>
+                  <button onClick={() => { setBudgetRange('50-100'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">$50 - $100</button>
+                  <button onClick={() => { setBudgetRange('100-200'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">$100 - $200</button>
+                  <button onClick={() => { setBudgetRange('over-200'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Over $200</button>
+                </div>
+              )}
+            </div>
+            
+            {/* Delivery Time Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setShowDeliveryDropdown(!showDeliveryDropdown)
+                  setShowBudgetDropdown(false)
+                  setShowLevelDropdown(false)
+                }}
+                className={`flex items-center space-x-2 px-3 sm:px-4 py-2 border rounded-lg text-sm transition-colors ${
+                  deliveryTime ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                <span className="hidden sm:inline">{deliveryTime ? (deliveryTime === '24h' ? '24 Hours' : deliveryTime === '3days' ? 'Up to 3 Days' : 'Up to 7 Days') : 'Delivery Time'}</span>
+                <span className="sm:hidden">{deliveryTime ? (deliveryTime === '24h' ? '24h' : deliveryTime === '3days' ? '3 Days' : '7 Days') : 'Delivery'}</span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              {showDeliveryDropdown && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                  <button onClick={() => { setDeliveryTime(null); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Any Time</button>
+                  <button onClick={() => { setDeliveryTime('24h'); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">24 Hours</button>
+                  <button onClick={() => { setDeliveryTime('3days'); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Up to 3 Days</button>
+                  <button onClick={() => { setDeliveryTime('7days'); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Up to 7 Days</button>
+                </div>
+              )}
+            </div>
+            
+            {/* Seller Level Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setShowLevelDropdown(!showLevelDropdown)
+                  setShowBudgetDropdown(false)
+                  setShowDeliveryDropdown(false)
+                }}
+                className={`flex items-center space-x-2 px-3 sm:px-4 py-2 border rounded-lg text-sm transition-colors ${
+                  sellerLevel ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                <span className="hidden sm:inline">{sellerLevel ? 'Verified Only' : 'Seller Level'}</span>
+                <span className="sm:hidden">{sellerLevel ? 'Verified' : 'Level'}</span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              {showLevelDropdown && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                  <button onClick={() => { setSellerLevel(null); setShowLevelDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Any Level</button>
+                  <button onClick={() => { setSellerLevel('verified'); setShowLevelDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Verified Sellers Only</button>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
@@ -394,6 +557,60 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             </select>
           </div>
         </div>
+
+        {/* Active Filters Display */}
+        {(selectedSubcategory || budgetRange || deliveryTime || sellerLevel) && (
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
+            {selectedSubcategory && (
+              <button 
+                onClick={() => setSelectedSubcategory(null)}
+                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm"
+              >
+                {selectedSubcategory}
+                <span className="ml-1">×</span>
+              </button>
+            )}
+            {budgetRange && (
+              <button 
+                onClick={() => setBudgetRange(null)}
+                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm"
+              >
+                {budgetRange.replace('-', ' - $').replace('under-', 'Under $').replace('over-', 'Over $')}
+                <span className="ml-1">×</span>
+              </button>
+            )}
+            {deliveryTime && (
+              <button 
+                onClick={() => setDeliveryTime(null)}
+                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm"
+              >
+                {deliveryTime === '24h' ? '24 Hours' : deliveryTime === '3days' ? 'Up to 3 Days' : 'Up to 7 Days'}
+                <span className="ml-1">×</span>
+              </button>
+            )}
+            {sellerLevel && (
+              <button 
+                onClick={() => setSellerLevel(null)}
+                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm"
+              >
+                Verified Only
+                <span className="ml-1">×</span>
+              </button>
+            )}
+            <button 
+              onClick={() => {
+                setSelectedSubcategory(null)
+                setBudgetRange(null)
+                setDeliveryTime(null)
+                setSellerLevel(null)
+              }}
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
 
         {/* Search Results Info */}
         {searchTerm && (
