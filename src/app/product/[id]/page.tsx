@@ -511,7 +511,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <div className="text-center">
                   <div className="flex items-center justify-center mb-1">
                     <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-lg font-bold text-gray-900 dark:text-white ml-1">{product.avgRating}</span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white ml-1">{Number(product.avgRating ?? 0).toFixed(1)}</span>
                   </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">Rating</div>
                 </div>
@@ -601,7 +601,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                     <span className="text-sm text-gray-600 dark:text-gray-400">@{product.creator.username}</span>
                     <div className="flex items-center space-x-1 mt-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium dark:text-gray-200">{product.avgRating}</span>
+                      <span className="text-sm font-medium dark:text-gray-200">{Number(product.avgRating ?? 0).toFixed(1)}</span>
                       <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviewCount ?? 0} reviews)</span>
                     </div>
                   </div>

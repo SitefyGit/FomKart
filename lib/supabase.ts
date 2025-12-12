@@ -1,10 +1,31 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-// Your Supabase project configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://upmbvugogybdutqoqern.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Your Supabase project configuration - uses lazy initialization to prevent build-time errors
+let _supabase: SupabaseClient | null = null
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+function getSupabase(): SupabaseClient {
+  if (_supabase) return _supabase
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://upmbvugogybdutqoqern.supabase.co'
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseAnonKey) {
+    console.warn('Supabase client missing NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    return createClient(supabaseUrl, 'placeholder-key')
+  }
+
+  _supabase = createClient(supabaseUrl, supabaseAnonKey)
+  return _supabase
+}
+
+// Export as a getter to allow lazy initialization
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_, prop) {
+    const client = getSupabase()
+    const value = client[prop as keyof SupabaseClient]
+    return typeof value === 'function' ? value.bind(client) : value
+  }
+})
 
 // Types for our database
 export interface User {

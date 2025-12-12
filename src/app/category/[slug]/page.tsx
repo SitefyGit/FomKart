@@ -273,18 +273,22 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
   try {
     setIsLoading(true)
         const slug = resolvedParams.slug
+        
+        // Map slugs to product types
+        // 'courses' type doesn't exist in DB, so we'll filter by tags
         const typeMap: Record<string, string | undefined> = {
           services: 'service',
-          courses: undefined, // courses currently use products table; filter by tags later if needed
+          courses: undefined, // Will filter by tags for courses
           'digital-products': 'product'
         }
         const selectedType = typeMap[slug]
 
         let query = supabase
           .from('products')
-          .select('id, title, images, base_price, rating, reviews_count, delivery_time, tags, creator:creator_id(id, username, full_name, avatar_url, is_verified)')
+          .select('id, title, images, base_price, rating, reviews_count, delivery_time, tags, type, creator:creator_id(id, username, full_name, avatar_url, is_verified)')
           .eq('status', 'active')
 
+        // For digital-products and services, filter by type
         if (selectedType) {
           query = query.eq('type', selectedType)
         }
@@ -293,7 +297,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           .order('orders_count', { ascending: false })
           .limit(40)
 
-        const rows = (data ?? []) as unknown as ProductRow[]
+        const rows = (data ?? []) as unknown as (ProductRow & { type?: string })[]
         let mapped: ProductCard[] = rows.map((p) => {
           const c = Array.isArray(p.creator) ? p.creator[0] : p.creator
           return {
@@ -312,13 +316,33 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           }
         })
 
-        // Refine for courses slug: prioritize items that look like courses
+        // For courses: strictly filter to only items that have course-related keywords
         if (slug === 'courses') {
-          const terms = ['course', 'courses', 'tutorial', 'class', 'learn', 'training']
-          const hasTerm = (s?: string) => !!s && terms.some(t => s.toLowerCase().includes(t))
-          const tagHasTerm = (tags?: string[] | null) => (tags || []).some(tag => hasTerm(tag))
-          const filtered = mapped.filter(p => hasTerm(p.title) || tagHasTerm(p.tags))
-          if (filtered.length > 0) mapped = filtered
+          const courseTerms = ['course', 'tutorial', 'class', 'learn', 'training', 'lesson', 'education', 'teach', 'workshop']
+          const hasTerm = (s?: string) => {
+            if (!s) return false
+            const lower = s.toLowerCase()
+            return courseTerms.some(t => lower.includes(t))
+          }
+          const isCourse = (p: ProductCard) => {
+            // Check title
+            if (hasTerm(p.title)) return true
+            // Check tags - must have at least one course-related tag
+            if (p.tags && p.tags.some(tag => hasTerm(tag))) return true
+            return false
+          }
+          mapped = mapped.filter(isCourse)
+        }
+        
+        // For digital-products: exclude items that look like courses
+        if (slug === 'digital-products') {
+          const courseTerms = ['course', 'tutorial', 'class', 'training', 'lesson', 'workshop']
+          const hasTerm = (s?: string) => {
+            if (!s) return false
+            const lower = s.toLowerCase()
+            return courseTerms.some(t => lower.includes(t))
+          }
+          mapped = mapped.filter(p => !hasTerm(p.title) && !(p.tags?.some(tag => hasTerm(tag))))
         }
 
         setProducts(mapped)
@@ -715,7 +739,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                   {/* Rating */}
                   <div className="flex items-center space-x-1 mb-3">
                     <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{product.rating ?? 0}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{Number(product.rating ?? 0).toFixed(1)}</span>
                     <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviews ?? 0})</span>
                   </div>
                   

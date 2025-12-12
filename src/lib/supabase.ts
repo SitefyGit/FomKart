@@ -1,25 +1,45 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Lazy initialization to prevent build-time errors
+let _supabase: SupabaseClient | null = null
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set')
-}
+function getSupabase(): SupabaseClient {
+  if (_supabase) return _supabase
 
-// Debug log to help troubleshoot connection issues
-if (typeof window !== 'undefined') {
-  console.log('Supabase Client Initializing:', { 
-    url: supabaseUrl, 
-    hasKey: !!supabaseAnonKey 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Log warning but don't fail during build
+    console.warn('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    return createClient('https://placeholder.supabase.co', 'placeholder-key')
+  }
+
+  // Debug log to help troubleshoot connection issues
+  if (typeof window !== 'undefined') {
+    console.log('Supabase Client Initializing:', { 
+      url: supabaseUrl, 
+      hasKey: !!supabaseAnonKey 
+    })
+  }
+
+  _supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: typeof window !== 'undefined',
+      autoRefreshToken: typeof window !== 'undefined',
+      detectSessionInUrl: typeof window !== 'undefined',
+    }
   })
+
+  return _supabase
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: typeof window !== 'undefined',
-    autoRefreshToken: typeof window !== 'undefined',
-    detectSessionInUrl: typeof window !== 'undefined',
+// Export as a proxy for lazy initialization
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_, prop) {
+    const client = getSupabase()
+    const value = client[prop as keyof SupabaseClient]
+    return typeof value === 'function' ? value.bind(client) : value
   }
 })
 
