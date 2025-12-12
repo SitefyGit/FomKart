@@ -643,6 +643,33 @@ export default function CreatorPage() {
     }
   }, [creator, isOwner, pushToast, sanitizeLayout, setCreator]);
 
+  const handleSendMessage = async () => {
+    if (!creator || !currentUser || !messageBody.trim()) return;
+    
+    try {
+      const response = await fetch('/api/notifications/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: creator.id,
+          type: 'message',
+          title: `New message from ${currentUser.email?.split('@')[0] || 'User'}`,
+          message: messageBody,
+          data: { sender_id: currentUser.id, sender_email: currentUser.email }
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to send message');
+
+      pushToast({ type: 'success', title: 'Message sent', message: 'Your message has been sent to the creator.' });
+      setMessageBody('');
+      setMessageOpen(false);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      pushToast({ type: 'error', title: 'Send failed', message: 'Could not send message. Please try again.' });
+    }
+  };
+
   const latestPost = posts[0] ?? null;
   const latestPostEntry = latestPost ? buildActivityEntryFromPost(latestPost) : null;
   const latestPostLabel = latestPost
@@ -1756,9 +1783,8 @@ export default function CreatorPage() {
             <textarea value={messageBody} onChange={e=>setMessageBody(e.target.value)} placeholder="Write your message..." className="w-full border dark:border-gray-600 rounded px-3 py-2 text-sm h-40 dark:bg-gray-700 dark:text-white" />
             <div className="flex justify-end gap-2">
               <button onClick={()=>setMessageOpen(false)} className="px-3 py-2 text-sm rounded border dark:border-gray-600 dark:text-white">Cancel</button>
-              <button onClick={()=>{ console.log('Send message (stub):', messageBody); setMessageBody(''); setMessageOpen(false); }} className="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">Send</button>
+              <button onClick={handleSendMessage} disabled={!messageBody.trim()} className="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">Send</button>
             </div>
-            <p className="text-[11px] text-gray-400">Stub only – hook into real messaging service later.</p>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import RouteProgress from './RouteProgress'
 import NotificationsBell from '../components/NotificationsBell'
+import AuthButton from '../components/AuthButton'
 import ProfileMenu from '../components/ProfileMenu'
 
 const geistSans = Geist({
@@ -65,7 +66,7 @@ export default function RootLayout({
               <Link href="/category/courses" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Courses</Link>
               <Link href="/category/services" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Services</Link>
               <Link href="/orders" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Orders</Link>
-              <Link href="/auth/login" prefetch className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium">Login</Link>
+              <AuthButton />
               </nav>
             </div>
             {/* Right actions always visible */}

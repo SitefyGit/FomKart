@@ -5,6 +5,7 @@ import { CubeIcon, BookOpenIcon, BoltIcon, SparklesIcon, CheckCircleIcon } from 
 import { HomeLeadCapture } from './HomeClientWidgets'
 import TopCreatorsSection from '@/app/top-creators'
 import FeaturedServicesSection from '@/app/featured-services'
+import StartSellingButton from '@/components/StartSellingButton'
 
 const featuredCategories = [
   {
@@ -87,13 +88,7 @@ export default async function HomePage() {
             >
               Browse Services
             </Link>
-            <Link
-              href="/auth/login"
-              prefetch
-              className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-emerald-600 transition-all duration-200 hover:scale-105 transform text-center"
-            >
-              Start Selling
-            </Link>
+            <StartSellingButton />
           </div>
         </div>
       </section>
@@ -212,9 +207,7 @@ export default async function HomePage() {
             >
               Find Services
             </Link>
-            <button className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-gray-900 transition-colors">
-              Start Selling
-            </button>
+            <StartSellingButton />
           </div>
         </div>
       </section>

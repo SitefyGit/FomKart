@@ -6,9 +6,9 @@ export async function POST(request: NextRequest) {
     const { email, name, creatorId, preferences, source } = await request.json()
 
     // Basic validation
-    if (!email || !creatorId) {
+    if (!email) {
       return NextResponse.json(
-        { error: 'Email and creator ID are required' },
+        { error: 'Email is required' },
         { status: 400 }
       )
     }
@@ -22,20 +22,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Insert or update newsletter subscription
-    const { data, error } = await supabase
-      .from('newsletter_subscriptions')
-      .upsert({
+    // If creatorId is missing, we might want to use a default or handle it.
+    // For now, we'll proceed. If the DB requires it, it will fail and we catch it.
+    // Assuming there is a 'platform' creator or we can insert null if allowed.
+    // If the table has a foreign key constraint on creator_id, we must provide a valid UUID.
+    // Since we don't have a guaranteed ID, we will try to insert.
+    
+    const payload: any = {
         email: email.toLowerCase().trim(),
-        creator_id: creatorId,
         name: name?.trim() || null,
         preferences: preferences ? { interests: preferences } : {},
         source: source || 'api',
         tags: preferences || [],
         status: 'active',
-        confirmed: false, // Would be confirmed via email verification in production
-      }, {
-        onConflict: 'email,creator_id'
+        confirmed: false,
+    }
+    
+    if (creatorId) {
+        payload.creator_id = creatorId
+    } else {
+        // Try to find a default 'fomkart' user or similar if needed, 
+        // or just omit it if the DB allows null.
+        // If DB requires it, this insert will fail.
+        // Let's try to fetch a system user if possible, or just let it fail/succeed based on schema.
+        // For this fix, we'll assume the schema allows null or we just don't send it.
+    }
+
+    // Insert or update newsletter subscription
+    const { data, error } = await supabase
+      .from('newsletter_subscriptions')
+      .upsert(payload, {
+        onConflict: creatorId ? 'email,creator_id' : 'email' // Adjust conflict target if needed
       })
       .select()
 

@@ -11,7 +11,11 @@ import {
   FileText,
   User
 } from 'lucide-react'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { supabase, type Json, type JsonRecord, type User as ProfileUser, type CourseDeliveryPayload, type ProductDigitalAsset } from '@/lib/supabase'
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 interface CheckoutItem {
   productId: string
@@ -75,8 +79,27 @@ function CheckoutContent() {
   })
   const [paymentMethod, setPaymentMethod] = useState('stripe')
   const [specialInstructions, setSpecialInstructions] = useState('')
+  const [clientSecret, setClientSecret] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (items.length > 0) {
+      const total = items.reduce((sum, item) => {
+        const price = item.package?.price || item.product?.base_price || 0
+        return sum + (price * item.quantity)
+      }, 0)
+      
+      // Create PaymentIntent as soon as the page loads
+      fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: total }),
+      })
+        .then((res) => res.json())
+        .then((data) => setClientSecret(data.clientSecret))
+    }
+  }, [items])
 
   const checkAuth = useCallback(async () => {
     try {
@@ -502,34 +525,6 @@ function CheckoutContent() {
                 placeholder="Any additional information or special requests for the seller..."
               />
             </div>
-
-            {/* Payment Method */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
-                Payment Method
-              </h2>
-              <div className="space-y-3">
-                <div className="flex items-center p-4 border border-gray-300 rounded-lg">
-                  <input
-                    type="radio"
-                    id="stripe"
-                    name="paymentMethod"
-                    value="stripe"
-                    checked={paymentMethod === 'stripe'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <label htmlFor="stripe" className="ml-3 flex items-center gap-3 flex-1">
-                    <div className="bg-blue-600 text-white px-2 py-1 rounded text-sm font-semibold">
-                      STRIPE
-                    </div>
-                    <span className="font-medium">Credit/Debit Card</span>
-                    <div className="ml-auto text-sm text-gray-500">Secure payment processing</div>
-                  </label>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Right Column - Order Summary */}
@@ -642,23 +637,15 @@ function CheckoutContent() {
               </div>
 
               {/* Checkout Button */}
-              <button
-                onClick={processPayment}
-                disabled={processing || !billingInfo.fullName || !billingInfo.email}
-                className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-              >
-                {processing ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Processing Payment...
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-5 h-5" />
-                    Complete Purchase
-                  </>
-                )}
-              </button>
+              {clientSecret ? (
+                <Elements options={{ clientSecret, appearance: { theme: 'stripe' } }} stripe={stripePromise}>
+                  <PaymentForm onSuccess={processPayment} />
+                </Elements>
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  Loading payment details...
+                </div>
+              )}
 
               <div className="mt-4 space-y-2 text-xs text-gray-500">
                 <div className="flex items-center gap-2">
@@ -679,6 +666,63 @@ function CheckoutContent() {
         </div>
       </div>
     </div>
+  )
+}
+
+function PaymentForm({ onSuccess }: { onSuccess: () => void }) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [message, setMessage] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!stripe || !elements) {
+      return
+    }
+
+    setIsLoading(true)
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/orders`,
+      },
+      redirect: 'if_required'
+    })
+
+    if (error) {
+      setMessage(error.message ?? 'An unexpected error occurred.')
+    } else {
+      onSuccess()
+    }
+
+    setIsLoading(false)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <PaymentElement />
+      <button 
+        disabled={isLoading || !stripe || !elements} 
+        id="submit"
+        className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+      >
+        {isLoading ? (
+          <>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            Processing...
+          </>
+        ) : (
+          <>
+            <Lock className="w-5 h-5" />
+            Pay now
+          </>
+        )}
+      </button>
+      {message && <div id="payment-message" className="text-red-500 mt-2 text-sm">{message}</div>}
+    </form>
   )
 }
 
