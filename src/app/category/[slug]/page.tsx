@@ -778,12 +778,17 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                     <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviews ?? 0})</span>
                   </div>
                   
-                  {/* Tags */}
+                  {/* Tags - Clickable links to gig pages */}
                   <div className="flex flex-wrap gap-1 mb-3">
                     {product.tags?.slice(0, 2).map((tag, index) => (
-                      <span key={index} className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded truncate">
+                      <Link 
+                        key={index} 
+                        href={`/gigs/${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 rounded truncate transition-colors"
+                      >
                         {tag}
-                      </span>
+                      </Link>
                     ))}
                     {product.tags && product.tags.length > 2 && (
                       <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">+{product.tags.length - 2}</span>
@@ -833,6 +838,24 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                 Clear search
               </button>
             ) : null}
+          </div>
+        )}
+
+        {/* Popular Tags Section for SEO */}
+        {products.length > 0 && (
+          <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Popular Tags in {category.name}</h2>
+            <div className="flex flex-wrap gap-2">
+              {Array.from(new Set(products.flatMap(p => p.tags || []))).slice(0, 20).map((tag) => (
+                <Link
+                  key={tag}
+                  href={`/gigs/${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`}
+                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-600 dark:text-gray-400 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-full text-sm transition-colors"
+                >
+                  {tag}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>

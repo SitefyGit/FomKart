@@ -167,6 +167,53 @@ export default async function HomePage() {
       {/* Featured Services (synchronous) */}
       <FeaturedServicesSection />
 
+      {/* Popular Tags Section for SEO */}
+      <section className="py-12 bg-white dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Popular Services
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Explore trending categories and find exactly what you need
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              'Affiliate Marketing',
+              'Logo Design',
+              'SEO',
+              'WordPress',
+              'Video Editing',
+              'Social Media',
+              'Web Development',
+              'Copywriting',
+              'Amazon FBA',
+              'Shopify',
+              'UI/UX Design',
+              'Content Writing',
+            ].map((tag) => (
+              <Link
+                key={tag}
+                href={`/gigs/${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-700 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-full text-sm font-medium transition-all border border-gray-200 dark:border-gray-600 hover:border-emerald-300"
+              >
+                {tag}
+              </Link>
+            ))}
+          </div>
+          <div className="text-center mt-6">
+            <Link
+              href="/gigs"
+              className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              Browse all tags
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Newsletter Section */}
       <section className="py-16 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

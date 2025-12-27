@@ -62,6 +62,7 @@ export default function RootLayout({
                 <span className="font-semibold text-gray-900 dark:text-white">FomKart</span>
               </Link>
               <nav className="hidden md:flex items-center gap-6 text-sm">
+              <Link href="/gigs" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Explore</Link>
               <Link href="/category/digital-products" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Digital Products</Link>
               <Link href="/category/courses" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Courses</Link>
               <Link href="/category/services" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Services</Link>

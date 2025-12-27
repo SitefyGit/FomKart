@@ -488,17 +488,21 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
               )}
               
-              {/* Tags */}
+              {/* Tags - Clickable links to tag pages for SEO */}
               {product.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {product.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Related tags</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {product.tags.map((tag, index) => (
+                      <Link
+                        key={index}
+                        href={`/gigs/${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`}
+                        className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-700 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-full text-sm font-medium transition-all border border-gray-200 dark:border-gray-600 hover:border-emerald-300"
+                      >
+                        {tag}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
 
