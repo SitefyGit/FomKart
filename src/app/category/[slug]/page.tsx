@@ -783,7 +783,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                     {product.tags?.slice(0, 2).map((tag, index) => (
                       <Link 
                         key={index} 
-                        href={`/gigs/${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`}
+                        href={`/market/${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`}
                         onClick={(e) => e.stopPropagation()}
                         className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 rounded truncate transition-colors"
                       >

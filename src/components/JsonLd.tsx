@@ -118,7 +118,7 @@ export function generateWebsiteSchema() {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://fomkart.com/gigs/{search_term_string}',
+        urlTemplate: 'https://fomkart.com/market/{search_term_string}',
       },
       'query-input': 'required name=search_term_string',
     },

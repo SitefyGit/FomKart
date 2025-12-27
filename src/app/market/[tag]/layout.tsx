@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       type: 'website',
       siteName: 'FomKart',
-      url: `https://fomkart.com/gigs/${tagSlug}`,
+      url: `https://fomkart.com/market/${tagSlug}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
     },
     alternates: {
-      canonical: `https://fomkart.com/gigs/${tagSlug}`,
+      canonical: `https://fomkart.com/market/${tagSlug}`,
     },
     robots: {
       index: true,

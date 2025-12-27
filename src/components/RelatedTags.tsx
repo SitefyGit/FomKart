@@ -41,7 +41,7 @@ export function RelatedTags({
         {displayTags.map((tag) => (
           <Link
             key={tag}
-            href={`/gigs/${tagToSlug(tag)}`}
+            href={`/market/${tagToSlug(tag)}`}
             className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-700 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-full text-sm font-medium transition-all border border-gray-200 dark:border-gray-600 hover:border-emerald-300 dark:hover:border-emerald-600"
           >
             {tag}

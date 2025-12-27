@@ -98,7 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   // Start with static tag pages
   const tagEntries: MetadataRoute.Sitemap = staticTags.map((tag) => ({
-    url: `${baseUrl}/gigs/${tag}`,
+    url: `${baseUrl}/market/${tag}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
     priority: 0.7,
@@ -134,7 +134,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         // Add dynamic tags to sitemap
         tagSet.forEach((slug) => {
           tagEntries.push({
-            url: `${baseUrl}/gigs/${slug}`,
+            url: `${baseUrl}/market/${slug}`,
             lastModified: new Date(),
             changeFrequency: 'weekly' as const,
             priority: 0.6,
@@ -146,9 +146,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Error generating tag sitemap:', error)
   }
 
-  // Add main gigs index page
+  // Add main market index page
   tagEntries.unshift({
-    url: `${baseUrl}/gigs`,
+    url: `${baseUrl}/market`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
     priority: 0.8,

@@ -260,7 +260,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
           <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
             <Link href="/" className="hover:text-emerald-600">FomKart</Link>
             <span className="mx-2">/</span>
-            <Link href="/gigs" className="hover:text-emerald-600">Gigs</Link>
+            <Link href="/market" className="hover:text-emerald-600">Market</Link>
             <span className="mx-2">/</span>
             <span className="text-gray-900 dark:text-white">{tagName}</span>
           </nav>
@@ -299,7 +299,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
               {relatedTags.map((tag) => (
                 <Link
                   key={tag}
-                  href={`/gigs/${tagToSlug(tag)}`}
+                  href={`/market/${tagToSlug(tag)}`}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-700 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-full text-sm font-medium transition-colors border border-gray-200 dark:border-gray-600 hover:border-emerald-300 dark:hover:border-emerald-600"
                 >
                   {tag}
@@ -555,7 +555,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             Explore More Services
           </h2>
           <div className="flex flex-wrap justify-center gap-2">
-            <Link href="/gigs" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-sm font-medium hover:bg-emerald-700 transition-colors">
+            <Link href="/market" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-sm font-medium hover:bg-emerald-700 transition-colors">
               Browse All Tags
             </Link>
             <Link href="/category/services" className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600">
