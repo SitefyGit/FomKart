@@ -1,7 +1,8 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { TrendingUp, Search, Star, Sparkles, Zap, Users, Shield, ArrowRight } from 'lucide-react'
+import { TrendingUp, Star, Sparkles, Zap, Users, Shield, ArrowRight } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
+import MarketSearch from '@/components/MarketSearch'
 
 export const metadata: Metadata = {
   title: 'Explore Services | FomKart Marketplace',
@@ -212,19 +213,7 @@ export default async function MarketPage() {
             </p>
             
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto">
-              <div className="relative group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
-                <input
-                  type="text"
-                  placeholder="What service are you looking for?"
-                  className="w-full pl-14 pr-32 py-5 rounded-2xl text-gray-900 text-lg shadow-2xl focus:ring-4 focus:ring-white/30 outline-none transition-all placeholder:text-gray-400"
-                />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-colors">
-                  Search
-                </button>
-              </div>
-            </div>
+            <MarketSearch />
 
             {/* Quick Stats */}
             <div className="flex flex-wrap justify-center gap-8 mt-12">
