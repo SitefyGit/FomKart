@@ -54,6 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const [loading, setLoading] = useState(true)
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
+  const [accessDenied, setAccessDenied] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
@@ -81,8 +82,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .single()
 
       if (error || !adminData) {
-        // Not an admin, redirect to home
-        router.push('/')
+        console.error('Admin access denied:', error)
+        setAccessDenied(true)
+        setLoading(false)
         return
       }
 
@@ -90,7 +92,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setLoading(false)
     } catch (error) {
       console.error('Admin access check failed:', error)
-      router.push('/')
+      setAccessDenied(true)
+      setLoading(false)
     }
   }
 
@@ -105,6 +108,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">Verifying admin access...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            You do not have permission to access the admin panel.
+            <br />
+            <span className="text-xs text-gray-500 mt-2 block">
+              (If you are the owner, please run the admin setup SQL scripts)
+            </span>
+          </p>
+          <Link 
+            href="/"
+            className="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+          >
+            Return to Home
+          </Link>
         </div>
       </div>
     )
