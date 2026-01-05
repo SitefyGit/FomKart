@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, getUserOrders } from '@/lib/supabase'
-import { UserCircle2, Mail, MapPin, Link as LinkIcon, Save, Loader2, ShoppingBag, BadgeCheck, Clock, Camera } from 'lucide-react'
+import { UserCircle2, Mail, MapPin, Link as LinkIcon, Save, Loader2, ShoppingBag, BadgeCheck, Clock, Camera, Store, CheckCircle2, Sparkles } from 'lucide-react'
 import { ToastContainer, type ToastItem } from '@/components/Toast'
 
 type TabKey = 'overview' | 'edit'
@@ -291,6 +291,92 @@ export default function BuyerProfilePage() {
                 <a href="/orders" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">Go to Orders</a>
               </div>
             </div>
+
+            {/* Become a Seller Section */}
+            {!user.is_creator ? (
+              <div className="mt-8 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Store className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Start Selling on FomKart</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Turn your skills into income! Create your own storefront, list your services or products, and reach thousands of potential buyers.
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Free to start</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Set your own prices</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Keep 90% of earnings</span>
+                      </div>
+                    </div>
+                    <div className="mt-5">
+                      <a 
+                        href="/auth/creator-signup" 
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Become a Seller
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Store className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Seller Dashboard</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      You&apos;re a verified seller on FomKart. Manage your products, view analytics, and grow your business.
+                    </p>
+                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                        <div className="text-xl font-bold text-gray-900 dark:text-white">{user.total_sales || 0}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Sales</div>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                        <div className="text-xl font-bold text-gray-900 dark:text-white">${(user.total_earnings || 0).toFixed(2)}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Earnings</div>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                        <div className="text-xl font-bold text-gray-900 dark:text-white">{(user.rating || 0).toFixed(1)}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Rating</div>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                        <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400 capitalize">{user.subscription_tier}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Tier</div>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <a 
+                        href={`/creator/${user.username}`}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+                      >
+                        View My Store
+                      </a>
+                      <a 
+                        href="/orders?tab=seller"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      >
+                        Manage Orders
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
