@@ -20,7 +20,23 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [commissionRate, setCommissionRate] = useState(5)
   const router = useRouter()
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'commission_rate')
+        .single()
+      
+      if (data?.value) {
+        setCommissionRate(parseFloat(data.value))
+      }
+    }
+    fetchSettings()
+  }, [])
 
   const checkAuth = useCallback(async () => {
     try {
@@ -168,7 +184,7 @@ export default function CartPage() {
   }
 
   const calculateServiceFee = (subtotal: number) => {
-    return Math.round(subtotal * 0.05 * 100) / 100 // 5% service fee
+    return Math.round(subtotal * (commissionRate / 100) * 100) / 100
   }
 
   const subtotal = calculateSubtotal()

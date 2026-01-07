@@ -51,6 +51,22 @@ export const ReviewsSlider: React.FC<ReviewsSliderProps> = ({ creatorId, limit =
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [reviewsEnabled, setReviewsEnabled] = useState(true)
+
+  useEffect(() => {
+    const checkSettings = async () => {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'enable_reviews')
+        .single()
+      
+      if (data?.value === 'false') {
+        setReviewsEnabled(false)
+      }
+    }
+    checkSettings()
+  }, [])
 
   useEffect(() => {
     (async () => {
@@ -123,6 +139,8 @@ export const ReviewsSlider: React.FC<ReviewsSliderProps> = ({ creatorId, limit =
     const amount = 320; // px per card
     scrollRef.current.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
   }
+
+  if (!reviewsEnabled) return null;
 
   if (loading) return <div className="h-40 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">Loading reviews…</div>;
   if (error) return <div className="h-40 flex items-center justify-center text-sm text-red-500 dark:text-red-400">{error}</div>;

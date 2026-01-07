@@ -6,6 +6,8 @@ import RouteProgress from './RouteProgress'
 import NotificationsBell from '../components/NotificationsBell'
 import AuthButton from '../components/AuthButton'
 import ProfileMenu from '../components/ProfileMenu'
+import AnnouncementBanner from '../components/AnnouncementBanner'
+import MaintenanceGuard from '../components/MaintenanceGuard'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,6 +55,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
+        <MaintenanceGuard>
+        <AnnouncementBanner />
         {/* Global Header */}
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-4">
@@ -79,6 +83,7 @@ export default function RootLayout({
         </header>
   <RouteProgress />
         {children}
+        </MaintenanceGuard>
       </body>
     </html>
   );

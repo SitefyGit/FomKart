@@ -19,6 +19,12 @@ import { SocialIconsBar } from '@/components/SocialIconsBar';
 import { ToastContainer, ToastItem } from '@/components/Toast';
 import { ShareModal } from '@/components/ShareModal';
 
+interface AdminSettings {
+  auto_approve_products: boolean
+  max_images_per_product: number
+  require_verification: boolean
+}
+
 interface Product {
   id: string;
   title: string;
@@ -30,6 +36,7 @@ interface Product {
   base_price?: number;
   auto_message_enabled?: boolean;
   auto_message?: string | null;
+  status?: string;
 }
 
 type NewProductInsert = {
@@ -46,7 +53,7 @@ type NewProductInsert = {
   images: string[];
   auto_message_enabled: boolean;
   auto_message: string | null;
-  status: 'active' | 'draft' | 'paused' | 'archived' | 'sold_out';
+  status: 'active' | 'draft' | 'paused' | 'archived' | 'sold_out' | 'pending';
   digital_files?: ProductDigitalAsset[] | null;
   course_delivery?: CourseDeliveryPayload | null;
   auto_deliver?: boolean;
@@ -104,6 +111,7 @@ interface Creator {
   background_image?: string; products: Product[]; totalProducts: number;
   location?: string; website?: string; social_links?: Record<string, string>;
   profile_section_order?: ProfileSectionKey[] | null;
+  is_verified?: boolean;
 }
 
 type CreatorProfileUpdate = Pick<Creator, "bio" | "website" | "location" | "social_links">;
@@ -167,7 +175,8 @@ async function loadCreator(username: string): Promise<Creator | null> {
       social_links: userData.social_links || {},
       products: productList,
       totalProducts: productList.length,
-      profile_section_order: layout
+      profile_section_order: layout,
+      is_verified: userData.is_verified
     };
   } catch {
     return null;
@@ -259,6 +268,28 @@ export default function CreatorPage() {
     coursePasskeys: '',
     courseAccessNotes: ''
   });
+
+  const [adminSettings, setAdminSettings] = useState<AdminSettings>({
+    auto_approve_products: true,
+    max_images_per_product: 5,
+    require_verification: false
+  })
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase.from('site_settings').select('key, value')
+      if (data) {
+        const settings: any = {}
+        data.forEach(s => settings[s.key] = s.value)
+        setAdminSettings({
+          auto_approve_products: settings.auto_approve_products !== 'false',
+          max_images_per_product: parseInt(settings.max_images_per_product || '5'),
+          require_verification: settings.require_verification === 'true'
+        })
+      }
+    }
+    fetchSettings()
+  }, [])
   const [savingProduct, setSavingProduct] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [messageOpen, setMessageOpen] = useState(false);
@@ -786,6 +817,11 @@ export default function CreatorPage() {
                     {deletingProductId === p.id ? 'Deleting…' : 'Delete'}
                   </button>
                 )}
+                {p.status === 'pending' && (
+                   <span className="absolute left-2 top-10 bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded-full text-xs font-medium shadow z-10">
+                    Pending
+                  </span>
+                )}
               </div>
               <div className="p-4">
                 <h3 className="font-semibold mb-1 line-clamp-1 dark:text-white">{p.title}</h3>
@@ -834,7 +870,13 @@ export default function CreatorPage() {
                   {showAllProducts ? 'Show Less' : 'View All'}
                 </button>
                 {isOwner && (
-                  <button onClick={()=>setAddProductOpen(true)} className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"><AddCircleOutlineIcon fontSize="small"/>Add Product</button>
+                  <button onClick={() => {
+                    if (adminSettings.require_verification && !creator?.is_verified) {
+                      pushToast({ type: 'error', title: 'Verification Required', message: 'You must be verified to create products.' });
+                      return;
+                    }
+                    setAddProductOpen(true);
+                  }} className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"><AddCircleOutlineIcon fontSize="small"/>Add Product</button>
                 )}
               </div>
             </div>
@@ -1272,7 +1314,13 @@ export default function CreatorPage() {
                   multiple
                   onChange={e=>{
                     const files = Array.from(e.target.files || []);
-                    if (files.length) setMediaFiles(prev => [...prev, ...files]);
+                    if (files.length) {
+                      if (mediaFiles.length + files.length > adminSettings.max_images_per_product) {
+                        pushToast({ type: 'error', title: 'Limit Exceeded', message: `You can only upload up to ${adminSettings.max_images_per_product} images per product.` });
+                        return;
+                      }
+                      setMediaFiles(prev => [...prev, ...files]);
+                    }
                   }}
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 />
@@ -1653,7 +1701,7 @@ export default function CreatorPage() {
                     images: imageUrls,
                     auto_message_enabled: autoMessageEnabled,
                     auto_message: autoMessageEnabled ? autoMessage : null,
-                    status: 'active',
+                    status: adminSettings.auto_approve_products ? 'active' : 'pending',
                     digital_files: digitalAssets.length ? digitalAssets : null,
                     course_delivery: courseDeliveryPayload,
                     auto_deliver: selectedType === 'digital' || selectedType === 'course',
@@ -1700,9 +1748,17 @@ export default function CreatorPage() {
                     features: resolvedFeatures,
                     base_price: Number.isFinite(priceNum) ? priceNum : undefined,
                     auto_message_enabled: autoMessageEnabled,
-                    auto_message: autoMessageEnabled ? autoMessage : null
+                    auto_message: autoMessageEnabled ? autoMessage : null,
+                    status: adminSettings.auto_approve_products ? 'active' : 'pending'
                   };
                   setCreator(prev => prev ? { ...prev, products: [productObj, ...prev.products], totalProducts: prev.totalProducts + 1 } : prev);
+                  
+                  if (!adminSettings.auto_approve_products) {
+                    pushToast({ type: 'success', title: 'Submitted for Review', message: 'Your product is pending approval.' });
+                  } else {
+                    pushToast({ type: 'success', title: 'Product Created', message: 'Your product is now live.' });
+                  }
+
                   setNewProduct({ title:'', description:'', price:'' });
                   setProductExtras({
                     videoUrl:'',

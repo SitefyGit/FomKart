@@ -80,8 +80,24 @@ function CheckoutContent() {
   const [paymentMethod, setPaymentMethod] = useState('stripe')
   const [specialInstructions, setSpecialInstructions] = useState('')
   const [clientSecret, setClientSecret] = useState('')
+  const [commissionRate, setCommissionRate] = useState(5)
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'commission_rate')
+        .single()
+      
+      if (data?.value) {
+        setCommissionRate(parseFloat(data.value))
+      }
+    }
+    fetchSettings()
+  }, [])
 
   useEffect(() => {
     if (items.length > 0) {
@@ -243,7 +259,7 @@ function CheckoutContent() {
   }
 
   const calculateServiceFee = (subtotal: number) => {
-    return Math.round(subtotal * 0.05 * 100) / 100
+    return Math.round(subtotal * (commissionRate / 100) * 100) / 100
   }
 
   const calculateTotal = () => {

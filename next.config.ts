@@ -16,6 +16,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'wpqxovbotsbraxtweyyz.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
       // Allow Supabase storage images for this project
       ...(supabaseHost ? [{
         protocol: 'https' as const,

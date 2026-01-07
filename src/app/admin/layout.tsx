@@ -55,6 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [loading, setLoading] = useState(true)
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
   const [accessDenied, setAccessDenied] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
@@ -69,20 +70,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         router.push('/auth/login?redirect=/admin')
         return
       }
+      
+      setCurrentUserId(user.id)
 
       // Check if user is an admin
+      console.log('Checking admin access for user:', user.id)
+      
       const { data: adminData, error } = await supabase
         .from('admin_users')
         .select(`
           *,
-          user:users(username, full_name, avatar_url, email)
+          user:users!admin_users_user_id_fkey(username, full_name, avatar_url, email)
         `)
         .eq('user_id', user.id)
-        .eq('is_active', true)
         .single()
 
+      console.log('Admin check result:', { adminData, error })
+
       if (error || !adminData) {
-        console.error('Admin access denied:', error)
+        console.error('Admin access denied. Error:', error)
+        console.error('Admin data:', adminData)
+        setAccessDenied(true)
+        setLoading(false)
+        return
+      }
+
+      if (!adminData.is_active) {
+        console.error('Admin account is inactive')
         setAccessDenied(true)
         setLoading(false)
         return
@@ -125,7 +139,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             You do not have permission to access the admin panel.
             <br />
             <span className="text-xs text-gray-500 mt-2 block">
-              (If you are the owner, please run the admin setup SQL scripts)
+              Your User ID: <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded select-all">{currentUserId}</code>
+            </span>
+            <span className="text-xs text-gray-500 mt-1 block">
+              (Please run the admin setup SQL scripts with this ID)
             </span>
           </p>
           <Link 
