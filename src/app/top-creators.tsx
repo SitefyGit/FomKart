@@ -22,8 +22,7 @@ export default async function TopCreatorsSection() {
     .from('users')
     .select('id, username, full_name, avatar_url, bio, is_verified, total_sales, rating, total_reviews')
     .eq('is_creator', true)
-    .order('rating', { ascending: false })
-    .order('total_sales', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(8)
 
   const topCreators = (data as Creator[]) || []

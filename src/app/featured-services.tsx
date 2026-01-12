@@ -21,8 +21,7 @@ export default async function FeaturedServicesSection() {
     .from('products')
     .select('id, title, images, base_price, rating, reviews_count, creator:creator_id(id, username, full_name, avatar_url)')
     .eq('status', 'active')
-    .order('is_featured', { ascending: false })
-    .order('orders_count', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(9)
 
   const services = (data as unknown as Service[]) || []
