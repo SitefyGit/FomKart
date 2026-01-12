@@ -233,6 +233,19 @@ function getEmbedUrl(meta: VideoMeta): string {
   return `https://player.vimeo.com/video/${meta.id}`;
 }
 
+function ImagePreview({ file }: { file: File }) {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setSrc(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+  
+  if (!src) return <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={file.name} className="w-10 h-10 object-cover rounded border border-gray-200" />;
+}
+
 export default function CreatorPage() {
   const { username } = useParams<{ username: string }>();
   const router = useRouter();
@@ -1202,7 +1215,7 @@ export default function CreatorPage() {
           </div>
         )}
         <div className="absolute top-4 right-4 flex gap-2">
-          <button onClick={()=>setShareOpen(true)} className="px-4 py-2 bg-white/90 rounded-full text-sm shadow hover:bg-white flex items-center gap-1"><ShareIcon fontSize="small"/>Share</button>
+          <button onClick={()=>setShareOpen(true)} className="px-4 py-2 bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white rounded-full text-sm shadow hover:bg-white dark:hover:bg-gray-800 flex items-center gap-1"><ShareIcon fontSize="small"/>Share</button>
         </div>
     <ShareModal isOpen={shareOpen} onClose={()=>setShareOpen(false)} username={creator.username} />
       </div>
@@ -1330,8 +1343,9 @@ export default function CreatorPage() {
                   <div className="text-xs text-gray-600 mb-2">Selected ({mediaFiles.length})</div>
                   <ul className="space-y-2 max-h-40 overflow-auto">
                     {mediaFiles.map((f, idx) => (
-                      <li key={idx} className="flex items-center justify-between gap-2 border rounded-md px-2 py-1 bg-white">
-                        <span className="text-xs truncate flex-1">{f.name}</span>
+                      <li key={idx} className="flex items-center justify-between gap-3 border rounded-lg p-2 bg-white hover:bg-gray-50 transition-colors">
+                        <ImagePreview file={f} />
+                        <span className="text-xs truncate flex-1 font-medium text-gray-700">{f.name}</span>
                         <div className="flex items-center gap-1">
                           <button
                             type="button"

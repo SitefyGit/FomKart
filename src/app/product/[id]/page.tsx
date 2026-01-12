@@ -465,7 +465,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
               </div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">About This Service</h2>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">{product.description}</p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 whitespace-pre-wrap">{product.description}</p>
               {product.features && product.features.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Key Features</h3>
