@@ -429,30 +429,6 @@ export default async function MarketPage() {
           </div>
         </div>
       </section>
-
-      {/* SEO Content */}
-      <section className="py-12 bg-gray-100 dark:bg-gray-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Your One-Stop Marketplace for Professional Services
-            </h2>
-            <div className="prose dark:prose-invert text-gray-600 dark:text-gray-300 text-sm">
-              <p>
-                FomKart Marketplace connects you with thousands of talented freelancers offering 
-                professional services across every category. Whether you need help with digital 
-                marketing, web development, graphic design, or content creation, our verified 
-                experts deliver quality work at competitive prices.
-              </p>
-              <p>
-                Every service comes with secure payment protection, direct communication with 
-                sellers, and our satisfaction guarantee. Browse by category or search for specific 
-                skills to find the perfect match for your project needs.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }

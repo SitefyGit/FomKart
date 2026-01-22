@@ -127,7 +127,8 @@ export interface ProductPackage {
   name: string
   description: string
   price: number
-  delivery_days: number
+  delivery_days?: number
+  delivery_time?: number // alias for delivery_days from DB
   revisions: number
   features: string[]
   popular?: boolean
@@ -184,7 +185,7 @@ export interface CartItem {
   requirements?: JsonRecord
   special_instructions?: string
   created_at: string
-  updated_at: string
+  updated_at?: string
   product?: Product
   package?: ProductPackage
 }

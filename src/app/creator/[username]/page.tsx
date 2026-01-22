@@ -25,6 +25,14 @@ interface AdminSettings {
   require_verification: boolean
 }
 
+type CategoryOption = {
+  id: string
+  name: string
+  slug: string
+  parent_id: string | null
+  children?: CategoryOption[]
+}
+
 interface Product {
   id: string;
   title: string;
@@ -58,6 +66,8 @@ type NewProductInsert = {
   course_delivery?: CourseDeliveryPayload | null;
   auto_deliver?: boolean;
   is_digital?: boolean;
+  category_id?: string | null;
+  subcategory_id?: string | null;
 };
 
 type ProductInsertRow = {
@@ -256,6 +266,9 @@ export default function CreatorPage() {
   const [shareOpen, setShareOpen] = useState(false); // State for Share Modal
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [newProduct, setNewProduct] = useState({ title: '', description: '', price: '' });
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('');
   // Extra dynamic product fields (gig style)
   const [productExtras, setProductExtras] = useState({
     videoUrl: '',
@@ -303,6 +316,41 @@ export default function CreatorPage() {
     }
     fetchSettings()
   }, [])
+
+  // Fetch categories for product creation
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data } = await supabase
+        .from('categories')
+        .select('id, name, slug, parent_id')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .order('name', { ascending: true })
+      
+      if (data) {
+        // Build tree structure
+        const categoryMap = new Map<string, CategoryOption>()
+        const rootCategories: CategoryOption[] = []
+        
+        data.forEach(cat => {
+          categoryMap.set(cat.id, { ...cat, children: [] })
+        })
+        
+        data.forEach(cat => {
+          const category = categoryMap.get(cat.id)!
+          if (cat.parent_id && categoryMap.has(cat.parent_id)) {
+            categoryMap.get(cat.parent_id)!.children!.push(category)
+          } else {
+            rootCategories.push(category)
+          }
+        })
+        
+        setCategories(rootCategories)
+      }
+    }
+    fetchCategories()
+  }, [])
+
   const [savingProduct, setSavingProduct] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [messageOpen, setMessageOpen] = useState(false);
@@ -1394,6 +1442,36 @@ export default function CreatorPage() {
                   <div className="border rounded-lg px-3 py-2 text-sm bg-gray-50">{productTypes.find(p=>p.key===selectedType)?.label}</div>
                 </div>
               </div>
+              {/* Category & Subcategory */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Category</label>
+                  <select
+                    value={selectedCategoryId}
+                    onChange={e => { setSelectedCategoryId(e.target.value); setSelectedSubcategoryId(''); }}
+                    className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Subcategory</label>
+                  <select
+                    value={selectedSubcategoryId}
+                    onChange={e => setSelectedSubcategoryId(e.target.value)}
+                    disabled={!selectedCategoryId}
+                    className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select Subcategory</option>
+                    {categories.find(c => c.id === selectedCategoryId)?.children?.map(sub => (
+                      <option key={sub.id} value={sub.id}>{sub.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               {/* Common extra fields */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -1600,8 +1678,8 @@ export default function CreatorPage() {
                   let insertedId = `local-${Date.now()}`;
                   const priceNum = parseFloat(newProduct.price||'0');
                   // Build dynamic arrays
-                  const tagArray = productExtras.tags.split(',').map(t=>t.trim()).filter(Boolean);
-                  const youTubeMatch = productExtras.videoUrl.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/) || productExtras.videoUrl.match(/^([A-Za-z0-9_-]{6,})$/);
+                  const tagArray = (productExtras.tags || '').split(',').map(t=>t.trim()).filter(Boolean);
+                  const youTubeMatch = productExtras.videoUrl ? (productExtras.videoUrl.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/) || productExtras.videoUrl.match(/^([A-Za-z0-9_-]{6,})$/)) : null;
                   const videoId = youTubeMatch ? youTubeMatch[1] : '';
                   const featureLines: string[] = [];
                   if (selectedType==='digital') {
@@ -1719,7 +1797,9 @@ export default function CreatorPage() {
                     digital_files: digitalAssets.length ? digitalAssets : null,
                     course_delivery: courseDeliveryPayload,
                     auto_deliver: selectedType === 'digital' || selectedType === 'course',
-                    is_digital: selectedType === 'digital'
+                    is_digital: selectedType === 'digital',
+                    category_id: selectedCategoryId || null,
+                    subcategory_id: selectedSubcategoryId || null
                   };
                   const { data, error } = await supabase
                     .from('products')
@@ -1802,6 +1882,8 @@ export default function CreatorPage() {
                   setAutoMessage('');
                   setMediaFiles([]);
                   setDeliveryFiles([]);
+                  setSelectedCategoryId('');
+                  setSelectedSubcategoryId('');
                   setAddProductOpen(false);
                 } catch(e){ console.warn('Add product failed', e); }
                 finally { setSavingProduct(false);} 

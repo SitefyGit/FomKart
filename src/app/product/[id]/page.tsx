@@ -331,6 +331,8 @@ export default function ProductPage({ params }: ProductPageProps) {
       });
       if (ok) {
         setCartFeedback('Added to cart');
+        // Dispatch event to update cart icon
+        window.dispatchEvent(new CustomEvent('cart-updated'));
         setTimeout(() => setCartFeedback(null), 2000);
       } else {
         setCartFeedback('Failed to add to cart');
@@ -682,7 +684,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                     <button
                       onClick={handleContinue}
                       disabled={currentUserId === product.creator_id}
-                      className={`w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center font-medium ${currentUserId===product.creator_id ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      className={`w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 transition-colors flex items-center justify-center font-medium ${currentUserId===product.creator_id ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       <ArrowRight className="w-5 h-5 mr-2" />
                       Continue (${selectedPackage.price})
@@ -690,7 +692,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                     <button
                       onClick={handleAddToCart}
                       disabled={addingToCart || currentUserId === product.creator_id}
-                      className={`w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center disabled:opacity-60 ${currentUserId===product.creator_id ? 'cursor-not-allowed' : ''}`}
+                      className={`w-full border border-gray-800 dark:border-gray-300 bg-gray-900 dark:bg-transparent text-white dark:text-gray-200 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors flex items-center justify-center disabled:opacity-60 ${currentUserId===product.creator_id ? 'cursor-not-allowed' : ''}`}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       {addingToCart ? 'Adding…' : 'Add to Cart'}

@@ -3,11 +3,13 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import RouteProgress from './RouteProgress'
-import NotificationsBell from '../components/NotificationsBell'
-import AuthButton from '../components/AuthButton'
-import ProfileMenu from '../components/ProfileMenu'
-import AnnouncementBanner from '../components/AnnouncementBanner'
-import MaintenanceGuard from '../components/MaintenanceGuard'
+import NotificationsBell from '@/components/NotificationsBell'
+import AuthButton from '@/components/AuthButton'
+import ProfileMenu from '@/components/ProfileMenu'
+import AnnouncementBanner from '@/components/AnnouncementBanner'
+import MaintenanceGuard from '@/components/MaintenanceGuard'
+import Footer from '@/components/Footer'
+import CartIcon from '@/components/CartIcon'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -70,19 +72,24 @@ export default function RootLayout({
               <Link href="/category/digital-products" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Digital Products</Link>
               <Link href="/category/courses" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Courses</Link>
               <Link href="/category/services" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Services</Link>
+              <Link href="/category/consultation" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Consultations</Link>
               <Link href="/orders" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Orders</Link>
               <AuthButton />
               </nav>
             </div>
             {/* Right actions always visible */}
             <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+              <CartIcon />
               <NotificationsBell />
               <ProfileMenu />
             </div>
           </div>
         </header>
   <RouteProgress />
-        {children}
+        <main className="min-h-[calc(100vh-theme(spacing.16))]">
+          {children}
+        </main>
+        <Footer />
         </MaintenanceGuard>
       </body>
     </html>

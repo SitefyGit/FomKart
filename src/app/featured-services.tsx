@@ -13,13 +13,16 @@ type Service = {
   base_price: number
   rating: number | null
   reviews_count: number | null
+  tags?: string[] | null
+  type?: 'product' | 'service'
+  category_data?: { name: string } | null
   creator: { id: string; full_name: string | null; username: string; avatar_url: string | null } | null
 }
 
 export default async function FeaturedServicesSection() {
   const { data } = await supabase
     .from('products')
-    .select('id, title, images, base_price, rating, reviews_count, creator:creator_id(id, username, full_name, avatar_url)')
+    .select('id, title, images, base_price, rating, reviews_count, tags, type, category_data:category_id(name), creator:creator_id(id, username, full_name, avatar_url)')
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(9)
@@ -72,8 +75,8 @@ export default async function FeaturedServicesSection() {
     <section className="py-12 sm:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Popular services</h2>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Trending services from our community</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Popular offerings</h2>
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Trending offerings from our community</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
@@ -96,6 +99,13 @@ export default async function FeaturedServicesSection() {
               </div>
               <div className="p-4 sm:p-6">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors text-sm sm:text-base">{service.title}</h3>
+
+                {/* Category or Type - Replaces Tags */}
+                <div className="mb-3">
+                  <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded">
+                    {service.category_data?.name || (service.type === 'service' ? 'Service' : 'Digital Product')}
+                  </span>
+                </div>
 
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 overflow-hidden flex items-center justify-center text-xs sm:text-sm text-white">
@@ -131,7 +141,7 @@ export default async function FeaturedServicesSection() {
             prefetch
             className="inline-flex items-center space-x-2 bg-emerald-600 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
           >
-            <span>View all services</span>
+            <span>View all offerings</span>
             <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
           </Link>
         </div>

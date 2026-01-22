@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { 
   Search, 
   Star, 
-  Clock, 
   Heart, 
   Filter, 
   ChevronDown, 
@@ -21,7 +20,9 @@ import {
   PaintBrushIcon,
   DocumentTextIcon,
   CameraIcon,
-  CodeBracketIcon
+  CodeBracketIcon,
+  VideoCameraIcon,
+  UserGroupIcon
 } from '@heroicons/react/24/outline'
 import {
   FaReact,
@@ -44,6 +45,7 @@ type ProductCard = {
   level?: string
   tags?: string[] | null
   deliveryTime?: string | null
+  categoryName?: string | null
 }
 
 type ProductRow = {
@@ -55,6 +57,9 @@ type ProductRow = {
   reviews_count: number | null
   delivery_time: string | null
   tags: string[] | null
+  category_data?: {
+    name: string
+  } | null
   creator: (
   {
     id: string
@@ -117,6 +122,33 @@ const categories = {
       { name: 'Content Writing', icon: DocumentTextIcon, count: '1,543' },
       { name: 'Video Editing', icon: FaVideo, count: '1,234' },
     ]
+  },
+  'consultation': {
+    name: 'Consultations',
+    description: 'Expert advice and 1-on-1 coaching',
+    icon: VideoCameraIcon,
+    color: 'from-indigo-500 to-violet-600',
+    bgColor: 'bg-gradient-to-br from-indigo-50 to-violet-100',
+    iconColor: 'text-indigo-600',
+    subcategories: [
+      { name: 'Business Coaching', icon: BoltIcon, count: '124' },
+      { name: 'Technical Consultation', icon: CodeBracketIcon, count: '89' },
+      { name: 'Career Advice', icon: AcademicCapIcon, count: '231' },
+      { name: 'Life Coaching', icon: Heart, count: '156' },
+      { name: 'Legal Advice', icon: DocumentTextIcon, count: '45' },
+    ]
+  },
+  'video-calls': {
+    name: 'Video Calls',
+    description: 'Connect with creators via video calls',
+    icon: FaVideo,
+    color: 'from-pink-500 to-rose-600',
+    bgColor: 'bg-gradient-to-br from-pink-50 to-rose-100',
+    iconColor: 'text-pink-600',
+    subcategories: [
+      { name: '1-on-1 Call', icon: FaVideo, count: '500+' },
+      { name: 'Group Session', icon: UserGroupIcon, count: '100+' }
+    ]
   }
 }
 
@@ -134,6 +166,12 @@ const subcategories = {
   'services': [
     'Web Development', 'Graphic Design', 'Digital Marketing', 'Writing & Translation',
     'Video & Animation', 'Music & Audio', 'Programming', 'Business Consulting'
+  ],
+  'consultation': [
+    'Business Coaching', 'Technical Consultation', 'Career Advice', 'Life Coaching', 'Legal Advice', 'Mentorship'
+  ],
+  'video-calls': [
+    '1-on-1 Call', 'Group Session', 'Workshop'
   ]
 }
 
@@ -279,13 +317,15 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         const typeMap: Record<string, string | undefined> = {
           services: 'service',
           courses: undefined, // Will filter by tags for courses
-          'digital-products': 'product'
+          'digital-products': 'product',
+          'consultation': 'service',
+          'video-calls': 'service'
         }
         const selectedType = typeMap[slug]
 
         let query = supabase
           .from('products')
-          .select('id, title, images, base_price, rating, reviews_count, delivery_time, tags, type, creator:creator_id(id, username, full_name, avatar_url, is_verified)')
+          .select('id, title, images, base_price, rating, reviews_count, delivery_time, tags, type, category_data:category_id(name), creator:creator_id(id, username, full_name, avatar_url, is_verified)')
           .eq('status', 'active')
 
         // For digital-products and services, filter by type
@@ -312,7 +352,8 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             imageUrl: Array.isArray(p.images) && p.images.length ? p.images[0] : null,
             level: c?.is_verified ? 'Verified' : undefined,
             tags: p.tags || [],
-            deliveryTime: p.delivery_time || null
+            deliveryTime: p.delivery_time || null,
+            categoryName: p.category_data?.name || null
           }
         })
 
@@ -332,6 +373,28 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             return false
           }
           mapped = mapped.filter(isCourse)
+        }
+
+        // For consultation
+        if (slug === 'consultation') {
+          const terms = ['consult', 'coach', 'mentor', 'advice', 'session', 'review', 'audit', 'strategy', 'help']
+          const hasTerm = (s?: string) => {
+            if (!s) return false
+            const lower = s.toLowerCase()
+            return terms.some(t => lower.includes(t))
+          }
+          mapped = mapped.filter(p => hasTerm(p.title) || (p.tags && p.tags.some(tag => hasTerm(tag))))
+        }
+        
+        // For video-calls
+        if (slug === 'video-calls') {
+          const terms = ['video', 'call', 'zoom', 'meet', 'facetime', 'live', 'talk', 'chat']
+          const hasTerm = (s?: string) => {
+            if (!s) return false
+            const lower = s.toLowerCase()
+            return terms.some(t => lower.includes(t))
+          }
+          mapped = mapped.filter(p => hasTerm(p.title) || (p.tags && p.tags.some(tag => hasTerm(tag))))
         }
         
         // For digital-products: exclude items that look like courses
@@ -464,11 +527,6 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">{category.name}</h1>
             <p className="text-base sm:text-lg lg:text-xl opacity-90 max-w-2xl mx-auto px-4">{category.description}</p>
-            <div className="mt-4 sm:mt-6">
-              <span className="bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-full text-sm">
-                {displayedProducts.length}+ services available
-              </span>
-            </div>
           </div>
         </div>
       </div>
@@ -778,33 +836,18 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                     <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviews ?? 0})</span>
                   </div>
                   
-                  {/* Tags - Clickable links to gig pages */}
+                  {/* Category - Replaces Tags */}
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {product.tags?.slice(0, 2).map((tag, index) => (
-                      <Link 
-                        key={index} 
-                        href={`/market/${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 rounded truncate transition-colors"
-                      >
-                        {tag}
-                      </Link>
-                    ))}
-                    {product.tags && product.tags.length > 2 && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">+{product.tags.length - 2}</span>
-                    )}
+                    <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded truncate font-medium">
+                      {product.categoryName || category.name}
+                    </span>
                   </div>
                   
-                  {/* Price & Delivery */}
+                  {/* Price */}
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                      <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="text-xs sm:text-sm">{product.deliveryTime || '—'}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                        From ${product.price}
-                      </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 uppercase">Starting at</span>
+                    <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                      From ${product.price}
                     </div>
                   </div>
                 </div>
@@ -842,7 +885,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         )}
 
         {/* Popular Tags Section for SEO */}
-        {products.length > 0 && (
+        {products.length > 0 && Array.from(new Set(products.flatMap(p => p.tags || []))).length > 0 && (
           <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Popular Tags in {category.name}</h2>
             <div className="flex flex-wrap gap-2">

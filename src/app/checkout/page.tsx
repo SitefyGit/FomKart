@@ -35,7 +35,6 @@ interface CheckoutCreator {
 interface CheckoutProduct {
   id: string
   title?: string | null
-  starting_price?: number | null
   base_price?: number | null
   auto_message?: string | null
   auto_message_enabled?: boolean | null
@@ -80,6 +79,7 @@ function CheckoutContent() {
   const [paymentMethod, setPaymentMethod] = useState('stripe')
   const [specialInstructions, setSpecialInstructions] = useState('')
   const [clientSecret, setClientSecret] = useState('')
+  const [stripeError, setStripeError] = useState(false)
   const [commissionRate, setCommissionRate] = useState(5)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -113,7 +113,18 @@ function CheckoutContent() {
         body: JSON.stringify({ amount: total }),
       })
         .then((res) => res.json())
-        .then((data) => setClientSecret(data.clientSecret))
+        .then((data) => {
+          if (data.clientSecret) {
+            setClientSecret(data.clientSecret)
+          } else {
+            console.error('Stripe error:', data.error)
+            setStripeError(true)
+          }
+        })
+        .catch((err) => {
+          console.error('Payment intent error:', err)
+          setStripeError(true)
+        })
     }
   }, [items])
 
@@ -253,7 +264,7 @@ function CheckoutContent() {
 
   const calculateSubtotal = () => {
     return items.reduce((total, item) => {
-      const price = item.package?.price || item.product?.starting_price || 0
+      const price = item.package?.price || item.product?.base_price || 0
       return total + (price * item.quantity)
     }, 0)
   }
@@ -433,10 +444,10 @@ function CheckoutContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading checkout...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading checkout...</p>
         </div>
       </div>
     )
@@ -444,25 +455,25 @@ function CheckoutContent() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">No items to checkout</h1>
-          <p className="mt-2 text-gray-600">Please add items to your cart first.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">No items to checkout</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Please add items to your cart first.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-2">
-            <Lock className="w-6 h-6 text-green-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Secure Checkout</h1>
+            <Lock className="w-6 h-6 text-emerald-600" />
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Secure Checkout</h1>
           </div>
-          <p className="text-gray-600 mt-1">Complete your order securely</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Complete your order securely</p>
         </div>
       </div>
 
@@ -471,65 +482,65 @@ function CheckoutContent() {
           {/* Left Column - Forms */}
           <div className="space-y-6">
             {/* Billing Information */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <User className="w-5 h-5" />
                 Billing Information
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
                   <input
                     type="text"
                     value={billingInfo.fullName}
                     onChange={(e) => setBillingInfo({...billingInfo, fullName: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                   <input
                     type="email"
                     value={billingInfo.email}
                     onChange={(e) => setBillingInfo({...billingInfo, email: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
                   <input
                     type="text"
                     value={billingInfo.address}
                     onChange={(e) => setBillingInfo({...billingInfo, address: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
                   <input
                     type="text"
                     value={billingInfo.city}
                     onChange={(e) => setBillingInfo({...billingInfo, city: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ZIP Code</label>
                   <input
                     type="text"
                     value={billingInfo.zipCode}
                     onChange={(e) => setBillingInfo({...billingInfo, zipCode: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
               </div>
             </div>
 
             {/* Special Instructions */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <FileText className="w-5 h-5" />
                 Special Instructions
               </h2>
@@ -537,7 +548,7 @@ function CheckoutContent() {
                 value={specialInstructions}
                 onChange={(e) => setSpecialInstructions(e.target.value)}
                 rows={4}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-gray-400"
                 placeholder="Any additional information or special requests for the seller..."
               />
             </div>
@@ -545,15 +556,15 @@ function CheckoutContent() {
 
           {/* Right Column - Order Summary */}
           <div className="lg:sticky lg:top-8 lg:h-fit">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Order Summary</h2>
               
               {/* Items */}
               <div className="space-y-4 mb-6">
                 {items.map((item, index) => (
-                  <div key={index} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     {/* Product Image */}
-                    <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-lg overflow-hidden flex-shrink-0">
                       {item.product?.images && item.product.images.length > 0 ? (
                         <Image
                           src={item.product.images[0]}
@@ -563,22 +574,22 @@ function CheckoutContent() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                          <FileText className="w-6 h-6 text-gray-500" />
+                        <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                          <FileText className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                         </div>
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 truncate">{item.product?.title}</h3>
-                      <p className="text-sm text-gray-600">
+                      <h3 className="font-medium text-gray-900 dark:text-white truncate">{item.product?.title}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         by {item.product?.creator?.full_name || item.product?.creator?.username}
                       </p>
                       {item.package && (
-                        <p className="text-sm font-medium text-blue-600">{item.package.name} Package</p>
+                        <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{item.package.name} Package</p>
                       )}
                       {item.package?.delivery_days && (
-                        <div className="flex items-center gap-1 mt-1 text-sm text-gray-500">
+                        <div className="flex items-center gap-1 mt-1 text-sm text-gray-500 dark:text-gray-400">
                           <Clock className="w-3 h-3" />
                           {item.package.delivery_days} days
                         </div>
@@ -586,9 +597,9 @@ function CheckoutContent() {
                       {/* Mini requirements form */}
                       <div className="mt-3 space-y-2 text-xs">
                         <div>
-                          <div className="text-gray-600 mb-1">Project details</div>
+                          <div className="text-gray-600 dark:text-gray-400 mb-1">Project details</div>
                           <textarea
-                            className="w-full border rounded p-2"
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             rows={2}
                             value={getRequirementText(item.requirements?.details)}
                             onChange={(e)=>{
@@ -599,9 +610,9 @@ function CheckoutContent() {
                           />
                         </div>
                         <div>
-                          <div className="text-gray-600 mb-1">URLs</div>
+                          <div className="text-gray-600 dark:text-gray-400 mb-1">URLs</div>
                           <input
-                            className="w-full border rounded p-2"
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             value={getRequirementText(item.requirements?.urls)}
                             onChange={(e)=>{
                               const v = e.target.value
@@ -611,9 +622,9 @@ function CheckoutContent() {
                           />
                         </div>
                         <div>
-                          <div className="text-gray-600 mb-1">Notes to seller</div>
+                          <div className="text-gray-600 dark:text-gray-400 mb-1">Notes to seller</div>
                           <textarea
-                            className="w-full border rounded p-2"
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             rows={2}
                             value={getRequirementText(item.requirements?.notes)}
                             onChange={(e)=>{
@@ -625,9 +636,9 @@ function CheckoutContent() {
                         </div>
                       </div>
                       <div className="flex justify-between items-center mt-2">
-                        <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
-                        <span className="font-semibold text-gray-900">
-                          ${((item.package?.price || item.product?.starting_price || 0) * item.quantity).toFixed(2)}
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          ${((item.package?.price || item.product?.base_price || 0) * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -636,20 +647,20 @@ function CheckoutContent() {
               </div>
 
               {/* Totals */}
-              <div className="space-y-2 pb-4 border-b border-gray-200">
+              <div className="space-y-2 pb-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-900">${subtotal.toFixed(2)}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
+                  <span className="text-gray-900 dark:text-white">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Service Fee (5%)</span>
-                  <span className="text-gray-900">${serviceFee.toFixed(2)}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Service Fee (5%)</span>
+                  <span className="text-gray-900 dark:text-white">${serviceFee.toFixed(2)}</span>
                 </div>
               </div>
               
               <div className="flex justify-between pt-4 mb-6">
-                <span className="text-lg font-semibold text-gray-900">Total</span>
-                <span className="text-2xl font-bold text-gray-900">${total.toFixed(2)}</span>
+                <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">${total.toFixed(2)}</span>
               </div>
 
               {/* Checkout Button */}
@@ -657,23 +668,47 @@ function CheckoutContent() {
                 <Elements options={{ clientSecret, appearance: { theme: 'stripe' } }} stripe={stripePromise}>
                   <PaymentForm onSuccess={processPayment} />
                 </Elements>
+              ) : stripeError ? (
+                <div>
+                  <p className="text-amber-600 dark:text-amber-400 text-sm mb-3 text-center">
+                    Payment system unavailable. You can still place the order.
+                  </p>
+                  <button
+                    onClick={processPayment}
+                    disabled={processing}
+                    className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {processing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-5 h-5" />
+                        Place Order
+                      </>
+                    )}
+                  </button>
+                </div>
               ) : (
-                <div className="text-center py-4 text-gray-500">
+                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600 mx-auto mb-2"></div>
                   Loading payment details...
                 </div>
               )}
 
-              <div className="mt-4 space-y-2 text-xs text-gray-500">
+              <div className="mt-4 space-y-2 text-xs text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
                   <span>SSL encrypted and secure</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
                   <span>Money-back guarantee</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
                   <span>Direct communication with sellers</span>
                 </div>
               </div>
@@ -723,7 +758,7 @@ function PaymentForm({ onSuccess }: { onSuccess: () => void }) {
       <button 
         disabled={isLoading || !stripe || !elements} 
         id="submit"
-        className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+        className="w-full mt-4 bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {isLoading ? (
           <>
@@ -737,7 +772,7 @@ function PaymentForm({ onSuccess }: { onSuccess: () => void }) {
           </>
         )}
       </button>
-      {message && <div id="payment-message" className="text-red-500 mt-2 text-sm">{message}</div>}
+      {message && <div id="payment-message" className="text-red-500 dark:text-red-400 mt-2 text-sm">{message}</div>}
     </form>
   )
 }
@@ -745,10 +780,10 @@ function PaymentForm({ onSuccess }: { onSuccess: () => void }) {
 export default function CheckoutPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading checkout...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading checkout...</p>
         </div>
       </div>
     }>

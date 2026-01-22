@@ -31,6 +31,8 @@ type ProductCard = {
   tags?: string[] | null
   deliveryTime?: string | null
   isVerified?: boolean
+  categoryName?: string | null
+  type?: 'product' | 'service'
 }
 
 type ProductRow = {
@@ -42,6 +44,8 @@ type ProductRow = {
   reviews_count: number | null
   delivery_time: string | null
   tags: string[] | null
+  type?: 'product' | 'service'
+  category_data?: { name: string } | null
   creator: {
     id: string
     username: string
@@ -86,6 +90,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
   const [isLoading, setIsLoading] = useState(true)
   const [budgetRange, setBudgetRange] = useState<string | null>(null)
   const [deliveryFilter, setDeliveryFilter] = useState<string | null>(null)
+  const [productTypeFilter, setProductTypeFilter] = useState<'all' | 'product' | 'service'>('all')
   const [showFilters, setShowFilters] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
 
@@ -106,6 +111,8 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             reviews_count,
             delivery_time,
             tags,
+            type,
+            category_data:category_id(name),
             creator:creator_id(id, username, full_name, avatar_url, is_verified)
           `, { count: 'exact' })
           .eq('status', 'active')
@@ -168,7 +175,9 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             level: 'Level 2',
             tags: product.tags,
             deliveryTime: product.delivery_time ? `${product.delivery_time}` : null,
-            isVerified: creatorData?.is_verified || false
+            isVerified: creatorData?.is_verified || false,
+            categoryName: product.category_data?.name || null,
+            type: product.type
           }
         })
 
@@ -195,6 +204,11 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
         p.title.toLowerCase().includes(term) ||
         p.creatorName.toLowerCase().includes(term)
       )
+    }
+
+    // Product type filter
+    if (productTypeFilter !== 'all') {
+      filtered = filtered.filter(p => p.type === productTypeFilter)
     }
 
     // Budget filter
@@ -236,7 +250,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
     }
 
     setFilteredProducts(filtered)
-  }, [products, searchTerm, sortBy, budgetRange, deliveryFilter])
+  }, [products, searchTerm, sortBy, budgetRange, deliveryFilter, productTypeFilter])
 
   useEffect(() => {
     applyFilters()
@@ -246,10 +260,11 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
     setSearchTerm('')
     setBudgetRange(null)
     setDeliveryFilter(null)
+    setProductTypeFilter('all')
     setSortBy('popular')
   }
 
-  const hasActiveFilters = searchTerm || budgetRange || deliveryFilter || sortBy !== 'popular'
+  const hasActiveFilters = searchTerm || budgetRange || deliveryFilter || productTypeFilter !== 'all' || sortBy !== 'popular'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -272,18 +287,18 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                {tagName} Services
+                {tagName} Offerings
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {totalCount} services available
+                {filteredProducts.length} {productTypeFilter === 'service' ? 'services' : productTypeFilter === 'product' ? 'products' : 'offerings'} available
               </p>
             </div>
           </div>
 
           {/* SEO Description */}
           <p className="text-gray-700 dark:text-gray-300 max-w-3xl">
-            Find the best {tagName.toLowerCase()} services on FomKart. Browse top-rated freelancers 
-            offering professional {tagName.toLowerCase()} services with fast delivery and satisfaction guaranteed.
+            Find the best {tagName.toLowerCase()} offerings on FomKart. Browse top-rated creators 
+            offering professional {tagName.toLowerCase()} products and services with fast delivery and satisfaction guaranteed.
           </p>
         </div>
       </section>
@@ -310,6 +325,46 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
         </section>
       )}
 
+      {/* Product Type Filter - Centralized */}
+      <section className="bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-center">
+            <div className="inline-flex rounded-lg bg-white dark:bg-gray-800 p-1 shadow-sm border border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setProductTypeFilter('all')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  productTypeFilter === 'all'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setProductTypeFilter('product')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  productTypeFilter === 'product'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                Digital Products
+              </button>
+              <button
+                onClick={() => setProductTypeFilter('service')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  productTypeFilter === 'service'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                Services
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Filters Bar */}
       <section className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -319,7 +374,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder={`Search ${tagName.toLowerCase()} services...`}
+                placeholder={`Search ${tagName.toLowerCase()} ${productTypeFilter === 'service' ? 'services' : productTypeFilter === 'product' ? 'products' : 'offerings'}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -402,12 +457,12 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             <div className="text-center py-16">
               <Tag className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No services found
+                No {productTypeFilter === 'service' ? 'services' : productTypeFilter === 'product' ? 'products' : 'offerings'} found
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {hasActiveFilters 
                   ? 'Try adjusting your filters or search term'
-                  : `No services tagged with "${tagName}" yet`
+                  : `No ${productTypeFilter === 'service' ? 'services' : productTypeFilter === 'product' ? 'products' : 'offerings'} tagged with "${tagName}" yet`
                 }
               </p>
               {hasActiveFilters ? (
@@ -419,17 +474,17 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 </button>
               ) : (
                 <Link
-                  href="/category/services"
+                  href="/category/digital-products"
                   className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors inline-block"
                 >
-                  Browse All Services
+                  Browse All Offerings
                 </Link>
               )}
             </div>
           ) : (
             <>
               <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                Showing {filteredProducts.length} services
+                Showing {filteredProducts.length} {productTypeFilter === 'service' ? 'services' : productTypeFilter === 'product' ? 'products' : 'offerings'}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
@@ -498,6 +553,14 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                       </div>
 
                       {/* Price */}
+                      
+                      {/* Category Badge - Replaces Tags */}
+                      <div className="mb-2">
+                        <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded">
+                          {product.categoryName || (product.type === 'service' ? 'Service' : 'Digital Product')}
+                        </span>
+                      </div>
+
                       <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
                         <span className="text-xs text-gray-500 dark:text-gray-400 uppercase">
                           Starting at

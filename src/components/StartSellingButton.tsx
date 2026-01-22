@@ -23,7 +23,7 @@ export default function StartSellingButton() {
 
   if (loading) {
     return (
-      <button className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold opacity-50 cursor-wait">
+      <button className="w-full sm:w-auto border border-white/20 bg-white/5 backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold opacity-50 cursor-wait">
         Loading...
       </button>
     )
@@ -34,7 +34,7 @@ export default function StartSellingButton() {
       <Link
         href="/orders?tab=selling"
         prefetch
-        className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-emerald-600 transition-all duration-200 hover:scale-105 transform text-center"
+        className="block w-full sm:w-auto border border-white/20 bg-white/5 backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-emerald-900 transition-all duration-200 hover:scale-105 transform text-center"
       >
         Creator Dashboard
       </Link>
@@ -45,7 +45,7 @@ export default function StartSellingButton() {
     <Link
       href="/auth/login"
       prefetch
-      className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-emerald-600 transition-all duration-200 hover:scale-105 transform text-center"
+      className="block w-full sm:w-auto border border-white/20 bg-white/5 backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-emerald-900 transition-all duration-200 hover:scale-105 transform text-center"
     >
       Start Selling
     </Link>

@@ -1,7 +1,7 @@
 ﻿import React from 'react'
 import Link from 'next/link'
 import { TrendingUp, ArrowRight, ShieldCheck, BadgeCheck } from 'lucide-react'
-import { CubeIcon, BookOpenIcon, BoltIcon, SparklesIcon, CheckCircleIcon } from '@heroicons/react/24/solid'
+import { CubeIcon, BookOpenIcon, BoltIcon, SparklesIcon, CheckCircleIcon, VideoCameraIcon } from '@heroicons/react/24/solid'
 import { HomeLeadCapture } from './HomeClientWidgets'
 import TopCreatorsSection from '@/app/top-creators'
 import FeaturedServicesSection from '@/app/featured-services'
@@ -11,23 +11,31 @@ const featuredCategories = [
   {
     name: 'Digital Products',
     slug: 'digital-products',
-  icon: CubeIcon,
+    icon: CubeIcon,
     description: 'Templates, graphics, and digital assets',
     color: 'bg-blue-500',
-    count: '2,847 services'
+    count: '2,847 offerings'
   },
   {
     name: 'Online Courses',
     slug: 'courses',
-  icon: BookOpenIcon,
+    icon: BookOpenIcon,
     description: 'Learn new skills and advance your career',
     color: 'bg-purple-500',
     count: '1,293 courses'
   },
   {
+    name: 'Consultations',
+    slug: 'consultation',
+    icon: VideoCameraIcon,
+    description: 'Expert advice and 1-on-1 coaching',
+    color: 'bg-indigo-500',
+    count: '894 sessions'
+  },
+  {
     name: 'Custom Services',
     slug: 'services',
-  icon: BoltIcon,
+    icon: BoltIcon,
     description: 'Professional services and consulting',
     color: 'bg-emerald-500',
     count: '4,156 services'
@@ -62,33 +70,48 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white py-12 sm:py-16 lg:py-20 animate-gradient relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-white rounded-full animate-float"></div>
-          <div className="absolute top-40 right-20 w-16 h-16 bg-white rounded-full animate-float" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-white rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+      <section className="relative overflow-hidden bg-slate-950 py-24 sm:py-32">
+        {/* Background Gradients & Effects */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/40 via-slate-950/80 to-slate-950" />
+          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[100px] animate-pulse" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-teal-500/10 rounded-full blur-[100px] animate-pulse" style={{animationDelay: '2s'}} />
         </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 hover:scale-105 transition-transform duration-300 cursor-default">
-            Find the perfect service for your business
+          {/* Badge */}
+          <div className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-emerald-300 ring-1 ring-inset ring-emerald-500/30 mb-8 bg-emerald-500/10 backdrop-blur-sm animate-fade-in-up">
+            ✨ The marketplace for creators
+          </div>
+
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 drop-shadow-sm">
+            Find the perfect offering <br className="hidden sm:block"/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
+              for your business
+            </span>
           </h1>
-          <p className="text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 max-w-2xl mx-auto opacity-90 hover:opacity-100 transition-opacity duration-300 px-4">
+          
+          <p className="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             Connect with talented creators offering digital products, courses, and custom services. 
-            From design to development, find everything you need to grow your business.
+            From design to development, find everything you need to grow.
           </p>
+          
           {/* Lightweight search form using GET to avoid client handlers */}
-          <form action="/category/digital-products" method="get" className="max-w-xl mx-auto mb-4 hidden">
-            <input type="text" name="search" placeholder="Search services..." className="w-full px-4 py-2 rounded-lg text-gray-900" />
+          <form action="/category/digital-products" method="get" className="max-w-xl mx-auto mb-8 hidden">
+            <input type="text" name="search" placeholder="Search offerings..." className="w-full px-5 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:outline-none backdrop-blur-sm transition-all" />
           </form>
-          <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 px-4">
+
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Link 
               href="/category/digital-products" 
               prefetch
-              className="bg-white text-emerald-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-200 hover:scale-105 hover:shadow-lg transform text-center"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition-all duration-300 hover:scale-105 shadow-[0_0_20px_rgba(5,150,105,0.4)] hover:shadow-[0_0_30px_rgba(5,150,105,0.6)] flex items-center justify-center gap-2"
             >
-              Browse Services
+              Browse Offerings <ArrowRight className="w-4 h-4" />
             </Link>
-            <StartSellingButton />
+            <div className="w-full sm:w-auto">
+              <StartSellingButton />
+            </div>
           </div>
         </div>
       </section>
@@ -102,10 +125,10 @@ export default async function HomePage() {
               Curated for quality
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">Explore our categories</h2>
-            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Discover the perfect service for your needs</p>
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Discover the perfect offering for your needs</p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {featuredCategories.map((category, index) => (
               <Link 
                 key={category.slug}
@@ -172,7 +195,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Popular Services
+              Popular Offerings
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
               Explore trending categories and find exactly what you need
@@ -258,23 +281,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-6 sm:py-8 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-5 left-10 w-16 h-16 bg-emerald-400 rounded-full animate-float"></div>
-          <div className="absolute bottom-10 right-20 w-12 h-12 bg-blue-400 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="flex items-center justify-center space-x-2 mb-4 hover:scale-105 transition-transform duration-200">
-            <div className="w-6 h-6 bg-emerald-600 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-xs">F</span>
-            </div>
-            <span className="text-lg font-bold">FomKart</span>
-          </div>
-          <p className="text-gray-300 hover:text-white transition-colors duration-200 text-sm sm:text-base">© 2025 FomKart. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   )
 }
