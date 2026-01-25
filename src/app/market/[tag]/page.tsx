@@ -45,7 +45,7 @@ type ProductRow = {
   delivery_time: string | null
   tags: string[] | null
   type?: 'product' | 'service'
-  category_data?: { name: string } | null
+  category_data?: { name: string } | { name: string }[] | null
   creator: {
     id: string
     username: string
@@ -176,7 +176,9 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             tags: product.tags,
             deliveryTime: product.delivery_time ? `${product.delivery_time}` : null,
             isVerified: creatorData?.is_verified || false,
-            categoryName: product.category_data?.name || null,
+            categoryName: Array.isArray(product.category_data) 
+              ? product.category_data[0]?.name 
+              : product.category_data?.name || null,
             type: product.type
           }
         })
