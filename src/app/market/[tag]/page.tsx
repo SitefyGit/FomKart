@@ -93,6 +93,13 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
   const [productTypeFilter, setProductTypeFilter] = useState<'all' | 'product' | 'service'>('all')
   const [showFilters, setShowFilters] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
+  
+  // Helper function to get type label
+  const getTypeLabel = (filter: 'all' | 'product' | 'service') => {
+    if (filter === 'service') return 'services'
+    if (filter === 'product') return 'products'
+    return 'offerings'
+  }
 
   // Fetch products with matching tag
   useEffect(() => {
@@ -292,7 +299,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 {tagName} Offerings
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {filteredProducts.length} {productTypeFilter === 'service' ? 'services' : productTypeFilter === 'product' ? 'products' : 'offerings'} available
+                {filteredProducts.length} {getTypeLabel(productTypeFilter)} available
               </p>
             </div>
           </div>
@@ -376,7 +383,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder={`Search ${tagName.toLowerCase()} ${productTypeFilter === 'service' ? 'services' : productTypeFilter === 'product' ? 'products' : 'offerings'}...`}
+                placeholder={`Search ${tagName.toLowerCase()} ${getTypeLabel(productTypeFilter)}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -459,12 +466,12 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             <div className="text-center py-16">
               <Tag className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No {productTypeFilter === 'service' ? 'services' : productTypeFilter === 'product' ? 'products' : 'offerings'} found
+                No {getTypeLabel(productTypeFilter)} found
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {hasActiveFilters 
                   ? 'Try adjusting your filters or search term'
-                  : `No ${productTypeFilter === 'service' ? 'services' : productTypeFilter === 'product' ? 'products' : 'offerings'} tagged with "${tagName}" yet`
+                  : `No ${getTypeLabel(productTypeFilter)} tagged with "${tagName}" yet`
                 }
               </p>
               {hasActiveFilters ? (
