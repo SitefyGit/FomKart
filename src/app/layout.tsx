@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import RouteProgress from './RouteProgress'
@@ -28,6 +29,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FomKart - Professional Services Platform",
   description: "Connect with talented creators offering digital products, courses, and custom services",
+  icons: {
+    icon: '/tab_logo.png',
+    shortcut: '/tab_logo.png',
+    apple: '/tab_logo.png',
+  },
 };
 
 export const viewport = {
@@ -63,9 +69,25 @@ export default function RootLayout({
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-4">
             <div className="flex items-center gap-6">
-              <Link href="/" prefetch className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center text-white font-bold">F</div>
-                <span className="font-semibold text-gray-900 dark:text-white">FomKart</span>
+              <Link href="/" prefetch className="flex items-center">
+                {/* Light mode logo (green text) */}
+                <Image 
+                  src="/fomkart_green_text.png" 
+                  alt="FomKart" 
+                  width={120} 
+                  height={32} 
+                  className="h-8 w-auto dark:hidden"
+                  priority
+                />
+                {/* Dark mode logo (white text) */}
+                <Image 
+                  src="/fomkart_white_text.png" 
+                  alt="FomKart" 
+                  width={120} 
+                  height={32} 
+                  className="h-8 w-auto hidden dark:block"
+                  priority
+                />
               </Link>
               <nav className="hidden md:flex items-center gap-6 text-sm">
               <Link href="/market" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Explore</Link>
