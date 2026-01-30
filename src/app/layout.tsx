@@ -30,12 +30,9 @@ export const metadata: Metadata = {
   title: "FomKart - Professional Services Platform",
   description: "Connect with talented creators offering digital products, courses, and custom services",
   icons: {
-    icon: [
-      { url: '/tab_logo.png', sizes: '32x32', type: 'image/png' },
-      { url: '/tab_logo.png', sizes: '16x16', type: 'image/png' },
-    ],
-    shortcut: '/tab_logo.png',
-    apple: '/tab_logo.png',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-icon.png',
   },
 };
 

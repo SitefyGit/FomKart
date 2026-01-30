@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Facebook, 
   Twitter, 
@@ -22,9 +23,23 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand Column */}
           <div className="space-y-6">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center text-white font-bold text-lg">F</div>
-              <span className="font-bold text-xl text-gray-900 dark:text-white">FomKart</span>
+            <Link href="/" className="flex items-center">
+              {/* Light mode logo (green text) */}
+              <Image 
+                src="/fomkart_green_text.png" 
+                alt="FomKart" 
+                width={120} 
+                height={32} 
+                className="h-8 w-auto dark:hidden"
+              />
+              {/* Dark mode logo (white text) */}
+              <Image 
+                src="/fomkart_white_text.png" 
+                alt="FomKart" 
+                width={120} 
+                height={32} 
+                className="h-8 w-auto hidden dark:block"
+              />
             </Link>
             <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
               The premier marketplace for digital creators. Sell products, courses, services, and consultations all in one place.
