@@ -109,7 +109,7 @@ const categories = {
     ]
   },
   'services': {
-    name: 'Professional Services',
+    name: 'Professional Offerings',
     description: 'Get expert help from freelancers and agencies worldwide',
     icon: BoltIcon,
     color: 'from-emerald-500 to-teal-600',

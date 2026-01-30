@@ -122,10 +122,12 @@ export default function EditProductPage({ params }: EditProductProps) {
     try {
       const addUrls = await uploadImages(product.slug, product.creator_id, newFiles);
       const finalImages = [...images, ...addUrls].filter(Boolean);
+      // Limit to 5 tags, max 20 chars each
       const parsedTags = tags
         .split(',')
-        .map((tag) => tag.trim())
-        .filter((tag) => tag.length > 0);
+        .map((tag) => tag.trim().slice(0, 20))
+        .filter((tag) => tag.length > 0)
+        .slice(0, 5);
 
       const payload: Partial<DBProduct> = {
         title,
@@ -209,7 +211,7 @@ export default function EditProductPage({ params }: EditProductProps) {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tags (comma)</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tags (max 5, up to 20 chars each)</label>
               <input 
                 value={tags} 
                 onChange={e=>setTags(e.target.value)} 

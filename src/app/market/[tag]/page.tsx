@@ -96,7 +96,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
   
   // Helper function to get type label
   const getTypeLabel = (filter: 'all' | 'product' | 'service') => {
-    if (filter === 'service') return 'services'
+    if (filter === 'service') return 'offerings'
     if (filter === 'product') return 'products'
     return 'offerings'
   }
@@ -550,23 +550,19 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                         {product.title}
                       </h3>
 
-                      {/* Rating */}
-                      <div className="flex items-center gap-1 mb-3">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {product.rating?.toFixed(1) || '5.0'}
-                        </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          ({product.reviews || 0})
-                        </span>
-                      </div>
-
-                      {/* Price */}
-                      
-                      {/* Category Badge - Replaces Tags */}
-                      <div className="mb-2">
+                      {/* Rating + Product Type Badge */}
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {product.rating?.toFixed(1) || '5.0'}
+                          </span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            ({product.reviews || 0})
+                          </span>
+                        </div>
                         <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded">
-                          {product.categoryName || (product.type === 'service' ? 'Service' : 'Digital Product')}
+                          {product.categoryName || (product.type === 'service' ? 'Offering' : 'Digital Product')}
                         </span>
                       </div>
 

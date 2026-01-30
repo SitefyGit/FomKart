@@ -394,7 +394,7 @@ export default function CreatorPage() {
   const productTypes = [
     { key: 'digital', label: 'Digital Product', desc: 'Checklist, guide, e-book, protected videos, etc.' },
     { key: 'consultation', label: 'Consultation', desc: 'Book a consultation, webinar, lecture, etc.' },
-    { key: 'service', label: 'Service', desc: 'One-off services, hourly work, or live sessions (non-digital)' },
+    { key: 'service', label: 'Offering', desc: 'One-off services, hourly work, or live sessions (non-digital)' },
     { key: 'course', label: 'Course', desc: 'Training program with embedded lessons' }
   ];
   const [selectedType, setSelectedType] = useState('digital');
@@ -1484,7 +1484,7 @@ export default function CreatorPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tags (comma separated)</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tags (max 5, up to 20 chars each)</label>
                 <input value={productExtras.tags} onChange={e=>setProductExtras(x=>({...x,tags:e.target.value}))} placeholder="branding, logo, design" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
               </div>
               {(selectedType==='digital' || selectedType==='course') && (
@@ -1677,8 +1677,8 @@ export default function CreatorPage() {
                 try {
                   let insertedId = `local-${Date.now()}`;
                   const priceNum = parseFloat(newProduct.price||'0');
-                  // Build dynamic arrays
-                  const tagArray = (productExtras.tags || '').split(',').map(t=>t.trim()).filter(Boolean);
+                  // Build dynamic arrays - limit to 5 tags, max 20 chars each
+                  const tagArray = (productExtras.tags || '').split(',').map(t=>t.trim().slice(0,20)).filter(Boolean).slice(0,5);
                   const youTubeMatch = productExtras.videoUrl ? (productExtras.videoUrl.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/) || productExtras.videoUrl.match(/^([A-Za-z0-9_-]{6,})$/)) : null;
                   const videoId = youTubeMatch ? youTubeMatch[1] : '';
                   const featureLines: string[] = [];

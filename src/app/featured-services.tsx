@@ -100,13 +100,6 @@ export default async function FeaturedServicesSection() {
               <div className="p-4 sm:p-6">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors text-sm sm:text-base">{service.title}</h3>
 
-                {/* Category or Type - Replaces Tags */}
-                <div className="mb-3">
-                  <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded">
-                    {service.category_data?.name || (service.type === 'service' ? 'Service' : 'Digital Product')}
-                  </span>
-                </div>
-
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 overflow-hidden flex items-center justify-center text-xs sm:text-sm text-white">
                     {service.creator?.avatar_url ? (
@@ -119,11 +112,16 @@ export default async function FeaturedServicesSection() {
                   <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors truncate">{service.creator?.full_name || service.creator?.username}</span>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 sm:px-3 py-1 rounded-full">
-                    <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs sm:text-sm font-medium text-yellow-700 dark:text-yellow-200">{Number(service.rating ?? 0).toFixed(1)}</span>
-                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-300">({service.reviews_count ?? 0})</span>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center space-x-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 sm:px-3 py-1 rounded-full">
+                      <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-xs sm:text-sm font-medium text-yellow-700 dark:text-yellow-200">{Number(service.rating ?? 0).toFixed(1)}</span>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-300">({service.reviews_count ?? 0})</span>
+                    </div>
+                    <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded">
+                      {service.category_data?.name || (service.type === 'service' ? 'Offering' : 'Digital Product')}
+                    </span>
                   </div>
                   <span className="font-bold text-gray-900 dark:text-white text-sm sm:text-lg group-hover:text-emerald-600 transition-colors">From ${service.base_price}</span>
                 </div>
