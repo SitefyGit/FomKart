@@ -215,8 +215,18 @@ export default function EditProductPage({ params }: EditProductProps) {
               <input 
                 value={tags} 
                 onChange={e=>setTags(e.target.value)} 
-                className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none transition-colors" 
+                className={`w-full border rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none transition-colors ${
+                  (tags.split(',').filter(t => t.trim()).length > 5 || tags.split(',').some(t => t.trim().length > 20))
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400'
+                }`}
               />
+              {(tags.split(',').filter(t => t.trim()).length > 5 || tags.split(',').some(t => t.trim().length > 20)) && (
+                <p className="text-xs text-red-500 mt-1">
+                  {tags.split(',').filter(t => t.trim()).length > 5 && 'Max 5 tags allowed. '}
+                  {tags.split(',').some(t => t.trim().length > 20) && 'Tags must be under 20 characters.'}
+                </p>
+              )}
             </div>
           </div>
           <div>

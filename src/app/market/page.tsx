@@ -188,46 +188,53 @@ export default async function MarketPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
         {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-20 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-transparent to-transparent"></div>
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
+          {/* Grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-              <Sparkles className="w-4 h-4" />
-              Discover 10,000+ Services
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-8 text-gray-300">
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+              <span>Discover 10,000+ Professional Services</span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Find the Perfect
-              <span className="block text-yellow-300">Service for You</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-8 leading-tight text-white tracking-tight">
+              Find Expert Services
+              <span className="block bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">For Your Business</span>
             </h1>
             
-            <p className="text-lg sm:text-xl mb-10 opacity-90 max-w-2xl mx-auto">
-              Browse our curated marketplace of professional services. 
-              From marketing to development, find verified experts ready to help.
+            <p className="text-lg sm:text-xl mb-12 text-gray-400 max-w-2xl mx-auto leading-relaxed">
+              Connect with verified professionals. From marketing to development, 
+              get quality work delivered on time.
             </p>
             
             {/* Search Bar */}
-            <MarketSearch />
+            <div className="max-w-2xl mx-auto">
+              <MarketSearch />
+            </div>
 
             {/* Quick Stats */}
-            <div className="flex flex-wrap justify-center gap-8 mt-12">
+            <div className="flex flex-wrap justify-center gap-12 mt-16">
               <div className="text-center">
-                <div className="text-3xl font-bold">10K+</div>
-                <div className="text-sm opacity-80">Services</div>
+                <div className="text-4xl font-bold text-white">10K+</div>
+                <div className="text-sm text-gray-500 mt-1">Active Services</div>
               </div>
+              <div className="h-12 w-px bg-gray-700 hidden sm:block"></div>
               <div className="text-center">
-                <div className="text-3xl font-bold">5K+</div>
-                <div className="text-sm opacity-80">Freelancers</div>
+                <div className="text-4xl font-bold text-white">5K+</div>
+                <div className="text-sm text-gray-500 mt-1">Verified Experts</div>
               </div>
+              <div className="h-12 w-px bg-gray-700 hidden sm:block"></div>
               <div className="text-center">
-                <div className="text-3xl font-bold">98%</div>
-                <div className="text-sm opacity-80">Satisfaction</div>
+                <div className="text-4xl font-bold text-white">98%</div>
+                <div className="text-sm text-gray-500 mt-1">Satisfaction Rate</div>
               </div>
             </div>
           </div>
@@ -235,18 +242,21 @@ export default async function MarketPage() {
       </section>
 
       {/* Featured Searches - Quick Access */}
-      <section className="py-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <section className="py-8 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">Popular:</span>
+          <div className="flex items-center gap-3 mb-4">
+            <TrendingUp className="w-4 h-4 text-indigo-500" />
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">Popular Searches</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
             {featuredSearches.map(({ name, hot }) => (
               <Link
                 key={name}
                 href={`/market/${tagToSlug(name)}`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-700 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-full text-sm font-medium transition-all whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg text-sm font-medium transition-all border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800"
               >
                 {name}
-                {hot && <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-bold">HOT</span>}
+                {hot && <span className="px-1.5 py-0.5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] rounded font-bold uppercase tracking-wide">Hot</span>}
               </Link>
             ))}
           </div>
@@ -259,7 +269,7 @@ export default async function MarketPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -276,14 +286,14 @@ export default async function MarketPage() {
                 <Link
                   key={tag}
                   href={`/market/${tagToSlug(tag)}`}
-                  className="group relative p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:shadow-lg transition-all"
+                  className="group relative p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg transition-all"
                 >
                   {index < 3 && (
-                    <span className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                       {index + 1}
                     </span>
                   )}
-                  <div className="font-medium text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors truncate">
+                  <div className="font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors truncate">
                     {tag}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -338,7 +348,7 @@ export default async function MarketPage() {
                       <Link
                         key={tag}
                         href={`/market/${tagToSlug(tag)}`}
-                        className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-600 dark:text-gray-400 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-lg text-sm transition-colors"
+                        className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-700 dark:hover:text-indigo-400 rounded-lg text-sm transition-colors"
                       >
                         {tag}
                       </Link>
@@ -361,22 +371,22 @@ export default async function MarketPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-emerald-600" />
+              <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-indigo-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Secure Payments</h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm">Your payments are protected with bank-level security</p>
             </div>
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Verified Sellers</h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm">All freelancers are verified for quality assurance</p>
             </div>
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-pink-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Quality Guarantee</h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm">Not satisfied? Get your money back, no questions</p>
@@ -396,7 +406,7 @@ export default async function MarketPage() {
               <Link
                 key={tag}
                 href={`/market/${tagToSlug(tag)}`}
-                className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm transition-colors truncate"
+                className="text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm transition-colors truncate"
               >
                 {tag}
               </Link>
@@ -406,23 +416,29 @@ export default async function MarketPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
+      <section className="py-20 bg-gradient-to-b from-gray-900 to-gray-950 relative overflow-hidden">
+        {/* Background decorations */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/3 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/3 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">Ready to Get Started?</h2>
+          <p className="text-lg text-gray-400 mb-10 max-w-2xl mx-auto">
             Join thousands of satisfied customers who found their perfect service on FomKart
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/category/services"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-emerald-600 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg shadow-indigo-500/25"
             >
-              Browse All Services
+              Browse All Offerings
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               href="/auth/creator-signup"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-700 text-white rounded-xl font-semibold hover:bg-emerald-800 transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
             >
               Become a Seller
             </Link>

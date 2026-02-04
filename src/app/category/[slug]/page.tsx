@@ -109,7 +109,7 @@ const categories = {
     ]
   },
   'services': {
-    name: 'Professional Offerings',
+    name: 'Professional Services',
     description: 'Get expert help from freelancers and agencies worldwide',
     icon: BoltIcon,
     color: 'from-emerald-500 to-teal-600',
@@ -316,9 +316,9 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         // 'courses' type doesn't exist in DB, so we'll filter by tags
         const typeMap: Record<string, string | undefined> = {
           services: 'service',
-          courses: undefined, // Will filter by tags for courses
+          courses: 'course',
           'digital-products': 'product',
-          'consultation': 'service',
+          'consultation': 'consultation',
           'video-calls': 'service'
         }
         const selectedType = typeMap[slug]
@@ -372,19 +372,11 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             if (p.tags && p.tags.some(tag => hasTerm(tag))) return true
             return false
           }
-          mapped = mapped.filter(isCourse)
+          // mapped = mapped.filter(isCourse) // Rely on DB type instead
         }
 
         // For consultation
-        if (slug === 'consultation') {
-          const terms = ['consult', 'coach', 'mentor', 'advice', 'session', 'review', 'audit', 'strategy', 'help']
-          const hasTerm = (s?: string) => {
-            if (!s) return false
-            const lower = s.toLowerCase()
-            return terms.some(t => lower.includes(t))
-          }
-          mapped = mapped.filter(p => hasTerm(p.title) || (p.tags && p.tags.some(tag => hasTerm(tag))))
-        }
+        // Removed keyword filtering to rely on database type
         
         // For video-calls
         if (slug === 'video-calls') {
@@ -829,15 +821,14 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                     {product.title}
                   </h3>
                   
-                  {/* Rating */}
-                  <div className="flex items-center space-x-1 mb-3">
-                    <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{Number(product.rating ?? 0).toFixed(1)}</span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviews ?? 0})</span>
-                  </div>
-                  
-                  {/* Category - Replaces Tags */}
-                  <div className="flex flex-wrap gap-1 mb-3">
+                  {/* Rating + Category Badge */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{Number(product.rating ?? 0).toFixed(1)}</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviews ?? 0})</span>
+                    </div>
+                    
                     <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded truncate font-medium">
                       {product.categoryName || category.name}
                     </span>

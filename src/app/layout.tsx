@@ -28,10 +28,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "FomKart - Professional Services Platform",
-  description: "Connect with talented creators offering digital products, courses, and custom services",
+  description: "Connect with talented creators providing digital products, courses, and custom services",
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
+    icon: '/tab_logo.png',
+    shortcut: '/tab_logo.png',
     apple: '/apple-icon.png',
   },
 };
@@ -74,18 +74,18 @@ export default function RootLayout({
                 <Image 
                   src="/fomkart_green_text.png" 
                   alt="FomKart" 
-                  width={120} 
-                  height={32} 
-                  className="h-8 w-auto dark:hidden"
+                  width={90} 
+                  height={24} 
+                  className="h-6 w-auto dark:hidden"
                   priority
                 />
                 {/* Dark mode logo (white text) */}
                 <Image 
                   src="/fomkart_white_text.png" 
                   alt="FomKart" 
-                  width={120} 
-                  height={32} 
-                  className="h-8 w-auto hidden dark:block"
+                  width={90} 
+                  height={24} 
+                  className="h-6 w-auto hidden dark:block"
                   priority
                 />
               </Link>
@@ -93,7 +93,9 @@ export default function RootLayout({
               <Link href="/market" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Explore</Link>
               <Link href="/category/digital-products" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Digital Products</Link>
               <Link href="/category/courses" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Courses</Link>
-              <Link href="/category/services" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Offerings</Link>
+              <Link href="/category/services" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">
+                Services
+              </Link>
               <Link href="/category/consultation" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Consultations</Link>
               <Link href="/orders" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Orders</Link>
               <AuthButton />

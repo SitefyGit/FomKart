@@ -14,9 +14,19 @@ type Service = {
   rating: number | null
   reviews_count: number | null
   tags?: string[] | null
-  type?: 'product' | 'service'
+  type?: 'product' | 'service' | 'course' | 'consultation'
   category_data?: { name: string } | null
   creator: { id: string; full_name: string | null; username: string; avatar_url: string | null } | null
+}
+
+const getTypeLabel = (type?: string) => {
+  switch (type) {
+    case 'service': return 'Service'
+    case 'course': return 'Course'
+    case 'consultation': return 'Consultation'
+    case 'product': return 'Digital Product'
+    default: return 'Digital Product'
+  }
 }
 
 export default async function FeaturedServicesSection() {
@@ -120,7 +130,7 @@ export default async function FeaturedServicesSection() {
                       <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-300">({service.reviews_count ?? 0})</span>
                     </div>
                     <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded">
-                      {service.category_data?.name || (service.type === 'service' ? 'Offering' : 'Digital Product')}
+                      {service.category_data?.name || getTypeLabel(service.type)}
                     </span>
                   </div>
                   <span className="font-bold text-gray-900 dark:text-white text-sm sm:text-lg group-hover:text-emerald-600 transition-colors">From ${service.base_price}</span>

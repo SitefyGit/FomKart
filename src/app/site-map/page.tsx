@@ -9,7 +9,7 @@ export default function SitemapPage() {
         { name: 'All Products', href: '/market' },
         { name: 'Digital Products', href: '/category/digital-products' },
         { name: 'Online Courses', href: '/category/courses' },
-        { name: 'Offerings', href: '/category/services' },
+        { name: 'Services', href: '/category/services' },
         { name: 'Consultations', href: '/category/consultation' },
         { name: 'Find Creators', href: '/top-creators' },
       ]

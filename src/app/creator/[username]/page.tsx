@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import type { User as SupabaseAuthUser } from "@supabase/supabase-js";
-import { supabase, fetchCreatorPosts, createCreatorPost, deleteCreatorPost, deleteProduct, type CreatorPost, type ProductDigitalAsset, type CourseDeliveryPayload } from "@/lib/supabase";
+import { supabase, fetchCreatorPosts, createCreatorPost, deleteCreatorPost, deleteProduct, addToCart, type CreatorPost, type ProductDigitalAsset, type CourseDeliveryPayload } from "@/lib/supabase";
 // Icons (Heroicons + MUI)
 import { UserCircleIcon, MapPinIcon, LinkIcon, ArrowTopRightOnSquareIcon, PlayCircleIcon, ChatBubbleLeftRightIcon, CameraIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import ShareIcon from '@mui/icons-material/Share';
@@ -33,7 +33,7 @@ type CategoryOption = {
   children?: CategoryOption[]
 }
 
-interface Product {
+ interface Product {
   id: string;
   title: string;
   description: string;
@@ -45,6 +45,7 @@ interface Product {
   auto_message_enabled?: boolean;
   auto_message?: string | null;
   status?: string;
+  type?: 'product' | 'service' | 'course' | 'consultation';
 }
 
 type NewProductInsert = {
@@ -52,7 +53,7 @@ type NewProductInsert = {
   description: string;
   base_price: number;
   creator_id: string;
-  type: 'product' | 'service';
+  type: 'product' | 'service' | 'course' | 'consultation';
   slug: string;
   features: string[];
   requirements: string[];
@@ -138,7 +139,7 @@ async function loadCreator(username: string): Promise<Creator | null> {
 
     const { data: products } = await supabase
       .from('products')
-      .select('id,title,description,created_at,images,videos,features,base_price')
+      .select('id,title,description,created_at,images,videos,features,base_price,type,status')
       .eq('creator_id', userData.id)
       .order('created_at', { ascending: false });
 
@@ -150,7 +151,9 @@ async function loadCreator(username: string): Promise<Creator | null> {
       images: p.images,
       videos: p.videos,
       features: p.features,
-      base_price: p.base_price
+      base_price: p.base_price,
+      type: p.type,
+      status: p.status
     }));
 
     if (productList.length === 0) {
@@ -163,7 +166,9 @@ async function loadCreator(username: string): Promise<Creator | null> {
           images: [],
           videos: [],
           features: ['Feature A', 'Feature B'].slice(0, i),
-          base_price: i * 10 + 9
+          base_price: i * 10 + 9,
+          type: 'product',
+          status: 'active'
         });
       }
     }
@@ -353,6 +358,12 @@ export default function CreatorPage() {
 
   const [savingProduct, setSavingProduct] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    show: boolean;
+    type: 'post' | 'product';
+    id: string;
+    title?: string;
+  }>({ show: false, type: 'product', id: '' });
   const [messageOpen, setMessageOpen] = useState(false);
   const [messageBody, setMessageBody] = useState('');
   const [moreOpen, setMoreOpen] = useState(false);
@@ -394,7 +405,7 @@ export default function CreatorPage() {
   const productTypes = [
     { key: 'digital', label: 'Digital Product', desc: 'Checklist, guide, e-book, protected videos, etc.' },
     { key: 'consultation', label: 'Consultation', desc: 'Book a consultation, webinar, lecture, etc.' },
-    { key: 'service', label: 'Offering', desc: 'One-off services, hourly work, or live sessions (non-digital)' },
+    { key: 'service', label: 'Service', desc: 'One-off services, hourly work, or live sessions (non-digital)' },
     { key: 'course', label: 'Course', desc: 'Training program with embedded lessons' }
   ];
   const [selectedType, setSelectedType] = useState('digital');
@@ -632,54 +643,55 @@ export default function CreatorPage() {
     }
   }
 
-  async function handleDeletePost(postId: string) {
+  function handleDeletePost(postId: string) {
     if (!creator) return;
-    const confirmDelete = window.confirm('Delete this post? This action cannot be undone.');
-    if (!confirmDelete) return;
-    try {
-      setDeletingPostId(postId);
-      const success = await deleteCreatorPost(creator.id, postId);
-      if (!success) {
-        throw new Error('Unable to delete post.');
-      }
-      setPosts((prev) => prev.filter((post) => post.id !== postId));
-      pushToast({ type: 'success', title: 'Post deleted', message: 'The post has been removed.' });
-    } catch (error) {
-      console.error('Failed to delete post', error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      pushToast({ type: 'error', title: 'Delete failed', message });
-    } finally {
-      setDeletingPostId(null);
-    }
+    setDeleteConfirmation({ show: true, type: 'post', id: postId, title: 'this post' });
   }
 
-  async function handleDeleteProduct(productId: string) {
+  function handleDeleteProduct(productId: string) {
     if (!creator) return;
-    const confirmDelete = window.confirm('Delete this product? Buyers will no longer see it.');
-    if (!confirmDelete) return;
+    const product = creator.products.find(p => p.id === productId);
+    setDeleteConfirmation({ show: true, type: 'product', id: productId, title: product?.title || 'this product' });
+  }
+
+  async function executeDelete() {
+    if (!creator || !deleteConfirmation.show) return;
+    const { type, id } = deleteConfirmation;
+    
+    // Close modal immediately or keep it open with loading state?
+    // Let's close it and show pending state via existing state vars
+    setDeleteConfirmation(prev => ({ ...prev, show: false }));
+
     try {
-      setDeletingProductId(productId);
-      const success = await deleteProduct(creator.id, productId);
-      if (!success) {
-        throw new Error('Unable to delete product.');
+      if (type === 'post') {
+        setDeletingPostId(id);
+        const success = await deleteCreatorPost(creator.id, id);
+        if (!success) throw new Error('Unable to delete post.');
+        setPosts((prev) => prev.filter((post) => post.id !== id));
+        pushToast({ type: 'success', title: 'Post deleted', message: 'The post has been removed.' });
+      } else {
+        setDeletingProductId(id);
+        const success = await deleteProduct(creator.id, id);
+        if (!success) throw new Error('Unable to delete product.');
+        setCreator((prev) => {
+          if (!prev) return prev;
+          const filteredProducts = prev.products.filter((product) => product.id !== id);
+          const realCount = filteredProducts.filter((product) => !product.id.startsWith('dummy-')).length;
+          return {
+            ...prev,
+            products: filteredProducts,
+            totalProducts: realCount > 0 ? realCount : filteredProducts.length
+          };
+        });
+        pushToast({ type: 'success', title: 'Product deleted', message: 'The product has been removed.' });
       }
-      setCreator((prev) => {
-        if (!prev) return prev;
-        const filteredProducts = prev.products.filter((product) => product.id !== productId);
-        const realCount = filteredProducts.filter((product) => !product.id.startsWith('dummy-')).length;
-        return {
-          ...prev,
-          products: filteredProducts,
-          totalProducts: realCount > 0 ? realCount : filteredProducts.length
-        };
-      });
-      pushToast({ type: 'success', title: 'Product deleted', message: 'The product has been removed.' });
     } catch (error) {
-      console.error('Failed to delete product', error);
+      console.error(`Failed to delete ${type}`, error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       pushToast({ type: 'error', title: 'Delete failed', message });
     } finally {
-      setDeletingProductId(null);
+      if (type === 'post') setDeletingPostId(null);
+      else setDeletingProductId(null);
     }
   }
 
@@ -846,63 +858,79 @@ export default function CreatorPage() {
           const featureCount = features.length
           const price = (typeof p.base_price === 'number' && p.base_price >= 0) ? p.base_price : undefined
           return (
-            <Link href={`/product/${p.id}`} key={p.id} prefetch className="group border dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-800 hover:shadow-md transition relative block h-full">
-              <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-xs overflow-hidden">
-                {imageCount > 0 ? (
-                  <Image
-                    src={images[0]}
-                    alt={p.title}
-                    fill
-                    className="object-cover"
-                    sizes="(min-width: 768px) 33vw, 100vw"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">No media yet</div>
-                )}
-                <button type="button" onClick={(e)=>{e.preventDefault(); setShareProduct({ url: `${window.location.origin}/product/${p.id}`, title: p.title });}}
-                  className="absolute right-2 top-2 bg-white/90 hover:bg-white text-gray-700 rounded-full px-2.5 py-1 text-xs shadow">
-                  Share
-                </button>
-                {isOwner && !p.id.startsWith('dummy-') && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      if (!deletingProductId || deletingProductId === p.id) {
-                        handleDeleteProduct(p.id)
-                      }
-                    }}
-                    disabled={deletingProductId === p.id}
-                    className="absolute left-2 top-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-full px-2.5 py-1 text-xs shadow disabled:opacity-60"
-                  >
-                    {deletingProductId === p.id ? 'Deleting…' : 'Delete'}
+            <Link href={`/product/${p.id}`} key={p.id} prefetch className="group block h-full">
+              <div className="relative border dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-800 transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 h-full">
+                <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-xs overflow-hidden">
+                  {imageCount > 0 ? (
+                    <>
+                      <Image
+                        src={images[0]}
+                        alt={p.title}
+                        fill
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                        sizes="(min-width: 768px) 33vw, 100vw"
+                      />
+                      {/* Second image on hover */}
+                      {images[1] && (
+                        <Image
+                          src={images[1]}
+                          alt={p.title}
+                          fill
+                          className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          sizes="(min-width: 768px) 33vw, 100vw"
+                        />
+                      )}
+                      {/* Gradient overlay on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </>
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">No media yet</div>
+                  )}
+                  {/* Share button - appears on hover */}
+                  <button type="button" onClick={(e)=>{e.preventDefault(); setShareProduct({ url: `${window.location.origin}/product/${p.id}`, title: p.title });}}
+                    className="absolute right-2 top-2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0 transition-all duration-200 hover:scale-110">
+                    <ShareIcon fontSize="small" className="w-4 h-4" />
                   </button>
-                )}
-                {p.status === 'pending' && (
-                   <span className="absolute left-2 top-10 bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded-full text-xs font-medium shadow z-10">
-                    Pending
-                  </span>
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold mb-1 line-clamp-1 dark:text-white">{p.title}</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">{p.description}</p>
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex gap-1 flex-wrap">
-                    {hasVideo && (
-                      <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><PlayCircleIcon className="h-3 w-3"/>Video</span>
-                    )}
-                    {imageCount > 1 && (
-                      <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><StarIcon fontSize="inherit" style={{fontSize:'12px'}}/>{imageCount} Images</span>
-                    )}
-                    {featureCount > 0 && (
-                      <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><StarIcon fontSize="inherit" style={{fontSize:'12px'}}/>{featureCount} Feature{featureCount>1?'s':''}</span>
-                    )}
-                    {!hasVideo && imageCount <= 1 && featureCount === 0 && (
-                      <span className="bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full inline-flex items-center gap-1">Basic</span>
-                    )}
+                  {isOwner && !p.id.startsWith('dummy-') && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        if (!deletingProductId || deletingProductId === p.id) {
+                          handleDeleteProduct(p.id)
+                        }
+                      }}
+                      disabled={deletingProductId === p.id}
+                      className="absolute left-2 top-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-full px-2.5 py-1 text-xs shadow-lg disabled:opacity-60 opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0 transition-all duration-200"
+                    >
+                      {deletingProductId === p.id ? 'Deleting…' : 'Delete'}
+                    </button>
+                  )}
+                  {p.status === 'pending' && (
+                     <span className="absolute left-2 top-10 bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded-full text-xs font-medium shadow z-10">
+                      Pending
+                    </span>
+                  )}
+                  {/* Quick view bar - slides up on hover */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white text-center py-2 text-sm font-medium translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center gap-1">
+                    View Details
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                   </div>
-                  <span className="font-semibold text-blue-600 dark:text-blue-400">{price !== undefined ? `$${price}` : 'Free'}</span>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold mb-1 line-clamp-2 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">{p.title}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{p.description}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-1 flex-wrap">
+                      {hasVideo && (
+                        <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full text-xs inline-flex items-center gap-1"><PlayCircleIcon className="h-3 w-3"/>Video</span>
+                      )}
+                      {imageCount > 1 && (
+                        <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full text-xs inline-flex items-center gap-1">{imageCount} Images</span>
+                      )}
+                    </div>
+                    <span className="font-bold text-lg text-blue-600 dark:text-blue-400">{price !== undefined ? `$${price.toLocaleString()}` : 'Free'}</span>
+                  </div>
                 </div>
               </div>
             </Link>
@@ -1231,124 +1259,364 @@ export default function CreatorPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400">Loading…</div>;
   if (!creator) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400">Creator not found.</div>;
 
+  // Get unique product images for mosaic banner
+  const bannerImages = (creator.products ?? [])
+    .flatMap(p => p.images || [])
+    .filter(Boolean)
+    .slice(0, 12);
+
+  // Get product type counts for sidebar filters
+  const productTypeCounts = {
+    all: (creator.products ?? []).length,
+    product: (creator.products ?? []).filter(p => p.type === 'product').length,
+    service: (creator.products ?? []).filter(p => p.type === 'service').length,
+  };
+
+  const memberSince = new Date(creator.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+  const yearsOnPlatform = Math.max(0.1, (Date.now() - new Date(creator.created_at).getTime()) / (1000 * 60 * 60 * 24 * 365)).toFixed(1);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="relative h-80 w-full bg-gray-200 dark:bg-gray-800 overflow-hidden group">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      {/* Cover Banner - Show cover image if available, otherwise use product mosaic or gradient */}
+      <div className="relative h-64 md:h-80 w-full overflow-hidden bg-gray-100 dark:bg-gray-800 group">
         {creator.background_image ? (
-          <Image
-            src={creator.background_image}
-            alt="Cover"
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-          />
+          <Image src={creator.background_image} alt="Cover" fill className="object-cover" sizes="100vw" priority />
+        ) : bannerImages.length >= 4 ? (
+          <div className="absolute inset-0 grid grid-cols-4 md:grid-cols-6 grid-rows-2 gap-0.5">
+            {bannerImages.slice(0, 8).map((img, i) => (
+              <div 
+                key={i} 
+                className={`relative overflow-hidden ${
+                  i === 0 ? 'col-span-2 row-span-2' : 'col-span-1 row-span-1'
+                }`}
+              >
+                <Image src={img} alt="" fill className="object-cover hover:scale-105 transition-transform duration-500" sizes="20vw" />
+              </div>
+            ))}
+          </div>
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse" />
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-pink-400 to-purple-500">
+            <div className="absolute inset-0 opacity-20" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }} />
+          </div>
         )}
         {isOwner && (
-          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-            <label className="cursor-pointer flex flex-col items-center text-white text-xs gap-2">
-              <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <label className="cursor-pointer flex flex-col items-center text-white text-xs gap-2 transform hover:scale-105 transition-transform">
+              <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
                 <CameraIcon className="h-6 w-6" />
               </div>
-              <span className="font-medium">{updating === 'cover' ? 'Uploading…' : 'Change Cover Photo'}</span>
+              <span className="font-medium">{updating === 'cover' ? 'Uploading…' : 'Change Cover'}</span>
               <input type="file" accept="image/*" className="hidden" onChange={(e)=>onSelectFile(e,'cover')} disabled={updating==='cover'} />
             </label>
           </div>
         )}
-        {!isOwner && (
-          <div className="absolute top-4 left-4 flex gap-2">
-            <button onClick={()=>setSubscribeOpen(true)} className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm shadow hover:bg-blue-700 flex items-center gap-1"><AddCircleOutlineIcon className="h-4 w-4"/>Subscribe</button>
-          </div>
-        )}
-        <div className="absolute top-4 right-4 flex gap-2">
-          <button onClick={()=>setShareOpen(true)} className="px-4 py-2 bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white rounded-full text-sm shadow hover:bg-white dark:hover:bg-gray-800 flex items-center gap-1"><ShareIcon fontSize="small"/>Share</button>
-        </div>
-    <ShareModal isOpen={shareOpen} onClose={()=>setShareOpen(false)} username={creator.username} />
       </div>
 
-      {/* Floating Profile Card */}
-      <div className="max-w-6xl mx-auto px-6 -mt-24 relative z-10">
-  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 flex flex-col md:flex-row gap-8">
-          <div className="relative w-40 shrink-0">
-            <div className="relative w-40 h-40 rounded-full overflow-hidden ring-4 ring-white dark:ring-gray-700 shadow-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700 group/avatar">
+      {/* Compact Profile Header - Etsy Style */}
+      <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            {/* Avatar */}
+            <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden ring-4 ring-white dark:ring-gray-700 shadow-lg shrink-0 bg-gray-100 dark:bg-gray-700 group/avatar -mt-12 md:-mt-16">
               {creator.avatar_url ? (
-                <Image
-                  src={creator.avatar_url}
-                  alt={creator.full_name}
-                  fill
-                  className="object-cover"
-                  sizes="160px"
-                />
+                <Image src={creator.avatar_url} alt={creator.full_name} fill className="object-cover" sizes="96px" />
               ) : (
-                <UserCircleIcon className="h-28 w-28 text-gray-300" />
+                <UserCircleIcon className="h-full w-full text-gray-300" />
               )}
               {isOwner && (
-                <label className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer text-white text-xs gap-1">
-                  <div className="h-9 w-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-                    <PhotoCameraFrontIcon fontSize="small" />
-                  </div>
-                  <span className="font-medium">{updating==='avatar'?'Uploading…':'Change'}</span>
+                <label className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center cursor-pointer text-white transition-opacity">
+                  <PhotoCameraFrontIcon fontSize="small" />
                   <input type="file" accept="image/*" className="hidden" disabled={updating==='avatar'} onChange={(e)=>onSelectFile(e,'avatar')} />
                 </label>
               )}
             </div>
-          </div>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-2 dark:text-white">{creator.full_name}</h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-2xl">{creator.bio}</p>
-            <SocialIconsBar links={creator.social_links} className="mb-6" />
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
-              {creator.location && <span className="flex items-center gap-1"><MapPinIcon className="h-4 w-4"/> {creator.location}</span>}
-              <span>Joined {new Date(creator.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric'})}</span>
-              {creator.website && <a href={creator.website} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"><LinkIcon className="h-4 w-4"/>Website</a>}
-            </div>
-            <div className="flex gap-10 mb-6">
-              <div>
-                <div className="text-xl font-semibold dark:text-white">{creator.totalProducts}</div>
-                <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-500">Live Products</div>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              {!isOwner && (
-                <button onClick={()=>{ if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 inline-flex items-center gap-1"><ChatBubbleLeftRightIcon className="h-4 w-4"/>Message</button>
-              )}
-              <button onClick={()=>setShareOpen(true)} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 inline-flex items-center gap-1"><ShareIcon className="h-4 w-4"/>Share</button>
-              {isOwner && (
-              <button onClick={()=>{ if (!creator) return; setSettings({
-                bio: creator.bio || '', website: creator.website || '', location: creator.location || '',
-                twitter: creator.social_links?.twitter || creator.social_links?.Twitter || '',
-                instagram: creator.social_links?.instagram || '',
-                youtube: creator.social_links?.youtube || creator.social_links?.YouTube || '',
-                facebook: creator.social_links?.facebook || '',
-                linkedin: creator.social_links?.linkedin || ''
-              }); setSettingsOpen(true); }} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600">Settings</button>
-              )}
-              <div className="relative">
-                <button onClick={()=>setMoreOpen(o=>!o)} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 inline-flex items-center gap-1"><MoreHorizIcon fontSize="small"/>More</button>
-                {moreOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border dark:border-gray-700 rounded-lg shadow-lg text-sm z-20">
-                    <button onClick={()=>{navigator.clipboard.writeText(window.location.href); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700">Copy Link</button>
-                    <button onClick={()=>{setShareOpen(true); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700">Share</button>
-                    <button onClick={()=>{alert('Report submitted (stub)'); setMoreOpen(false);}} className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 dark:text-red-400">Report</button>
-                  </div>
+
+            {/* Info */}
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{creator.full_name}</h1>
+                {creator.is_verified && (
+                  <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
                 )}
               </div>
+              {creator.location && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{creator.location}</p>
+              )}
+              {/* Stats Row */}
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                <span className="flex items-center gap-1">
+                  <StarIcon className="w-4 h-4 text-orange-500" />
+                  <span className="font-semibold text-gray-900 dark:text-white">5.0</span>
+                  <span className="text-gray-500 dark:text-gray-400">(0)</span>
+                </span>
+                <span className="text-gray-300 dark:text-gray-600">|</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  <span className="font-semibold text-gray-900 dark:text-white">{creator.totalProducts || 0}</span> sales
+                </span>
+                <span className="text-gray-300 dark:text-gray-600">|</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  <span className="font-semibold text-gray-900 dark:text-white">{yearsOnPlatform}</span> years on FormKart
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => { if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }}
+                className="flex items-center gap-2 px-5 py-2.5 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                Contact
+              </button>
+              <button
+                onClick={() => setSubscribeOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                Follow
+              </button>
             </div>
           </div>
         </div>
       </div>
-  {moreOpen && <div onClick={()=>setMoreOpen(false)} className="fixed inset-0 z-10" aria-hidden="true" />}
 
-      {/* Main Content Sections */}
-      <div className="max-w-6xl mx-auto px-6 mt-10 space-y-10 pb-24">
-        {sectionOrder.map((sectionId) => renderSection(sectionId))}
+      {/* Tab Navigation - Etsy Style */}
+      <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-14 z-40">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex">
+              <button className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white">
+                Items
+              </button>
+              <Link href={`/creator/${creator.username}/bio`} className="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-b-2 border-transparent hover:border-gray-300 transition-colors">
+                About
+              </Link>
+              <button className="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-b-2 border-transparent hover:border-gray-300 transition-colors">
+                Reviews
+              </button>
+            </div>
+            {/* Search within shop */}
+            <div className="relative hidden md:block">
+              <input
+                type="text"
+                placeholder={`Search all ${creator.totalProducts || 0} items`}
+                className="w-64 pl-4 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white"
+              />
+              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Main Content with Sidebar - Etsy Style */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex gap-8">
+          {/* Left Sidebar */}
+          <aside className="hidden lg:block w-56 shrink-0">
+            {/* Category Filters */}
+            <div className="mb-6">
+              <button className={`w-full text-left py-2 text-sm font-medium flex items-center justify-between ${!showAllProducts ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                All
+                <span className="text-gray-400">{productTypeCounts.all}</span>
+              </button>
+              <button className="w-full text-left py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-between">
+                Digital Products
+                <span className="text-gray-400">{productTypeCounts.product}</span>
+              </button>
+              <button className="w-full text-left py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-between">
+                Services
+                <span className="text-gray-400">{productTypeCounts.service}</span>
+              </button>
+            </div>
+
+            {/* Contact Button */}
+            <button
+              onClick={() => { if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-4"
+            >
+              <ChatBubbleLeftRightIcon className="w-4 h-4" />
+              Contact shop owner
+            </button>
+
+            {/* Shop Stats */}
+            <div className="text-sm space-y-2 text-gray-600 dark:text-gray-400">
+              <a href="#" className="block hover:text-gray-900 dark:hover:text-white underline">{creator.totalProducts || 0} Sales</a>
+              <a href="#" className="block hover:text-gray-900 dark:hover:text-white underline">0 Admirers</a>
+            </div>
+
+            {/* Report Link */}
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400">
+                Report this shop
+              </button>
+            </div>
+          </aside>
+
+          {/* Products Grid */}
+          <div className="flex-1 w-full min-w-0">
+            {/* Section Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-6 bg-gray-900 dark:bg-white rounded-full"></div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {showAllProducts ? 'All items' : 'Featured items'}
+                </h2>
+              </div>
+              <div className="flex items-center gap-3">
+                {isOwner && (
+                  <button 
+                    onClick={() => {
+                      if (adminSettings.require_verification && !creator?.is_verified) {
+                        pushToast({ type: 'error', title: 'Verification Required', message: 'You must be verified to create products.' });
+                        return;
+                      }
+                      setAddProductOpen(true);
+                    }} 
+                    className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 inline-flex items-center gap-1 shadow-sm transition-transform active:scale-95"
+                  >
+                    <AddCircleOutlineIcon fontSize="small" />
+                    Add Product
+                  </button>
+                )}
+                <div className="relative">
+                  <select className="appearance-none text-sm border border-gray-300 dark:border-gray-600 rounded-full px-4 py-2 pr-8 bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-colors cursor-pointer">
+                    <option>Sort: Most Recent</option>
+                    <option>Sort: Price Low to High</option>
+                    <option>Sort: Price High to Low</option>
+                    <option>Sort: Top Rated</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Products Grid - Etsy Style */}
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+              {(showAllProducts ? (creator.products ?? []) : (creator.products ?? []).slice(0, 8)).map(p => {
+                const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+                const price = (typeof p.base_price === 'number' && p.base_price >= 0) ? p.base_price : undefined;
+                return (
+                  <Link href={`/product/${p.id}`} key={p.id} className="group block">
+                    <div className="relative bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                      {/* Product Image - Tall like Etsy */}
+                      <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                        {images[0] ? (
+                          <>
+                            <Image
+                              src={images[0]}
+                              alt={p.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                            />
+                            {/* Second image on hover */}
+                            {images[1] && (
+                              <Image
+                                src={images[1]}
+                                alt={p.title}
+                                fill
+                                className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-gray-400">
+                            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          </div>
+                        )}
+                        {/* Add to Cart button */}
+                        <button
+                          onClick={async (e) => { 
+                            e.preventDefault(); 
+                            e.stopPropagation(); 
+                            try {
+                              const success = await addToCart({ product_id: p.id, quantity: 1, package_id: '' });
+                              if (success) {
+                                pushToast({ type: 'success', title: 'Added to Cart', message: `${p.title} added to cart` });
+                              }
+                            } catch (err) {
+                              console.error('Add to cart failed', err);
+                              pushToast({ type: 'error', title: 'Error', message: 'Failed to add to cart' });
+                            }
+                          }}
+                          className="absolute top-2 right-2 p-2 rounded-full bg-white/90 dark:bg-gray-800/90 text-gray-600 dark:text-gray-400 hover:text-green-600 hover:bg-white dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md"
+                          title="Add to Cart"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        </button>
+                        {/* Delete button for owner */}
+                        {isOwner && !p.id.startsWith('dummy-') && (
+                          <button
+                            onClick={(e) => { e.preventDefault(); handleDeleteProduct(p.id); }}
+                            disabled={deletingProductId === p.id}
+                            className="absolute top-2 left-2 p-2 rounded-full bg-white/80 dark:bg-gray-800/80 text-red-600 hover:bg-red-100 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm disabled:opacity-50"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        )}
+                        {/* Pending badge */}
+                        {p.status === 'pending' && (
+                          <span className="absolute bottom-2 left-2 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-medium">Pending</span>
+                        )}
+                      </div>
+                      {/* Product Info */}
+                      <div className="p-3">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                          {p.title}
+                        </h3>
+                        <div className="flex items-center justify-between">
+                          <span className="text-base font-bold text-gray-900 dark:text-white">
+                            ${price !== undefined ? price.toLocaleString() : '0'}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 capitalize">
+                            {p.type === 'service' ? (
+                              <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> Service</>
+                            ) : p.type === 'course' ? (
+                              <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> Course</>
+                            ) : p.type === 'consultation' ? (
+                              <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> Consultation</>
+                            ) : (
+                              <><svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/></svg> Digital Product</>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* View All Button */}
+            {!showAllProducts && (creator.products ?? []).length > 8 && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => setShowAllProducts(true)}
+                  className="px-6 py-3 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  View all {(creator.products ?? []).length} items
+                </button>
+              </div>
+            )}
+
+            {/* Reviews Section */}
+            <div className="mt-12">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Reviews</h2>
+              <ReviewsSlider creatorId={creator.id} />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Add Product Modal */}
   {isOwner && addProductOpen && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-start justify-center z-50 overflow-y-auto py-10">
-          <div className="bg-white text-gray-900 rounded-2xl shadow-xl w-full max-w-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50 overflow-y-auto py-6">
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl shadow-xl w-full max-w-2xl mx-4 p-6 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold flex items-center gap-2"><AddCircleOutlineIcon fontSize="small"/> Create New Product</h3>
               <button onClick={()=>{setAddProductOpen(false); setMediaFiles([]); setDeliveryFiles([]);}} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
@@ -1485,7 +1753,22 @@ export default function CreatorPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tags (max 5, up to 20 chars each)</label>
-                <input value={productExtras.tags} onChange={e=>setProductExtras(x=>({...x,tags:e.target.value}))} placeholder="branding, logo, design" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
+                <input 
+                  value={productExtras.tags} 
+                  onChange={e=>setProductExtras(x=>({...x,tags:e.target.value}))} 
+                  placeholder="branding, logo, design" 
+                  className={`w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white ${
+                    (productExtras.tags.split(',').filter(t => t.trim()).length > 5 || productExtras.tags.split(',').some(t => t.trim().length > 20)) 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'dark:border-gray-600'
+                  }`} 
+                />
+                {(productExtras.tags.split(',').filter(t => t.trim()).length > 5 || productExtras.tags.split(',').some(t => t.trim().length > 20)) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {productExtras.tags.split(',').filter(t => t.trim()).length > 5 && 'Max 5 tags allowed. '}
+                    {productExtras.tags.split(',').some(t => t.trim().length > 20) && 'Tags must be under 20 characters.'}
+                  </p>
+                )}
               </div>
               {(selectedType==='digital' || selectedType==='course') && (
                 <div className="border dark:border-gray-600 rounded-xl p-4 bg-gray-50 dark:bg-gray-700 space-y-3">
@@ -1704,7 +1987,15 @@ export default function CreatorPage() {
                   if (productExtras.externalUrl) requirements.push(`External: ${productExtras.externalUrl}`);
                   if (selectedType==='digital' && productExtras.downloadUrl) requirements.push(`Download: ${productExtras.downloadUrl}`);
                   if (selectedType==='course' && productExtras.courseCurriculum) requirements.push(`Curriculum: ${productExtras.courseCurriculum.slice(0,400)}`);
-                  const typeMapping: Record<string,'product'|'service'> = { digital:'product', consultation:'service', service:'service', course:'service' };
+                  
+                  // Map selection to specific types
+                  const typeMapping: Record<string, 'product'|'service'|'course'|'consultation'> = { 
+                    digital: 'product', 
+                    consultation: 'consultation', 
+                    service: 'service', 
+                    course: 'course' 
+                  };
+                  
                   const slugBase = newProduct.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
                   const slug = `${slugBase}-${Date.now().toString(36)}`;
                   // Upload selected media files (if any) and collect public URLs
@@ -1779,6 +2070,8 @@ export default function CreatorPage() {
                   }
 
                   const resolvedPrice = Number.isFinite(priceNum) ? priceNum : 0;
+                  // Always use 'active' status to avoid constraint issues with older databases
+                  const productStatus = 'active' as const;
                   const insertPayload: NewProductInsert = {
                     title: newProduct.title,
                     description: newProduct.description,
@@ -1793,7 +2086,7 @@ export default function CreatorPage() {
                     images: imageUrls,
                     auto_message_enabled: autoMessageEnabled,
                     auto_message: autoMessageEnabled ? autoMessage : null,
-                    status: adminSettings.auto_approve_products ? 'active' : 'pending',
+                    status: productStatus,
                     digital_files: digitalAssets.length ? digitalAssets : null,
                     course_delivery: courseDeliveryPayload,
                     auto_deliver: selectedType === 'digital' || selectedType === 'course',
@@ -1843,7 +2136,8 @@ export default function CreatorPage() {
                     base_price: Number.isFinite(priceNum) ? priceNum : undefined,
                     auto_message_enabled: autoMessageEnabled,
                     auto_message: autoMessageEnabled ? autoMessage : null,
-                    status: adminSettings.auto_approve_products ? 'active' : 'pending'
+                    status: adminSettings.auto_approve_products ? 'active' : 'pending',
+                    type: typeMapping[selectedType] ?? 'product'
                   };
                   setCreator(prev => prev ? { ...prev, products: [productObj, ...prev.products], totalProducts: prev.totalProducts + 1 } : prev);
                   
@@ -2130,6 +2424,42 @@ export default function CreatorPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full overflow-hidden transform transition-all scale-100 opacity-100">
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-2">
+                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete {deleteConfirmation.type === 'post' ? 'Post' : 'Product'}?</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Are you sure you want to delete <span className="font-semibold text-gray-900 dark:text-gray-200">"{deleteConfirmation.title}"</span>?
+                <br/>This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex border-t border-gray-100 dark:border-gray-700">
+              <button 
+                onClick={() => setDeleteConfirmation(prev => ({ ...prev, show: false }))}
+                className="flex-1 p-4 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                disabled={!!deletingPostId || !!deletingProductId}
+              >
+                Cancel
+              </button>
+              <div className="w-px bg-gray-100 dark:border-gray-700"></div>
+              <button 
+                onClick={executeDelete}
+                className="flex-1 p-4 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                disabled={!!deletingPostId || !!deletingProductId}
+              >
+                {(!!deletingPostId || !!deletingProductId) ? 'Deleting...' : 'Yes, Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}

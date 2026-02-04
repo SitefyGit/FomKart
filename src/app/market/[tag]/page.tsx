@@ -32,7 +32,7 @@ type ProductCard = {
   deliveryTime?: string | null
   isVerified?: boolean
   categoryName?: string | null
-  type?: 'product' | 'service'
+  type?: 'product' | 'service' | 'course' | 'consultation'
 }
 
 type ProductRow = {
@@ -44,7 +44,7 @@ type ProductRow = {
   reviews_count: number | null
   delivery_time: string | null
   tags: string[] | null
-  type?: 'product' | 'service'
+  type?: 'product' | 'service' | 'course' | 'consultation'
   category_data?: { name: string } | { name: string }[] | null
   creator: {
     id: string
@@ -75,6 +75,16 @@ function tagToSlug(tag: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
+}
+
+const getProductTypeLabel = (type?: string) => {
+  switch (type) {
+    case 'service': return 'Service'
+    case 'course': return 'Course'
+    case 'consultation': return 'Consultation'
+    case 'product': return 'Digital Product'
+    default: return 'Digital Product'
+  }
 }
 
 export default function TagPage({ params }: { params: Promise<{ tag: string }> }) {
@@ -551,8 +561,8 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                       </h3>
 
                       {/* Rating + Product Type Badge */}
-                      <div className="flex items-center gap-2 mb-3 flex-wrap">
-                        <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex items-center gap-1 shrink-0">
                           <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                           <span className="text-sm font-medium text-gray-900 dark:text-white">
                             {product.rating?.toFixed(1) || '5.0'}
@@ -561,8 +571,8 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                             ({product.reviews || 0})
                           </span>
                         </div>
-                        <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded">
-                          {product.categoryName || (product.type === 'service' ? 'Offering' : 'Digital Product')}
+                        <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded truncate">
+                          {product.categoryName || getProductTypeLabel(product.type)}
                         </span>
                       </div>
 

@@ -148,52 +148,92 @@ export const ReviewsSlider: React.FC<ReviewsSliderProps> = ({ creatorId, limit =
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <span>{reviews.length} review{reviews.length!==1 && 's'}</span>
+      {/* Header with count and navigation */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{reviews.length} review{reviews.length!==1 && 's'}</span>
+          <div className="flex items-center gap-1">
+            <StarIcon className="w-4 h-4 text-amber-500" style={{fontSize:'16px'}} />
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">5.0</span>
+          </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={()=>scroll('left')} className="p-2 rounded-full border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700" aria-label="Prev"><ChevronLeftIcon fontSize="small"/></button>
-          <button onClick={()=>scroll('right')} className="p-2 rounded-full border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700" aria-label="Next"><ChevronRightIcon fontSize="small"/></button>
+          <button onClick={()=>scroll('left')} className="p-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 transition-all" aria-label="Prev">
+            <ChevronLeftIcon fontSize="small" className="text-gray-600 dark:text-gray-300"/>
+          </button>
+          <button onClick={()=>scroll('right')} className="p-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 transition-all" aria-label="Next">
+            <ChevronRightIcon fontSize="small" className="text-gray-600 dark:text-gray-300"/>
+          </button>
         </div>
       </div>
-      <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-thin pb-2" style={{scrollSnapType:'x mandatory'}}>
+
+      {/* Reviews carousel */}
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 -mx-2 px-2" style={{scrollSnapType:'x mandatory', scrollBehavior:'smooth'}}>
         {reviews.map(r => (
-          <div key={r.id} className="min-w-[300px] max-w-[300px] bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-xl p-4 shadow-sm scroll-snap-align-start">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex -space-x-2 items-center">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+          <div key={r.id} className="min-w-[320px] max-w-[320px] bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow scroll-snap-align-start flex flex-col">
+            {/* Top row - Avatar, Name, Stars */}
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center shadow-sm">
                   {r.reviewer?.avatar_url ? (
                     <Image
                       src={r.reviewer.avatar_url}
                       alt={(r.reviewer.full_name || r.reviewer.username || 'Reviewer') + ' avatar'}
-                      width={32}
-                      height={32}
+                      width={40}
+                      height={40}
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-[10px] font-medium text-gray-500 dark:text-gray-300">{(r.reviewer?.full_name||r.reviewer?.username||'?').slice(0,2).toUpperCase()}</span>
+                    <span className="text-sm font-bold text-white">{(r.reviewer?.full_name||r.reviewer?.username||'?').slice(0,1).toUpperCase()}</span>
                   )}
                 </div>
-                <span className="text-xs text-gray-600 dark:text-gray-300 ml-2 line-clamp-1">
-                  {r.reviewer?.full_name || r.reviewer?.username || 'Anonymous'}
-                </span>
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
+                    {r.reviewer?.full_name || r.reviewer?.username || 'Anonymous'}
+                  </p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400">{new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-1 text-amber-500">
-                {Array.from({length:5}).map((_,i)=>(<StarIcon key={i} fontSize="inherit" className={i < r.rating ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600'} style={{fontSize:'14px'}}/>))}
+              <div className="flex items-center gap-0.5 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-lg">
+                {Array.from({length:5}).map((_,i)=>(
+                  <StarIcon key={i} style={{fontSize:'12px'}} className={i < r.rating ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600'}/>
+                ))}
               </div>
             </div>
-            {r.comment ? <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-4 mb-3">{r.comment}</p> : <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-3">No comment provided.</p>}
-            {typeof r.seller_rating === 'number' || r.seller_response ? (
-              <div className="text-[11px] text-gray-600 dark:text-gray-300 mb-2 border-t border-dashed border-gray-200 dark:border-gray-600 pt-2">
-                {typeof r.seller_rating === 'number' ? (
-                  <span className="block font-semibold text-gray-800 dark:text-gray-200">Seller rating: {r.seller_rating}/5</span>
-                ) : null}
-                {r.seller_response ? <span className="block mt-1 text-gray-500 dark:text-gray-400">Seller response: {r.seller_response}</span> : null}
+
+            {/* Comment */}
+            <div className="flex-1 mb-3">
+              {r.comment ? (
+                <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-4 leading-relaxed">{r.comment}</p>
+              ) : (
+                <p className="text-sm text-gray-400 dark:text-gray-500 italic">No comment provided.</p>
+              )}
+            </div>
+
+            {/* Seller response section */}
+            {(typeof r.seller_rating === 'number' || r.seller_response) && (
+              <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-3 mb-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
+                  <span className="text-[11px] font-medium text-green-700 dark:text-green-400">Seller Response</span>
+                </div>
+                {typeof r.seller_rating === 'number' && (
+                  <p className="text-xs text-gray-600 dark:text-gray-300">Rating: <span className="font-semibold">{r.seller_rating}/5</span></p>
+                )}
+                {r.seller_response && (
+                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">{r.seller_response}</p>
+                )}
               </div>
-            ) : null}
-            {r.product && <div className="text-[11px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40 inline-block px-2 py-0.5 rounded">{r.product.title}</div>}
-            <div className="mt-3 text-[10px] text-gray-400 dark:text-gray-500">{new Date(r.created_at).toLocaleDateString()}</div>
+            )}
+
+            {/* Product badge */}
+            {r.product && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40 px-2.5 py-1 rounded-full line-clamp-1">
+                  {r.product.title}
+                </span>
+              </div>
+            )}
           </div>
         ))}
       </div>
