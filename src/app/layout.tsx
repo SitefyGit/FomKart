@@ -29,11 +29,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FomKart - Professional Services Platform",
   description: "Connect with talented creators providing digital products, courses, and custom services",
-  icons: {
-    icon: '/tab_logo.png',
-    shortcut: '/tab_logo.png',
-    apple: '/apple-icon.png',
-  },
 };
 
 export const viewport = {
