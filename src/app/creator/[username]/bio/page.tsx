@@ -105,7 +105,14 @@ async function loadCreatorBio(username: string): Promise<{ creator: Creator; pro
       .single();
     if (error || !userData) return null;
 
-    // Fetch featured products (or top 4 by rating)
+    // Fetch total count of active products
+    const { count } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('creator_id', userData.id)
+      .eq('status', 'active');
+
+    // Fetch featured products (increase limit to show more variety in bio)
     const { data: products } = await supabase
       .from('products')
       .select('id, title, description, images, base_price, rating, reviews_count, is_featured')
@@ -113,7 +120,7 @@ async function loadCreatorBio(username: string): Promise<{ creator: Creator; pro
       .eq('status', 'active')
       .order('is_featured', { ascending: false })
       .order('rating', { ascending: false })
-      .limit(4);
+      .limit(20);
 
     // Fetch actual product ratings from reviews table
     const productIds = (products || []).map(p => p.id);
@@ -171,7 +178,7 @@ async function loadCreatorBio(username: string): Promise<{ creator: Creator; pro
         website: userData.website,
         social_links: userData.social_links || {},
         is_verified: userData.is_verified,
-        totalProducts: enrichedProducts.length,
+        totalProducts: count ?? enrichedProducts.length,
       },
       products: enrichedProducts,
       posts: posts || [],
@@ -566,6 +573,13 @@ export default function CreatorBioPage() {
                 </Link>
               ))}
             </div>
+            {creator.totalProducts > products.length && (
+                <div className="mt-3 text-center">
+                    <Link href={`/creator/${creator.username}`} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
+                        View all {creator.totalProducts} products
+                    </Link>
+                </div>
+            )}
           </div>
         )}
 
