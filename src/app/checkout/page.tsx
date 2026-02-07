@@ -14,7 +14,8 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { supabase, type User as ProfileUser, type CourseDeliveryPayload, type ProductDigitalAsset } from '@/lib/supabase'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
 interface CheckoutItem {
   productId: string
@@ -601,14 +602,16 @@ function CheckoutContent() {
               </div>
 
               {/* Checkout Button */}
-              {clientSecret ? (
+              {clientSecret && stripePromise ? (
                 <Elements options={{ clientSecret, appearance: { theme: 'stripe' } }} stripe={stripePromise}>
                   <PaymentForm onSuccess={processPayment} />
                 </Elements>
-              ) : stripeError ? (
+              ) : stripeError || (clientSecret && !stripePromise) ? (
                 <div>
                   <p className="text-amber-600 dark:text-amber-400 text-sm mb-3 text-center">
-                    Payment system unavailable. You can still place the order.
+                    {!stripePromise 
+                      ? "Payment configuration missing. You can still place the order." 
+                      : "Payment system unavailable. You can still place the order."}
                   </p>
                   <button
                     onClick={processPayment}

@@ -112,7 +112,6 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartFeedback, setCartFeedback] = useState<string | null>(null);
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [purchaseForm, setPurchaseForm] = useState({
     name: '',
@@ -355,16 +354,9 @@ export default function ProductPage({ params }: ProductPageProps) {
   };
 
   const handleContinue = () => {
-    if (!selectedPackage) return;
-    setShowPurchaseModal(true);
-  };
-
-  const handleSubmitPurchase = (e: React.FormEvent) => {
-    e.preventDefault();
-    
     if (!product || !selectedPackage) return;
     
-    // Create checkout item
+    // Directly go to checkout with available info
     const checkoutItem = {
       productId: product.id,
       packageId: selectedPackage.id,
@@ -372,13 +364,12 @@ export default function ProductPage({ params }: ProductPageProps) {
       requirements: {
         name: purchaseForm.name,
         email: purchaseForm.email,
-        notes: purchaseForm.requirements
+        notes: '' 
       }
     };
     
     // Navigate to checkout with the item
     const itemsParam = encodeURIComponent(JSON.stringify([checkoutItem]));
-    setShowPurchaseModal(false);
     router.push(`/checkout?items=${itemsParam}`);
   };
 
@@ -718,84 +709,6 @@ export default function ProductPage({ params }: ProductPageProps) {
         </div>
       </div>
 
-      {/* Purchase Details Modal */}
-      {showPurchaseModal && selectedPackage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/20 backdrop-blur-[1.5px]"
-            onClick={() => setShowPurchaseModal(false)}
-          />
-          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Purchase Details</h3>
-              <button
-                onClick={() => setShowPurchaseModal(false)}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                aria-label="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="mb-4">
-              <div className="font-medium text-gray-900 dark:text-white">{product.title}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">Package: {selectedPackage.name}</div>
-              <div className="text-sm text-gray-900 dark:text-white font-semibold">${selectedPackage.price}</div>
-            </div>
-
-            <form onSubmit={handleSubmitPurchase} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Your name</label>
-                <input
-                  type="text"
-                  required
-                  value={purchaseForm.name}
-                  onChange={(e) => setPurchaseForm({ ...purchaseForm, name: e.target.value })}
-                  className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="John Doe"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={purchaseForm.email}
-                  onChange={(e) => setPurchaseForm({ ...purchaseForm, email: e.target.value })}
-                  className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Requirements / Notes</label>
-                <textarea
-                  rows={4}
-                  value={purchaseForm.requirements}
-                  onChange={(e) => setPurchaseForm({ ...purchaseForm, requirements: e.target.value })}
-                  className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Share any details that will help fulfill this order."
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowPurchaseModal(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-                >
-                  Proceed to Payment
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
       {/* Share Modal */}
       {showShareModal && (
         <ShareModal

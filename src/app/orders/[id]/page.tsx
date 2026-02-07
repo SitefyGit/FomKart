@@ -383,25 +383,6 @@ export default function OrderPage({ params }: OrderPageProps) {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading order…</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-600">
-        <div className="flex items-center gap-2"><AlertCircle className="w-5 h-5"/> Order not found</div>
-      </div>
-    )
-  }
-
   const isLiveCallEnabled = order?.product?.features?.some((f: string) => f.toLowerCase().includes('live call'))
 
   // Rules: 1. Max duration (default 30m or from product features)
@@ -491,6 +472,25 @@ export default function OrderPage({ params }: OrderPageProps) {
         console.warn('Failed to send call notification', e)
       }
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading order…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-600">
+        <div className="flex items-center gap-2"><AlertCircle className="w-5 h-5"/> Order not found</div>
+      </div>
+    )
   }
 
   return (
@@ -800,7 +800,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         </div>
                       </div>
                     ))}
-                    {isBuyer && (order.status === 'delivered' || (deliveries.length > 0 && order.status !== 'completed' && order.status !== 'cancelled')) && (
+                    {isBuyer && order.status === 'delivered' && (
                       <div className="flex flex-wrap gap-2">
                         <button onClick={approveDelivery} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">Yes, I approve delivery</button>
                         <button onClick={requestRevision} className="px-4 py-2 border dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">Request revision</button>
