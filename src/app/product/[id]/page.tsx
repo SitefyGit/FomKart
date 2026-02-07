@@ -64,6 +64,8 @@ interface User {
   bio: string;
   verified: boolean;
   created_at: string;
+  rating?: number;
+  total_reviews?: number;
 }
 
 interface Review {
@@ -135,7 +137,7 @@ export default function ProductPage({ params }: ProductPageProps) {
         // Attempt to load real product
         const { data: prod, error: prodErr } = await supabase
           .from('products')
-          .select(`*, creator:creator_id(id, full_name, username, avatar_url, bio, is_verified)`)
+          .select(`*, creator:creator_id(id, full_name, username, avatar_url, bio, is_verified, rating, total_reviews)`)
           .eq('id', resolvedParams.id)
           .single();
 
@@ -189,7 +191,11 @@ export default function ProductPage({ params }: ProductPageProps) {
             if (extLine) externalLink = extLine.replace('External:','').trim();
           }
           let fetchedReviews: Review[] = [];
+          let creatorRating = typeof prod.creator?.rating === 'number' ? prod.creator.rating : 0;
+          let creatorReviewsCount = typeof prod.creator?.total_reviews === 'number' ? prod.creator.total_reviews : 0;
+
           try {
+            // First fetch product reviews
             const unwrap = <T,>(value: T | T[] | null | undefined): T | undefined => {
               if (!value) return undefined;
               return Array.isArray(value) ? value[0] : value;
@@ -222,6 +228,25 @@ export default function ProductPage({ params }: ProductPageProps) {
                 }
               };
             });
+
+            // Calculate live creator stats
+            if (prod.creator_id) {
+              const { data: sellerRatings } = await supabase
+                .from('reviews')
+                .select('seller_rating')
+                .eq('seller_id', prod.creator_id)
+                .eq('is_public', true)
+                .not('seller_rating', 'is', null);
+
+              if (sellerRatings && sellerRatings.length > 0) {
+                 const validRatings = sellerRatings.map(r => Number(r.seller_rating)).filter(r => r > 0);
+                 if (validRatings.length > 0) {
+                    const sum = validRatings.reduce((a, b) => a + b, 0);
+                    creatorRating = Math.round((sum / validRatings.length) * 10) / 10;
+                    creatorReviewsCount = validRatings.length;
+                 }
+              }
+            }
           } catch (reviewErr) {
             console.warn('Failed to load reviews for product', reviewErr);
           }
@@ -264,7 +289,9 @@ export default function ProductPage({ params }: ProductPageProps) {
               avatar_url: prod.creator.avatar_url,
               bio: prod.creator.bio || '',
               verified: !!prod.creator.is_verified,
-              created_at: new Date().toISOString()
+              created_at: new Date().toISOString(),
+              rating: creatorRating,
+              total_reviews: creatorReviewsCount
             } : undefined,
             packages: (pkgs||[]).map(p => ({
               id: p.id,
@@ -605,8 +632,8 @@ export default function ProductPage({ params }: ProductPageProps) {
                     <span className="text-sm text-gray-600 dark:text-gray-400">@{product.creator.username}</span>
                     <div className="flex items-center space-x-1 mt-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium dark:text-gray-200">{Number(product.avgRating ?? 0).toFixed(1)}</span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviewCount ?? 0} reviews)</span>
+                      <span className="text-sm font-medium dark:text-gray-200">{Number(product.creator.rating ?? 0).toFixed(1)}</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">({product.creator.total_reviews ?? 0} reviews)</span>
                     </div>
                   </div>
                 </Link>
