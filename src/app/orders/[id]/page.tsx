@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle, Clock, ArrowLeft, Paperclip, Send, AlertCircle, Upload, PackageOpen, Copy, Info, Megaphone, RefreshCcw, BadgeCheck, Video, Phone } from 'lucide-react'
+import { CheckCircle, Clock, ArrowLeft, Paperclip, Send, AlertCircle, Upload, PackageOpen, Copy, Info, Megaphone, RefreshCcw, BadgeCheck, Video, Phone, Lock } from 'lucide-react'
 import { getOrderById, getOrderMessages, listDeliverables, sendOrderMessage, createDeliverable, updateOrderStatus, updateOrderRequirements, createNotification, supabase } from '@/lib/supabase'
 import { ToastContainer, type ToastItem } from '@/components/Toast'
 import WebRTCVideoCall from '@/components/WebRTCVideoCall'
@@ -29,7 +29,7 @@ export default function OrderPage({ params }: OrderPageProps) {
   const [showDeliverModal, setShowDeliverModal] = useState(false)
   const [deliveryNote, setDeliveryNote] = useState('')
   const [deliveryFiles, setDeliveryFiles] = useState<FileList | null>(null)
-  const [reqForm, setReqForm] = useState({ details: '', urls: '', notes: '' })
+  const [reqForm, setReqForm] = useState({ details: '', notes: '' })
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [showBilling, setShowBilling] = useState(false)
@@ -404,7 +404,58 @@ export default function OrderPage({ params }: OrderPageProps) {
 
   const isLiveCallEnabled = order?.product?.features?.some((f: string) => f.toLowerCase().includes('live call'))
 
+  // Rules: 1. Max duration (default 30m or from product features)
+  const callDurationMinutes = useMemo(() => {
+    if (!order?.product?.features) return 30
+    const durationFeat = order.product.features.find((f:string) => /\d+\s*min/i.test(f))
+    if (durationFeat) {
+      const match = durationFeat.match(/(\d+)\s*min/i)
+      return match ? parseInt(match[1]) : 30
+    }
+    return 30
+  }, [order?.product?.features])
+
+  // Rules: 2. Max calls & 3. Cooldown
+  const previousCalls = useMemo(() => {
+    return messages.filter(m => m.is_system_message && m.message.includes('Started a live'))
+      .sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  }, [messages])
+
+  const COOLDOWN_MINUTES = 10
+  const MAX_CALLS = 1 // Limit to one session per order
+
+  const canCall = useMemo(() => {
+    if (callActive) return true // can always join active call
+    if (inCall) return true
+    
+    // Check max calls
+    if (previousCalls.length >= MAX_CALLS) return false
+    
+    // Check cooldown
+    if (previousCalls.length > 0) {
+      const lastCallTime = new Date(previousCalls[0].created_at).getTime()
+      const diff = (Date.now() - lastCallTime) / 1000 / 60
+      if (diff < COOLDOWN_MINUTES) return false
+    }
+    
+    return true
+  }, [callActive, inCall, previousCalls])
+
+  const callDisabledReason = useMemo(() => {
+    if (previousCalls.length >= MAX_CALLS) return "Session limit reached (Max 1)"
+    if (previousCalls.length > 0) {
+        const lastCallTime = new Date(previousCalls[0].created_at).getTime()
+        const diff = (Date.now() - lastCallTime) / 1000 / 60
+        if (diff < COOLDOWN_MINUTES) return `Cooldown: wait ${Math.ceil(COOLDOWN_MINUTES - diff)}m`
+    }
+    return null
+  }, [previousCalls])
+
   const handleJoinCall = async (type: 'video' | 'audio') => {
+    if (!canCall) {
+        pushToast('error', callDisabledReason || 'Calls are not available right now')
+        return
+    }
     setCallType(type)
     setInCall(true)
     if (!order || !currentUser) return
@@ -457,6 +508,7 @@ export default function OrderPage({ params }: OrderPageProps) {
           }
           onLeave={() => setInCall(false)}
           audioOnly={callType === 'audio'}
+          maxDuration={callDurationMinutes}
         />
       )}
 
@@ -487,20 +539,29 @@ export default function OrderPage({ params }: OrderPageProps) {
                 <div className="flex items-center gap-3">
                   {isLiveCallEnabled && (
                     <>
-                      <button 
-                        onClick={() => handleJoinCall('video')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm ${callActive ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                      >
-                        <Video className="w-4 h-4" />
-                        {callActive ? 'Join Video' : 'Video Call'}
-                      </button>
-                      <button 
-                        onClick={() => handleJoinCall('audio')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm ${callActive ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
-                      >
-                        <Phone className="w-4 h-4" />
-                        {callActive ? 'Join Audio' : 'Audio Call'}
-                      </button>
+                      {(!canCall && !callActive) ? (
+                         <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm font-medium text-gray-500 cursor-not-allowed" title={callDisabledReason || ''}>
+                            <Lock className="w-4 h-4" />
+                            {callDisabledReason}
+                         </div>
+                      ) : (
+                        <>
+                          <button 
+                            onClick={() => handleJoinCall('video')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm ${callActive ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                          >
+                            <Video className="w-4 h-4" />
+                            {callActive ? 'Join Video' : 'Video Call'}
+                          </button>
+                          <button 
+                            onClick={() => handleJoinCall('audio')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm ${callActive ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+                          >
+                            <Phone className="w-4 h-4" />
+                            {callActive ? 'Join Audio' : 'Audio Call'}
+                          </button>
+                        </>
+                      )}
                     </>
                   )}
                   <div className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 capitalize">{(order.status||'confirmed').replace('_',' ')}</div>
@@ -739,7 +800,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         </div>
                       </div>
                     ))}
-                    {isBuyer && order.status==='delivered' && (
+                    {isBuyer && (order.status === 'delivered' || (deliveries.length > 0 && order.status !== 'completed' && order.status !== 'cancelled')) && (
                       <div className="flex flex-wrap gap-2">
                         <button onClick={approveDelivery} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">Yes, I approve delivery</button>
                         <button onClick={requestRevision} className="px-4 py-2 border dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">Request revision</button>
@@ -962,7 +1023,6 @@ function RequirementsForm({ order, reqForm, setReqForm, onSubmitted, notify }:{ 
   const onSubmit = async () => {
     const payload = {
       details: reqForm.details?.trim() || undefined,
-      urls: reqForm.urls?.trim() || undefined,
       notes: reqForm.notes?.trim() || undefined,
     }
     try {
@@ -990,10 +1050,6 @@ function RequirementsForm({ order, reqForm, setReqForm, onSubmitted, notify }:{ 
         <div>
           <div className="text-gray-600 mb-1">Project details</div>
           <textarea className="w-full border rounded-lg p-2" rows={3} value={reqForm.details} onChange={e=>setReqForm({...reqForm, details: e.target.value})} placeholder="Describe your project and goals" />
-        </div>
-        <div>
-          <div className="text-gray-600 mb-1">URLs (comma-separated)</div>
-          <input className="w-full border rounded-lg p-2" value={reqForm.urls} onChange={e=>setReqForm({...reqForm, urls: e.target.value})} placeholder="https://example.com, https://brief.link" />
         </div>
         <div>
           <div className="text-gray-600 mb-1">Notes to seller</div>

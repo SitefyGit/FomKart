@@ -48,6 +48,7 @@ interface Creator {
 type VideoMeta = { provider: 'youtube' | 'vimeo'; id: string };
 
 function extractVideoMeta(rawUrl: string): VideoMeta | null {
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
   const url = rawUrl.trim();
   if (!url) return null;
   const youtubeMatch = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i);
@@ -114,6 +115,46 @@ async function loadCreatorBio(username: string): Promise<{ creator: Creator; pro
       .order('rating', { ascending: false })
       .limit(4);
 
+    // Fetch actual product ratings from reviews table
+    const productIds = (products || []).map(p => p.id);
+    const productRatingsMap = new Map<string, { rating: number; count: number }>();
+    
+    if (productIds.length > 0) {
+      const { data: reviewRows } = await supabase
+        .from('reviews')
+        .select('product_id, rating')
+        .eq('is_public', true)
+        .in('product_id', productIds)
+        .not('rating', 'is', null);
+      
+      const totals = new Map<string, { sum: number; count: number }>();
+      for (const row of (reviewRows || [])) {
+        if (!row || !row.product_id) continue;
+        const ratingValue = Number(row.rating);
+        if (!Number.isFinite(ratingValue) || ratingValue <= 0) continue;
+        const current = totals.get(row.product_id) ?? { sum: 0, count: 0 };
+        current.sum += ratingValue;
+        current.count += 1;
+        totals.set(row.product_id, current);
+      }
+      
+      for (const [productId, aggregate] of totals.entries()) {
+        if (aggregate.count === 0) continue;
+        const average = Math.round((aggregate.sum / aggregate.count) * 10) / 10;
+        productRatingsMap.set(productId, { rating: average, count: aggregate.count });
+      }
+    }
+
+    // Enrich products with actual ratings
+    const enrichedProducts = (products || []).map(product => {
+      const stats = productRatingsMap.get(product.id);
+      return {
+        ...product,
+        rating: stats?.rating ?? product.rating ?? 0,
+        reviews_count: stats?.count ?? product.reviews_count ?? 0,
+      };
+    });
+
     // Fetch recent posts
     const posts = await fetchCreatorPosts(userData.id);
 
@@ -130,9 +171,9 @@ async function loadCreatorBio(username: string): Promise<{ creator: Creator; pro
         website: userData.website,
         social_links: userData.social_links || {},
         is_verified: userData.is_verified,
-        totalProducts: products?.length || 0,
+        totalProducts: enrichedProducts.length,
       },
-      products: products || [],
+      products: enrichedProducts,
       posts: posts || [],
     };
   } catch {
@@ -802,7 +843,7 @@ export default function CreatorBioPage() {
 
                 {/* Optional Link Payload */}
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex justify-between">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex justify-between">
                        <span>Link URL (Optional)</span>
                     </label>
                     <div className="relative">

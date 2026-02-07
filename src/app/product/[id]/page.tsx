@@ -124,8 +124,15 @@ export default function ProductPage({ params }: ProductPageProps) {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-  const user = await getCurrentUser();
-  setCurrentUserId(user?.id || null);
+        const user = await getCurrentUser();
+        setCurrentUserId(user?.id || null);
+        if (user) {
+          setPurchaseForm(prev => ({
+            ...prev,
+            name: user.full_name || '',
+            email: user.email || ''
+          }));
+        }
         // Attempt to load real product
         const { data: prod, error: prodErr } = await supabase
           .from('products')
@@ -637,7 +644,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                       onClick={() => setSelectedPackage(pkg)}
                       className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                         selectedPackage?.id === pkg.id
-                          ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                          ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20'
                           : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                     >
@@ -652,7 +659,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white">{selectedPackage.name}</h3>
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">${selectedPackage.price}</div>
+                      <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${selectedPackage.price}</div>
                     </div>
                     <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{selectedPackage.description}</p>
                   </div>

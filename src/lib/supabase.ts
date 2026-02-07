@@ -44,7 +44,7 @@ export const supabase = new Proxy({} as SupabaseClient, {
 })
 
 const extractStorageReference = (url: string | null | undefined): { bucket: string; path: string } | null => {
-  if (!url) return null
+  if (!url || typeof url !== 'string') return null
   const cleanUrl = url.split('?')[0]
   const match = cleanUrl.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/)
   if (!match) return null

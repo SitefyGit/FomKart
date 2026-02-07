@@ -114,6 +114,53 @@ export async function POST(request: Request) {
       }
     }
 
+    // UPDATE ORDER STATUS IF DELIVERY OCCURRED
+    if (results.length > 0) {
+      // Calculate approval deadline (e.g. 3 days)
+      const approveBy = new Date()
+      approveBy.setDate(approveBy.getDate() + 3)
+
+      const { error: updateError } = await supabaseAdmin
+        .from('orders')
+        .update({
+          status: 'delivered',
+          delivered_at: new Date().toISOString(),
+          approve_by: approveBy.toISOString()
+        })
+        .eq('id', order.id)
+        // Only update if not already completed/delivered to avoid overwriting manual changes? 
+        // Although this script runs presumably right after purchase. 
+        // We probably want to move it to delivered regardless.
+      
+      if (updateError) {
+        console.error('Failed to update order status to delivered', updateError)
+        // We don't throw, we still return the artifacts, but it's an issue.
+      } else {
+        // Also send system message about status change
+        await supabaseAdmin.from('order_messages').insert({
+          order_id: order.id,
+          sender_id: product.creator_id, // or system
+          message: 'Order marked as delivered (Digital Delivery)',
+          is_system_message: true
+        })
+
+         // Create notification for buyer
+         if (order.buyer_id) {
+            await fetch(new URL('/api/notifications/create', request.url).toString(), {
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_id: order.buyer_id,
+                    type: 'delivery_posted',
+                    title: 'Your order was delivered',
+                    message: `Order for ${product.title} is ready.`,
+                    data: { order_id: order.id }
+                })
+            }).catch(e => console.error('Notify failed', e))
+        }
+      }
+    }
+
     return NextResponse.json({ delivered: results.length > 0, artifacts: results })
   } catch (error) {
     console.error('Auto deliver failed', error)

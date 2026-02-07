@@ -99,6 +99,12 @@ npm run dev
 # Open http://localhost:3000
 ```
 
+### 6. Cron Jobs (Auto-Approval)
+To enable auto-approval of delivered orders after 3 days:
+1. Set up a scheduler (like Vercel Cron or a custom script) to hit this endpoint periodically (e.g., hourly):
+   `GET /api/cron/auto-approve`
+2. This endpoint checks for `delivered` orders where the `approve_by` deadline has passed, marks them `completed`, releases funds, and notifies users.
+
 ## 🛒 E-commerce Workflow
 
 ### For Buyers:

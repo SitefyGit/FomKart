@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, getUserOrders } from '@/lib/supabase'
-import { UserCircle2, Mail, MapPin, Link as LinkIcon, Save, Loader2, ShoppingBag, BadgeCheck, Clock, Camera, Store, CheckCircle2, Sparkles } from 'lucide-react'
+import { UserCircle2, Mail, MapPin, Link as LinkIcon, Save, Loader2, ShoppingBag, BadgeCheck, Clock, Camera, Store, CheckCircle2, Sparkles, Instagram, Youtube, Facebook } from 'lucide-react'
 import { ToastContainer, type ToastItem } from '@/components/Toast'
+import { FaTiktok, FaSpotify } from 'react-icons/fa'
 
 type TabKey = 'overview' | 'edit'
 
@@ -21,7 +22,14 @@ export default function BuyerProfilePage() {
     username: '',
     bio: '',
     website: '',
-    location: ''
+    location: '',
+    social_links: {
+      instagram: '',
+      tiktok: '',
+      youtube: '',
+      facebook: '',
+      spotify: ''
+    } as Record<string, string>
   })
   const [toasts, setToasts] = useState<ToastItem[]>([])
 
@@ -38,12 +46,20 @@ export default function BuyerProfilePage() {
       const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single()
       if (error || !data) { router.push('/auth/login'); return }
       setUser(data)
+      const existingSocial = data.social_links || {}
       setForm({
         full_name: data.full_name || '',
         username: data.username || '',
         bio: data.bio || '',
         website: data.website || '',
-        location: data.location || ''
+        location: data.location || '',
+        social_links: {
+          instagram: existingSocial.instagram || '',
+          tiktok: existingSocial.tiktok || '',
+          youtube: existingSocial.youtube || '',
+          facebook: existingSocial.facebook || '',
+          spotify: existingSocial.spotify || ''
+        }
       })
       // Load buyer orders for overview
       const buyerOrders = await getUserOrders(user.id, 'buyer')
@@ -64,6 +80,14 @@ export default function BuyerProfilePage() {
     if (!user) return
     setSaving(true)
     try {
+      // Filter out empty social links
+      const cleanedSocialLinks: Record<string, string> = {}
+      for (const [key, value] of Object.entries(form.social_links)) {
+        if (value && value.trim()) {
+          cleanedSocialLinks[key] = value.trim()
+        }
+      }
+      
       const { error } = await supabase
         .from('users')
         .update({
@@ -71,7 +95,8 @@ export default function BuyerProfilePage() {
           username: form.username,
           bio: form.bio,
           website: form.website,
-          location: form.location
+          location: form.location,
+          social_links: cleanedSocialLinks
         })
         .eq('id', user.id)
       if (!error) { router.refresh(); pushToast('success','Your profile has been updated') }
@@ -276,7 +301,77 @@ export default function BuyerProfilePage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              {/* Social Media Links Section */}
+              {user?.is_creator && (
+                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Social Media Links</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Add your social media handles. These will appear on your bio page.</p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">Instagram</label>
+                      <div className="flex items-center border border-gray-200 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 gap-2">
+                        <Instagram className="w-4 h-4 text-pink-500"/>
+                        <input 
+                          className="flex-1 outline-none dark:bg-gray-700 dark:text-white" 
+                          value={form.social_links.instagram} 
+                          onChange={e=>setForm(f=>({...f, social_links: {...f.social_links, instagram: e.target.value}}))} 
+                          placeholder="@username"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">TikTok</label>
+                      <div className="flex items-center border border-gray-200 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 gap-2">
+                        <FaTiktok className="w-4 h-4 text-gray-800 dark:text-white"/>
+                        <input 
+                          className="flex-1 outline-none dark:bg-gray-700 dark:text-white" 
+                          value={form.social_links.tiktok} 
+                          onChange={e=>setForm(f=>({...f, social_links: {...f.social_links, tiktok: e.target.value}}))} 
+                          placeholder="@username"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">YouTube</label>
+                      <div className="flex items-center border border-gray-200 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 gap-2">
+                        <Youtube className="w-4 h-4 text-red-500"/>
+                        <input 
+                          className="flex-1 outline-none dark:bg-gray-700 dark:text-white" 
+                          value={form.social_links.youtube} 
+                          onChange={e=>setForm(f=>({...f, social_links: {...f.social_links, youtube: e.target.value}}))} 
+                          placeholder="@channel or channel/ID"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">Facebook</label>
+                      <div className="flex items-center border border-gray-200 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 gap-2">
+                        <Facebook className="w-4 h-4 text-blue-600"/>
+                        <input 
+                          className="flex-1 outline-none dark:bg-gray-700 dark:text-white" 
+                          value={form.social_links.facebook} 
+                          onChange={e=>setForm(f=>({...f, social_links: {...f.social_links, facebook: e.target.value}}))} 
+                          placeholder="username or page"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-300">Spotify</label>
+                      <div className="flex items-center border border-gray-200 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 gap-2">
+                        <FaSpotify className="w-4 h-4 text-green-500"/>
+                        <input 
+                          className="flex-1 outline-none dark:bg-gray-700 dark:text-white" 
+                          value={form.social_links.spotify} 
+                          onChange={e=>setForm(f=>({...f, social_links: {...f.social_links, spotify: e.target.value}}))} 
+                          placeholder="artist/ID or show/ID"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end mt-6">
                 <button onClick={onSave} disabled={saving} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-2 disabled:opacity-50">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4"/>}
                   Save changes

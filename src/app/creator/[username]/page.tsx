@@ -228,6 +228,7 @@ const POST_IMAGE_BUCKET = 'creator-posts';
 const POST_IMAGE_MAX_EDGE = 1600;
 
 function extractVideoMeta(rawUrl: string): VideoMeta | null {
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
   const url = rawUrl.trim();
   if (!url) return null;
   const youtubeMatch = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i);
@@ -416,6 +417,7 @@ export default function CreatorPage() {
   const [autoMessage, setAutoMessage] = useState('');
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [showAllPosts, setShowAllPosts] = useState(false);
+  const [sellerRating, setSellerRating] = useState<{ rating: number; count: number }>({ rating: 0, count: 0 });
 
   const resetPostForm = useCallback(() => {
     setPostType('text');
@@ -511,8 +513,9 @@ export default function CreatorPage() {
       pushToast({ type: 'success', title: 'Profile updated', message: `${type==='avatar'?'Profile photo':'Cover photo'} updated successfully!` });
 
       // Try deleting old file to save storage (ignore errors)
-      if (prevUrl && prevUrl.includes('/storage/v1/object/public/')) {
-        const match = prevUrl.replace(/\?.*$/, '').match(/\/storage\/v1\/object\/public\/(.*?)\/(.*)$/);
+      if (prevUrl && typeof prevUrl === 'string' && prevUrl.includes('/storage/v1/object/public/')) {
+        const urlToMatch = String(prevUrl).replace(/\?.*$/, '');
+        const match = urlToMatch.match(/\/storage\/v1\/object\/public\/(.*?)\/(.*)$/);
         if (match) {
           const [, bucket, key] = match;
           await supabase.storage.from(bucket).remove([key]);
@@ -699,7 +702,34 @@ export default function CreatorPage() {
     if (!username) return;
     (async () => {
       setLoading(true);
-      setCreator(await loadCreator(username));
+      const loadedCreator = await loadCreator(username);
+      setCreator(loadedCreator);
+      
+      // Fetch actual seller rating from reviews table
+      if (loadedCreator) {
+        const { data: ratingRows } = await supabase
+          .from('reviews')
+          .select('seller_rating, rating')
+          .eq('seller_id', loadedCreator.id)
+          .eq('is_public', true);
+        
+        if (ratingRows && ratingRows.length > 0) {
+          const validRatings = ratingRows
+            .map((row: { seller_rating: number | null; rating?: number | null }) => {
+              if (typeof row.seller_rating === 'number' && row.seller_rating > 0) return row.seller_rating;
+              if (typeof row.rating === 'number' && row.rating > 0) return row.rating;
+              return null;
+            })
+            .filter((value): value is number => value !== null);
+          
+          if (validRatings.length > 0) {
+            const sum = validRatings.reduce((a, b) => a + b, 0);
+            const average = Math.round((sum / validRatings.length) * 10) / 10;
+            setSellerRating({ rating: average, count: validRatings.length });
+          }
+        }
+      }
+      
       setLoading(false);
     })();
   }, [username]);
@@ -1348,8 +1378,8 @@ export default function CreatorPage() {
               <div className="flex flex-wrap items-center gap-4 text-sm">
                 <span className="flex items-center gap-1">
                   <StarIcon className="w-4 h-4 text-orange-500" />
-                  <span className="font-semibold text-gray-900 dark:text-white">5.0</span>
-                  <span className="text-gray-500 dark:text-gray-400">(0)</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{sellerRating.count > 0 ? sellerRating.rating.toFixed(1) : 'New'}</span>
+                  <span className="text-gray-500 dark:text-gray-400">({sellerRating.count})</span>
                 </span>
                 <span className="text-gray-300 dark:text-gray-600">|</span>
                 <span className="text-gray-600 dark:text-gray-400">
@@ -1357,7 +1387,7 @@ export default function CreatorPage() {
                 </span>
                 <span className="text-gray-300 dark:text-gray-600">|</span>
                 <span className="text-gray-600 dark:text-gray-400">
-                  <span className="font-semibold text-gray-900 dark:text-white">{yearsOnPlatform}</span> years on FormKart
+                  <span className="font-semibold text-gray-900 dark:text-white">{yearsOnPlatform}</span> years on FomKart
                 </span>
               </div>
             </div>
@@ -1962,8 +1992,14 @@ export default function CreatorPage() {
                   const priceNum = parseFloat(newProduct.price||'0');
                   // Build dynamic arrays - limit to 5 tags, max 20 chars each
                   const tagArray = (productExtras.tags || '').split(',').map(t=>t.trim().slice(0,20)).filter(Boolean).slice(0,5);
-                  const youTubeMatch = productExtras.videoUrl ? (productExtras.videoUrl.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/) || productExtras.videoUrl.match(/^([A-Za-z0-9_-]{6,})$/)) : null;
-                  const videoId = youTubeMatch ? youTubeMatch[1] : '';
+                  
+                  let videoId = '';
+                  const vUrl = productExtras?.videoUrl;
+                  if (vUrl && typeof vUrl === 'string') {
+                    const youTubeMatch = (vUrl as string).match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/) || (vUrl as string).match(/^([A-Za-z0-9_-]{6,})$/);
+                    if (youTubeMatch) videoId = youTubeMatch[1];
+                  }
+
                   const featureLines: string[] = [];
                   if (selectedType==='digital') {
                     if (productExtras.fileFormat) featureLines.push(`Format: ${productExtras.fileFormat}`);

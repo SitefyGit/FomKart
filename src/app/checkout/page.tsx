@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { 
-  CreditCard, 
   Lock, 
   Clock, 
   CheckCircle,
@@ -13,7 +12,7 @@ import {
 } from 'lucide-react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
-import { supabase, type Json, type JsonRecord, type User as ProfileUser, type CourseDeliveryPayload, type ProductDigitalAsset } from '@/lib/supabase'
+import { supabase, type User as ProfileUser, type CourseDeliveryPayload, type ProductDigitalAsset } from '@/lib/supabase'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -21,7 +20,6 @@ interface CheckoutItem {
   productId: string
   packageId: string
   quantity: number
-  requirements?: JsonRecord
   product?: CheckoutProduct
   package?: CheckoutPackage
 }
@@ -58,12 +56,6 @@ interface CheckoutPackage {
 }
 
 function CheckoutContent() {
-  const getRequirementText = (value: Json | undefined): string => {
-    if (typeof value === 'string') return value
-    if (value === null || typeof value === 'undefined') return ''
-    return String(value)
-  }
-
   const [items, setItems] = useState<CheckoutItem[]>([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
@@ -77,7 +69,6 @@ function CheckoutContent() {
     country: ''
   })
   const [paymentMethod, setPaymentMethod] = useState('stripe')
-  const [specialInstructions, setSpecialInstructions] = useState('')
   const [clientSecret, setClientSecret] = useState('')
   const [stripeError, setStripeError] = useState(false)
   const [commissionRate, setCommissionRate] = useState(5)
@@ -117,7 +108,10 @@ function CheckoutContent() {
           if (data.clientSecret) {
             setClientSecret(data.clientSecret)
           } else {
-            console.error('Stripe error:', data.error)
+            // Only log if it's an unexpected error (not the expected "not configured" message)
+            if (data.error && !data.error.includes('not configured')) {
+              console.error('Stripe error:', data.error)
+            }
             setStripeError(true)
           }
         })
@@ -317,8 +311,6 @@ function CheckoutContent() {
             unit_price: selectedPackage.price,
             total_price: total,
             service_fee: serviceFee,
-            requirements: item.requirements,
-            special_instructions: specialInstructions,
             status: 'confirmed',
             payment_status: 'completed',
             payment_method: paymentMethod,
@@ -538,20 +530,6 @@ function CheckoutContent() {
               </div>
             </div>
 
-            {/* Special Instructions */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Special Instructions
-              </h2>
-              <textarea
-                value={specialInstructions}
-                onChange={(e) => setSpecialInstructions(e.target.value)}
-                rows={4}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-gray-400"
-                placeholder="Any additional information or special requests for the seller..."
-              />
-            </div>
           </div>
 
           {/* Right Column - Order Summary */}
@@ -594,47 +572,6 @@ function CheckoutContent() {
                           {item.package.delivery_days} days
                         </div>
                       )}
-                      {/* Mini requirements form */}
-                      <div className="mt-3 space-y-2 text-xs">
-                        <div>
-                          <div className="text-gray-600 dark:text-gray-400 mb-1">Project details</div>
-                          <textarea
-                            className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            rows={2}
-                            value={getRequirementText(item.requirements?.details)}
-                            onChange={(e)=>{
-                              const v = e.target.value
-                              setItems(prev => prev.map((it, i) => i===index ? { ...it, requirements: { ...(it.requirements||{}), details: v } } : it))
-                            }}
-                            placeholder="Describe what you need"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-gray-600 dark:text-gray-400 mb-1">URLs</div>
-                          <input
-                            className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            value={getRequirementText(item.requirements?.urls)}
-                            onChange={(e)=>{
-                              const v = e.target.value
-                              setItems(prev => prev.map((it, i) => i===index ? { ...it, requirements: { ...(it.requirements||{}), urls: v } } : it))
-                            }}
-                            placeholder="https://example.com, https://brief.link"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-gray-600 dark:text-gray-400 mb-1">Notes to seller</div>
-                          <textarea
-                            className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            rows={2}
-                            value={getRequirementText(item.requirements?.notes)}
-                            onChange={(e)=>{
-                              const v = e.target.value
-                              setItems(prev => prev.map((it, i) => i===index ? { ...it, requirements: { ...(it.requirements||{}), notes: v } } : it))
-                            }}
-                            placeholder="Any additional info"
-                          />
-                        </div>
-                      </div>
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</span>
                         <span className="font-semibold text-gray-900 dark:text-white">

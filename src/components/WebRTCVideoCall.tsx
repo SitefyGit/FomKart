@@ -10,6 +10,7 @@ interface WebRTCVideoCallProps {
   remoteUserName?: string
   onLeave: () => void
   audioOnly?: boolean
+  maxDuration?: number // in minutes
 }
 
 const ICE_SERVERS: RTCConfiguration = {
@@ -35,7 +36,7 @@ const broadcastCallStatus = (orderId: string, active: boolean) => {
   })
 }
 
-export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, onLeave, audioOnly = false }: WebRTCVideoCallProps) {
+export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, onLeave, audioOnly = false, maxDuration }: WebRTCVideoCallProps) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
   const [isMuted, setIsMuted] = useState(false)
@@ -44,6 +45,7 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
   const [status, setStatus] = useState('Initializing...')
   const [logs, setLogs] = useState<string[]>([])
   const [participantLeft, setParticipantLeft] = useState(false)
+  const [timeLeft, setTimeLeft] = useState<number | null>(maxDuration ? maxDuration * 60 : null)
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
@@ -56,6 +58,26 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
     const time = new Date().toLocaleTimeString()
     console.log(`[WebRTC ${time}] ${msg}`)
     setLogs(prev => [...prev.slice(-20), `${time}: ${msg}`])
+  }
+
+  // Timer for max duration
+  useEffect(() => {
+    if (timeLeft === null) return
+    if (timeLeft <= 0) {
+      addLog('Call duration limit reached. Ending call.')
+      onLeave()
+      return
+    }
+    const timer = setInterval(() => {
+      setTimeLeft(prev => (prev !== null && prev > 0 ? prev - 1 : 0))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [timeLeft, onLeave])
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   // Broadcast call active status when component mounts/unmounts
@@ -398,7 +420,14 @@ export default function WebRTCVideoCall({ orderId, currentUser, remoteUserName, 
           </div>
           <div>
             <h3 className="font-medium text-white">Live Consultation</h3>
-            <p className="text-xs text-gray-400">{status}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-gray-400">{status}</p>
+              {timeLeft !== null && (
+                <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${timeLeft < 60 ? 'bg-red-900/50 text-red-400 animate-pulse' : 'bg-gray-700 text-gray-300'}`}>
+                  {formatTime(timeLeft)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <button 
