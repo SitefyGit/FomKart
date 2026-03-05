@@ -9,6 +9,7 @@ import type { User as SupabaseAuthUser } from "@supabase/supabase-js";
 import { supabase, fetchCreatorPosts, createCreatorPost, deleteCreatorPost, deleteProduct, addToCart, type CreatorPost, type ProductDigitalAsset, type CourseDeliveryPayload } from "@/lib/supabase";
 // Icons (Heroicons + MUI)
 import { UserCircleIcon, MapPinIcon, LinkIcon, ArrowTopRightOnSquareIcon, PlayCircleIcon, ChatBubbleLeftRightIcon, CameraIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { X as XIcon } from 'lucide-react';
 import ShareIcon from '@mui/icons-material/Share';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -18,6 +19,8 @@ import { ReviewsSlider } from '@/components/ReviewsSlider';
 import { SocialIconsBar } from '@/components/SocialIconsBar';
 import { ToastContainer, ToastItem } from '@/components/Toast';
 import { ShareModal } from '@/components/ShareModal';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { convertToUSD } from '@/lib/currency';
 
 interface AdminSettings {
   auto_approve_products: boolean
@@ -265,6 +268,7 @@ function ImagePreview({ file }: { file: File }) {
 export default function CreatorPage() {
   const { username } = useParams<{ username: string }>();
   const router = useRouter();
+  const { currency, formatPrice } = useCurrency();
   const [creator, setCreator] = useState<Creator | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null); // 'avatar' | 'cover'
@@ -276,6 +280,7 @@ export default function CreatorPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('');
   // Extra dynamic product fields (gig style)
+  const [tagInput, setTagInput] = useState('');
   const [productExtras, setProductExtras] = useState({
     videoUrl: '',
     externalUrl: '',
@@ -959,7 +964,7 @@ export default function CreatorPage() {
                         <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full text-xs inline-flex items-center gap-1">{imageCount} Images</span>
                       )}
                     </div>
-                    <span className="font-bold text-lg text-blue-600 dark:text-blue-400">{price !== undefined ? `$${price.toLocaleString()}` : 'Free'}</span>
+                    <span className="font-bold text-lg text-blue-600 dark:text-blue-400">{price !== undefined ? formatPrice(price) : 'Free'}</span>
                   </div>
                 </div>
               </div>
@@ -1601,7 +1606,7 @@ export default function CreatorPage() {
                         </h3>
                         <div className="flex items-center justify-between">
                           <span className="text-base font-bold text-gray-900 dark:text-white">
-                            ${price !== undefined ? price.toLocaleString() : '0'}
+                            {price !== undefined ? formatPrice(price) : formatPrice(0)}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 capitalize">
                             {p.type === 'service' ? (
@@ -1732,8 +1737,9 @@ export default function CreatorPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Base Price</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Price ({currency})</label>
                   <input value={newProduct.price} onChange={e=>setNewProduct(p=>({...p,price:e.target.value}))} placeholder="19.00" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  <p className="text-[11px] text-gray-400 mt-0.5">Enter amount in {currency}. Converted to USD for storage.</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
@@ -1782,23 +1788,53 @@ export default function CreatorPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tags (max 5, up to 20 chars each)</label>
-                <input 
-                  value={productExtras.tags} 
-                  onChange={e=>setProductExtras(x=>({...x,tags:e.target.value}))} 
-                  placeholder="branding, logo, design" 
-                  className={`w-full border rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white ${
-                    (productExtras.tags.split(',').filter(t => t.trim()).length > 5 || productExtras.tags.split(',').some(t => t.trim().length > 20)) 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : 'dark:border-gray-600'
-                  }`} 
-                />
-                {(productExtras.tags.split(',').filter(t => t.trim()).length > 5 || productExtras.tags.split(',').some(t => t.trim().length > 20)) && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {productExtras.tags.split(',').filter(t => t.trim()).length > 5 && 'Max 5 tags allowed. '}
-                    {productExtras.tags.split(',').some(t => t.trim().length > 20) && 'Tags must be under 20 characters.'}
-                  </p>
-                )}
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Tags <span className="font-normal text-gray-400">({(productExtras.tags||'').split(',').filter(t=>t.trim()).length}/5)</span>
+                </label>
+                <div className="flex flex-wrap gap-1.5 items-center min-h-[44px] w-full border dark:border-gray-600 rounded-lg px-2 py-1.5 dark:bg-gray-700 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-colors">
+                  {(productExtras.tags||'').split(',').map(t=>t.trim()).filter(Boolean).map((tag,i)=>(
+                    <span key={i} className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium px-2.5 py-1 rounded-full">
+                      {tag}
+                      <button type="button" onClick={()=>{
+                        const newList=(productExtras.tags||'').split(',').map(t=>t.trim()).filter(Boolean).filter((_,idx)=>idx!==i);
+                        setProductExtras(x=>({...x,tags:newList.join(', ')}));
+                      }} className="text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400 transition-colors ml-0.5 leading-none flex items-center">
+                        <XIcon className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  {(productExtras.tags||'').split(',').filter(t=>t.trim()).length < 5 && (
+                    <input
+                      value={tagInput}
+                      onChange={e=>setTagInput(e.target.value.replace(',',''))}
+                      onKeyDown={e=>{
+                        if((e.key==='Enter'||e.key===',')&&tagInput.trim()){
+                          e.preventDefault();
+                          const trimmed=tagInput.trim().slice(0,20);
+                          const existing=(productExtras.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+                          if(existing.length<5&&trimmed&&!existing.includes(trimmed)){
+                            setProductExtras(x=>({...x,tags:[...existing,trimmed].join(', ')}));
+                          }
+                          setTagInput('');
+                        } else if(e.key==='Backspace'&&!tagInput){
+                          const existing=(productExtras.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+                          if(existing.length>0) setProductExtras(x=>({...x,tags:existing.slice(0,-1).join(', ')}));
+                        }
+                      }}
+                      onBlur={()=>{
+                        if(tagInput.trim()){
+                          const trimmed=tagInput.trim().slice(0,20);
+                          const existing=(productExtras.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+                          if(existing.length<5&&!existing.includes(trimmed)) setProductExtras(x=>({...x,tags:[...existing,trimmed].join(', ')}));
+                          setTagInput('');
+                        }
+                      }}
+                      placeholder={(productExtras.tags||'').split(',').filter(t=>t.trim()).length===0?'Add tags… press Enter or comma':'Add more…'}
+                      className="flex-1 min-w-[140px] bg-transparent outline-none text-sm dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-0.5 px-1"
+                    />
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Press Enter or comma to add · Max 5 tags · 20 chars each</p>
               </div>
               {(selectedType==='digital' || selectedType==='course') && (
                 <div className="border dark:border-gray-600 rounded-xl p-4 bg-gray-50 dark:bg-gray-700 space-y-3">
@@ -1989,7 +2025,8 @@ export default function CreatorPage() {
                 setSavingProduct(true);
                 try {
                   let insertedId = `local-${Date.now()}`;
-                  const priceNum = parseFloat(newProduct.price||'0');
+                  // Parse price and convert from seller's currency to USD for storage
+                  const priceNum = convertToUSD(parseFloat(newProduct.price||'0'), currency);
                   // Build dynamic arrays - limit to 5 tags, max 20 chars each
                   const tagArray = (productExtras.tags || '').split(',').map(t=>t.trim().slice(0,20)).filter(Boolean).slice(0,5);
                   

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { supabase } from '@/lib/supabase'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
 type ProductCard = {
   id: string
@@ -91,6 +92,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
   const resolvedParams = React.use(params)
   const tagSlug = resolvedParams.tag
   const tagName = tagSlugToName(tagSlug)
+  const { formatPrice } = useCurrency()
   
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('popular')
@@ -581,7 +583,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                           Starting at
                         </span>
                         <span className="text-lg font-bold text-gray-900 dark:text-white">
-                          ${product.price.toFixed(0)}
+                          {formatPrice(product.price)}
                         </span>
                       </div>
                     </div>

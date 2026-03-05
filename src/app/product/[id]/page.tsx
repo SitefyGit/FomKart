@@ -7,6 +7,7 @@ import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { addToCart as addToCartApi, getCurrentUser, supabase } from '@/lib/supabase';
 import { ProductMediaGallery } from '@/components/ProductMediaGallery';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import {
   Star,
   Clock,
@@ -108,6 +109,7 @@ interface ProductPageProps {
 export default function ProductPage({ params }: ProductPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { formatPrice } = useCurrency();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<ProductPackage | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -677,7 +679,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white">{selectedPackage.name}</h3>
-                      <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${selectedPackage.price}</div>
+                      <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(selectedPackage.price)}</div>
                     </div>
                     <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{selectedPackage.description}</p>
                   </div>
@@ -712,7 +714,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                       className={`w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 transition-colors flex items-center justify-center font-medium ${currentUserId===product.creator_id ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       <ArrowRight className="w-5 h-5 mr-2" />
-                      Continue (${selectedPackage.price})
+                      Continue ({formatPrice(selectedPackage.price)})
                     </button>
                     <button
                       onClick={handleAddToCart}

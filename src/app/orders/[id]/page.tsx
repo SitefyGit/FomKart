@@ -7,6 +7,7 @@ import { CheckCircle, Clock, ArrowLeft, Paperclip, Send, AlertCircle, Upload, Pa
 import { getOrderById, getOrderMessages, listDeliverables, sendOrderMessage, createDeliverable, updateOrderStatus, updateOrderRequirements, createNotification, supabase } from '@/lib/supabase'
 import { ToastContainer, type ToastItem } from '@/components/Toast'
 import WebRTCVideoCall from '@/components/WebRTCVideoCall'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
 type TabKey = 'activity' | 'details' | 'requirements' | 'delivery'
 
@@ -20,6 +21,7 @@ export default function OrderPage({ params }: OrderPageProps) {
   const [messages, setMessages] = useState<any[]>([])
   const [deliveries, setDeliveries] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<TabKey>('activity')
+  const { formatPrice } = useCurrency()
   const [loading, setLoading] = useState(true)
   const [posting, setPosting] = useState(false)
   const [compose, setCompose] = useState('')
@@ -727,7 +729,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                             </td>
                             <td className="p-4">{order.quantity ?? 1}</td>
                             <td className="p-4">{order.package?.delivery_time ? `${order.package.delivery_time} days` : '—'}</td>
-                            <td className="p-4">${(order.package?.price ?? order.unit_price ?? 0).toFixed(2)}</td>
+                            <td className="p-4">{formatPrice(order.package?.price ?? order.unit_price ?? 0)}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -740,9 +742,9 @@ export default function OrderPage({ params }: OrderPageProps) {
                       const total = typeof order?.total_price === 'number' ? order.total_price : subtotal + fee
                       return (
                         <div className="space-y-2 text-sm">
-                          <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Subtotal</span><span className="font-medium text-gray-900 dark:text-white">${subtotal.toFixed(2)}</span></div>
-                          <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Service Fee</span><span className="font-medium text-gray-900 dark:text-white">${fee.toFixed(2)}</span></div>
-                          <div className="flex justify-between text-base font-semibold pt-2 border-t dark:border-gray-700 text-gray-900 dark:text-white"><span>Total</span><span>${total.toFixed(2)}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Subtotal</span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(subtotal)}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Service Fee</span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(fee)}</span></div>
+                          <div className="flex justify-between text-base font-semibold pt-2 border-t dark:border-gray-700 text-gray-900 dark:text-white"><span>Total</span><span>{formatPrice(total)}</span></div>
                         </div>
                       )
                     })()}
@@ -829,9 +831,9 @@ export default function OrderPage({ params }: OrderPageProps) {
                 const total = typeof order?.total_price === 'number' ? order.total_price : subtotal + fee
                 return (
                   <div className="space-y-3 text-sm">
-                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Package Price</span><span className="font-medium text-gray-900 dark:text-white">${subtotal.toFixed(2)}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Service Fee (5%)</span><span className="font-medium text-gray-900 dark:text-white">${fee.toFixed(2)}</span></div>
-                    <div className="border-t dark:border-gray-700 pt-3 flex justify-between font-semibold text-lg text-gray-900 dark:text-white"><span>Total</span><span>${total.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Package Price</span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(subtotal)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Service Fee (5%)</span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(fee)}</span></div>
+                    <div className="border-t dark:border-gray-700 pt-3 flex justify-between font-semibold text-lg text-gray-900 dark:text-white"><span>Total</span><span>{formatPrice(total)}</span></div>
                   </div>
                 )
               })()}

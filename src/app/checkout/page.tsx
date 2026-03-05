@@ -13,6 +13,7 @@ import {
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { supabase, type User as ProfileUser, type CourseDeliveryPayload, type ProductDigitalAsset } from '@/lib/supabase'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null
@@ -61,6 +62,7 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [currentUser, setCurrentUser] = useState<ProfileUser | null>(null)
+  const { formatPrice } = useCurrency()
   const [billingInfo, setBillingInfo] = useState({
     fullName: '',
     email: '',
@@ -576,7 +578,7 @@ function CheckoutContent() {
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</span>
                         <span className="font-semibold text-gray-900 dark:text-white">
-                          ${((item.package?.price || item.product?.base_price || 0) * item.quantity).toFixed(2)}
+                          {formatPrice((item.package?.price || item.product?.base_price || 0) * item.quantity)}
                         </span>
                       </div>
                     </div>
@@ -588,17 +590,17 @@ function CheckoutContent() {
               <div className="space-y-2 pb-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                  <span className="text-gray-900 dark:text-white">${subtotal.toFixed(2)}</span>
+                  <span className="text-gray-900 dark:text-white">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Service Fee (5%)</span>
-                  <span className="text-gray-900 dark:text-white">${serviceFee.toFixed(2)}</span>
+                  <span className="text-gray-900 dark:text-white">{formatPrice(serviceFee)}</span>
                 </div>
               </div>
               
               <div className="flex justify-between pt-4 mb-6">
                 <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">${total.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(total)}</span>
               </div>
 
               {/* Checkout Button */}

@@ -9,6 +9,7 @@ import { supabase, fetchCreatorPosts, createCreatorPost, deleteCreatorPost, type
 import { ShareModal } from '@/components/ShareModal';
 import { ToastContainer, ToastItem } from '@/components/Toast';
 import { SocialIconsBar } from '@/components/SocialIconsBar';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import { 
   MapPinIcon, LinkIcon, ArrowTopRightOnSquareIcon, PlayCircleIcon, 
@@ -191,6 +192,7 @@ async function loadCreatorBio(username: string): Promise<{ creator: Creator; pro
 export default function CreatorBioPage() {
   const { username } = useParams<{ username: string }>();
   const router = useRouter();
+  const { formatPrice } = useCurrency();
   const [creator, setCreator] = useState<Creator | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [posts, setPosts] = useState<CreatorPost[]>([]);
@@ -564,7 +566,7 @@ export default function CreatorBioPage() {
                       {product.title}
                     </h3>
                     <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                       <span className="font-semibold text-emerald-600 dark:text-emerald-400">${product.base_price || 0}</span>
+                       <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatPrice(product.base_price || 0)}</span>
                        <span className="text-xs">•</span>
                        <span className="flex items-center gap-0.5 text-xs"><Star className="w-3 h-3 text-yellow-500" /> {product.rating?.toFixed(1) || 'New'}</span>
                     </div>

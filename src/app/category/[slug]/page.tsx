@@ -31,6 +31,7 @@ import {
 import { SiAdobephotoshop } from 'react-icons/si'
 import { supabase } from '@/lib/supabase'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
 type ProductCard = {
   id: string
@@ -177,6 +178,7 @@ const subcategories = {
 
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = React.use(params)
+  const { formatPrice } = useCurrency()
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('popular')
   const [products, setProducts] = useState<ProductCard[]>([])
@@ -838,7 +840,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
                     <span className="text-xs text-gray-500 dark:text-gray-400 uppercase">Starting at</span>
                     <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                      From ${product.price}
+                      From {formatPrice(product.price)}
                     </div>
                   </div>
                 </div>

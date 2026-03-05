@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle, Clock, Package, ArrowRight, AlertCircle, Loader2, Truck, Ban, RefreshCw } from 'lucide-react'
 import { supabase, getUserOrders } from '@/lib/supabase'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
 type TabKey = 'buying' | 'selling'
 
@@ -19,6 +20,7 @@ function OrdersDashboardContent() {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const { formatPrice } = useCurrency()
 
   useEffect(() => {
     // Initialize tab from URL if present
@@ -226,7 +228,7 @@ function OrdersDashboardContent() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-gray-900 dark:text-white font-semibold">${Number(price).toFixed(2)}</div>
+                      <div className="text-gray-900 dark:text-white font-semibold">{formatPrice(Number(price))}</div>
                       <div className="text-blue-600 dark:text-blue-400 inline-flex items-center gap-1 text-sm mt-1">
                         View details <ArrowRight className="w-4 h-4" />
                       </div>

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Star, ArrowRight } from 'lucide-react'
 import { CubeIcon } from '@heroicons/react/24/solid'
 import { supabase } from '@/lib/supabase'
+import { CurrencyPrice } from '@/components/CurrencyPrice'
 
 // Cache this list for 60s; content stays fresh enough and speeds navigation
 export const revalidate = 60
@@ -133,7 +134,11 @@ export default async function FeaturedServicesSection() {
                       {service.category_data?.name || getTypeLabel(service.type)}
                     </span>
                   </div>
-                  <span className="font-bold text-gray-900 dark:text-white text-sm sm:text-lg group-hover:text-emerald-600 transition-colors">From ${service.base_price}</span>
+                  <CurrencyPrice
+                    usdAmount={service.base_price}
+                    prefix="From "
+                    className="font-bold text-gray-900 dark:text-white text-sm sm:text-lg group-hover:text-emerald-600 transition-colors"
+                  />
                 </div>
               </div>
             </Link>

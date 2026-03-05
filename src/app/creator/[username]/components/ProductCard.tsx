@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Star } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 export interface ProductCardProps {
   product: {
@@ -42,6 +43,7 @@ export default function ProductCard({
   const price = typeof product.base_price === 'number' && product.base_price >= 0 ? product.base_price : undefined;
   const rating = product.rating ?? 0;
   const reviewsCount = product.reviews_count ?? 0;
+  const { formatPrice } = useCurrency();
 
   if (variant === 'list') {
     return (
@@ -99,7 +101,7 @@ export default function ProductCard({
         <div className="shrink-0 text-right">
           <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">From</div>
           <div className="text-lg font-bold text-gray-900 dark:text-white">
-            ${price ?? 0}
+            {formatPrice(price ?? 0)}
           </div>
         </div>
       </Link>
@@ -199,7 +201,7 @@ export default function ProductCard({
           <div className="text-right">
             <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">From</div>
             <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-              ${price ?? 0}
+              {formatPrice(price ?? 0)}
             </div>
           </div>
         </div>

@@ -11,6 +11,7 @@ import AnnouncementBanner from '@/components/AnnouncementBanner'
 import MaintenanceGuard from '@/components/MaintenanceGuard'
 import Footer from '@/components/Footer'
 import CartIcon from '@/components/CartIcon'
+import { CurrencyProvider } from '@/contexts/CurrencyContext'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,6 +59,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
+        <CurrencyProvider>
         <MaintenanceGuard>
         <AnnouncementBanner />
         {/* Global Header */}
@@ -73,6 +75,7 @@ export default function RootLayout({
                   height={24} 
                   className="h-6 w-auto dark:hidden"
                   priority
+                  suppressHydrationWarning
                 />
                 {/* Dark mode logo (white text) */}
                 <Image 
@@ -82,6 +85,7 @@ export default function RootLayout({
                   height={24} 
                   className="h-6 w-auto hidden dark:block"
                   priority
+                  suppressHydrationWarning
                 />
               </Link>
               <nav className="hidden md:flex items-center gap-6 text-sm">
@@ -110,6 +114,7 @@ export default function RootLayout({
         </main>
         <Footer />
         </MaintenanceGuard>
+        </CurrencyProvider>
       </body>
     </html>
   );

@@ -2,21 +2,22 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState } from 'react'
 import { 
-  Facebook, 
   Twitter, 
   Instagram, 
   Linkedin, 
   Youtube,
   Mail,
-  MapPin,
-  Phone,
-  CreditCard,
   Globe,
-  ShieldCheck
+  ChevronDown,
 } from 'lucide-react'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
 export default function Footer() {
+  const { currency, currencies, setCurrency } = useCurrency()
+  const [currencyOpen, setCurrencyOpen] = useState(false)
+  const currentCurrencyObj = currencies.find(c => c.code === currency) ?? currencies[0]
   return (
     <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,6 +32,7 @@ export default function Footer() {
                 width={120} 
                 height={32} 
                 className="h-8 w-auto dark:hidden"
+                suppressHydrationWarning
               />
               {/* Dark mode logo (white text) */}
               <Image 
@@ -39,6 +41,7 @@ export default function Footer() {
                 width={120} 
                 height={32} 
                 className="h-8 w-auto hidden dark:block"
+                suppressHydrationWarning
               />
             </Link>
             <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
@@ -158,9 +161,50 @@ export default function Footer() {
               <Link href="/site-map" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Sitemap</Link>
             </div>
 
-            <div className="flex items-center gap-2 text-gray-400">
+            <div className="flex items-center gap-2 text-gray-400 relative">
               <Globe className="w-4 h-4" />
-              <span className="text-sm">English (US)</span>
+              <button
+                onClick={() => setCurrencyOpen(o => !o)}
+                className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                aria-label="Select currency"
+              >
+                <span>{currentCurrencyObj.symbol}</span>
+                <span>{currentCurrencyObj.code}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${currencyOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {currencyOpen && (
+                <>
+                  {/* Backdrop */}
+                  <div className="fixed inset-0 z-40" onClick={() => setCurrencyOpen(false)} />
+                  {/* Dropdown */}
+                  <div className="absolute bottom-8 right-0 z-50 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden">
+                    <div className="p-3 border-b border-gray-100 dark:border-gray-700">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Select Currency
+                      </p>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {currencies.map(cur => (
+                        <button
+                          key={cur.code}
+                          onClick={() => { setCurrency(cur.code); setCurrencyOpen(false); }}
+                          className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-3 transition-colors ${
+                            cur.code === currency
+                              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium'
+                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className="w-8 text-center font-mono text-xs text-gray-500 dark:text-gray-400">{cur.symbol}</span>
+                            <span>{cur.name}</span>
+                          </span>
+                          <span className="text-xs text-gray-400 dark:text-gray-500">{cur.code}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -14,6 +14,7 @@ import {
   Clock
 } from 'lucide-react'
 import { supabase, type User } from '@/lib/supabase'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
 // Local type for cart items with normalized relationships
 interface CartItemNormalized {
@@ -56,6 +57,7 @@ export default function CartPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [commissionRate, setCommissionRate] = useState(5)
   const router = useRouter()
+  const { formatPrice } = useCurrency()
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -394,7 +396,7 @@ export default function CartPage() {
                               {/* Price */}
                               <div className="flex items-center gap-2">
                                 <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                  ${item.package?.price || item.product?.base_price}
+                                  {formatPrice(item.package?.price || item.product?.base_price || 0)}
                                 </span>
                                 <span className="text-gray-500 dark:text-gray-400">per item</span>
                               </div>
@@ -446,7 +448,7 @@ export default function CartPage() {
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600 dark:text-gray-400">Item Total</span>
                           <span className="font-semibold text-gray-900 dark:text-white">
-                            ${((item.package?.price || item.product?.base_price || 0) * item.quantity).toFixed(2)}
+                            {formatPrice((item.package?.price || item.product?.base_price || 0) * item.quantity)}
                           </span>
                         </div>
                       </div>
@@ -464,16 +466,16 @@ export default function CartPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Subtotal ({cartItems.length} items)</span>
-                    <span className="text-gray-900 dark:text-white">${subtotal.toFixed(2)}</span>
+                    <span className="text-gray-900 dark:text-white">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Service Fee (5%)</span>
-                    <span className="text-gray-900 dark:text-white">${serviceFee.toFixed(2)}</span>
+                    <span className="text-gray-900 dark:text-white">{formatPrice(serviceFee)}</span>
                   </div>
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
                     <div className="flex justify-between">
                       <span className="font-semibold text-gray-900 dark:text-white">Total</span>
-                      <span className="font-bold text-xl text-gray-900 dark:text-white">${total.toFixed(2)}</span>
+                      <span className="font-bold text-xl text-gray-900 dark:text-white">{formatPrice(total)}</span>
                     </div>
                   </div>
                 </div>

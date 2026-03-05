@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase, getCurrentUser } from '@/lib/supabase';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { convertFromUSD, convertToUSD } from '@/lib/currency';
+import { X } from 'lucide-react';
 
 interface EditProductProps {
   params: Promise<{ id: string }>
@@ -27,6 +30,8 @@ interface DBProduct {
 export default function EditProductPage({ params }: EditProductProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { currency } = useCurrency();
+  const usdPriceRef = useRef<number | null>(null); // raw USD price from DB
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [product, setProduct] = useState<DBProduct | null>(null);
@@ -34,6 +39,7 @@ export default function EditProductPage({ params }: EditProductProps) {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState<string>('');
   const [tags, setTags] = useState<string>('');
+  const [tagInput, setTagInput] = useState('');
   const [autoMessageEnabled, setAutoMessageEnabled] = useState(false);
   const [autoMessage, setAutoMessage] = useState('');
   const [images, setImages] = useState<string[]>([]);
@@ -56,7 +62,9 @@ export default function EditProductPage({ params }: EditProductProps) {
         setProduct(data as DBProduct);
         setTitle(data.title || '');
         setDescription(data.description || '');
-        setPrice(data.base_price?.toString() || '');
+        const usdPrice = typeof data.base_price === 'number' ? data.base_price : 0;
+        usdPriceRef.current = usdPrice;
+        setPrice(convertFromUSD(usdPrice, currency).toFixed(2));
         setTags((data.tags || []).join(', '));
         setAutoMessageEnabled(Boolean(data.auto_message_enabled));
         setAutoMessage(data.auto_message || '');
@@ -111,9 +119,18 @@ export default function EditProductPage({ params }: EditProductProps) {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  // When currency changes, recalculate displayed price from the stored USD value
+  useEffect(() => {
+    if (usdPriceRef.current !== null) {
+      setPrice(convertFromUSD(usdPriceRef.current, currency).toFixed(2));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currency]);
+
   const onSave = async () => {
     if (!product || saving) return;
-    const parsedPrice = Number(price.trim() || 0);
+    // Convert from seller's selected currency back to USD for storage
+    const parsedPrice = convertToUSD(Number(price.trim() || 0), currency);
     if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
       alert('Please enter a valid price.');
       return;
@@ -203,7 +220,7 @@ export default function EditProductPage({ params }: EditProductProps) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Base Price</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Price ({currency})</label>
               <input 
                 value={price} 
                 onChange={e=>setPrice(e.target.value)} 
@@ -211,22 +228,53 @@ export default function EditProductPage({ params }: EditProductProps) {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tags (max 5, up to 20 chars each)</label>
-              <input 
-                value={tags} 
-                onChange={e=>setTags(e.target.value)} 
-                className={`w-full border rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none transition-colors ${
-                  (tags.split(',').filter(t => t.trim()).length > 5 || tags.split(',').some(t => t.trim().length > 20))
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400'
-                }`}
-              />
-              {(tags.split(',').filter(t => t.trim()).length > 5 || tags.split(',').some(t => t.trim().length > 20)) && (
-                <p className="text-xs text-red-500 mt-1">
-                  {tags.split(',').filter(t => t.trim()).length > 5 && 'Max 5 tags allowed. '}
-                  {tags.split(',').some(t => t.trim().length > 20) && 'Tags must be under 20 characters.'}
-                </p>
-              )}
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Tags <span className="font-normal text-gray-400">({(tags||'').split(',').filter(t=>t.trim()).length}/5)</span>
+              </label>
+              <div className="flex flex-wrap gap-1.5 items-center min-h-[44px] w-full border dark:border-gray-600 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-700 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-colors">
+                {(tags||'').split(',').map(t=>t.trim()).filter(Boolean).map((tag,i)=>(
+                  <span key={i} className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-xs font-medium px-2.5 py-1 rounded-full">
+                    {tag}
+                    <button type="button" onClick={()=>{
+                      const newList=(tags||'').split(',').map(t=>t.trim()).filter(Boolean).filter((_,idx)=>idx!==i);
+                      setTags(newList.join(', '));
+                    }} className="text-blue-500 dark:text-blue-400 hover:text-red-500 dark:hover:text-red-400 transition-colors ml-0.5 leading-none flex items-center">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+                {(tags||'').split(',').filter(t=>t.trim()).length < 5 && (
+                  <input
+                    value={tagInput}
+                    onChange={e=>setTagInput(e.target.value.replace(',',''))}
+                    onKeyDown={e=>{
+                      if((e.key==='Enter'||e.key===',')&&tagInput.trim()){
+                        e.preventDefault();
+                        const trimmed=tagInput.trim().slice(0,20);
+                        const existing=(tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+                        if(existing.length<5&&trimmed&&!existing.includes(trimmed)){
+                          setTags([...existing,trimmed].join(', '));
+                        }
+                        setTagInput('');
+                      } else if(e.key==='Backspace'&&!tagInput){
+                        const existing=(tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+                        if(existing.length>0) setTags(existing.slice(0,-1).join(', '));
+                      }
+                    }}
+                    onBlur={()=>{
+                      if(tagInput.trim()){
+                        const trimmed=tagInput.trim().slice(0,20);
+                        const existing=(tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+                        if(existing.length<5&&!existing.includes(trimmed)) setTags([...existing,trimmed].join(', '));
+                        setTagInput('');
+                      }
+                    }}
+                    placeholder={(tags||'').split(',').filter(t=>t.trim()).length===0?'Add tags… press Enter or comma':'Add more…'}
+                    className="flex-1 min-w-[140px] bg-transparent outline-none text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-0.5 px-1"
+                  />
+                )}
+              </div>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Press Enter or comma to add · Max 5 tags · 20 chars each</p>
             </div>
           </div>
           <div>

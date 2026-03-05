@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation'
 import { supabase, getUserOrders } from '@/lib/supabase'
 import { UserCircle2, Mail, MapPin, Link as LinkIcon, Save, Loader2, ShoppingBag, BadgeCheck, Clock, Camera, Store, CheckCircle2, Sparkles, Instagram, Youtube, Facebook } from 'lucide-react'
 import { ToastContainer, type ToastItem } from '@/components/Toast'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { FaTiktok, FaSpotify } from 'react-icons/fa'
 
 type TabKey = 'overview' | 'edit'
 
 export default function BuyerProfilePage() {
   const router = useRouter()
+  const { formatPrice } = useCurrency()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -207,7 +209,7 @@ export default function BuyerProfilePage() {
               </div>
               <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
                 <div className="text-sm text-gray-600 dark:text-gray-400">Total spent</div>
-                <div className="mt-1 text-2xl font-semibold dark:text-white">${stats.spent.toFixed(2)}</div>
+                <div className="mt-1 text-2xl font-semibold dark:text-white">{formatPrice(stats.spent)}</div>
                 <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">Across all purchases</div>
               </div>
             </div>
@@ -442,7 +444,7 @@ export default function BuyerProfilePage() {
                         <div className="text-xs text-gray-500 dark:text-gray-400">Sales</div>
                       </div>
                       <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
-                        <div className="text-xl font-bold text-gray-900 dark:text-white">${(user.total_earnings || 0).toFixed(2)}</div>
+                        <div className="text-xl font-bold text-gray-900 dark:text-white">{formatPrice(user.total_earnings || 0)}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">Earnings</div>
                       </div>
                       <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">

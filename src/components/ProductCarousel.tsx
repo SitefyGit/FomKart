@@ -1,5 +1,7 @@
+'use client'
 import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, MoreHorizontal, Share2, ExternalLink } from 'lucide-react'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
 interface Product {
   id: number
@@ -18,6 +20,7 @@ interface ProductCarouselProps {
 export function ProductCarousel({ products, title = "Featured Products" }: ProductCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showProductMenu, setShowProductMenu] = useState<number | null>(null)
+  const { formatPrice } = useCurrency()
 
   const nextProduct = () => {
     setCurrentIndex((prev) => (prev + 1) % products.length)
@@ -116,7 +119,7 @@ export function ProductCarousel({ products, title = "Featured Products" }: Produ
                     <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">
                       {product.category}
                     </span>
-                    <span className="font-bold text-emerald-600">${product.price}</span>
+                    <span className="font-bold text-emerald-600">{formatPrice(product.price)}</span>
                   </div>
                 </div>
               </div>
