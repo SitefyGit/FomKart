@@ -273,9 +273,9 @@ export default async function HomePage() {
           <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 px-4">
             <Link 
               href="/category/digital-products" 
-              className="bg-emerald-600 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors text-center"
+              className="bg-emerald-600 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors text-center inline-flex items-center justify-center whitespace-nowrap"
             >
-              Find Services
+              Find Offerings
             </Link>
             <StartSellingButton />
           </div>
