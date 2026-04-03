@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { TrendingUp, Star, Sparkles, Zap, Users, Shield, ArrowRight } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 import MarketSearch from '@/components/MarketSearch'
+import { TranslatableText } from '@/components/TranslatableText'
 
 export const metadata: Metadata = {
   title: 'Explore Services | FomKart Marketplace',
@@ -202,17 +203,16 @@ export default async function MarketPage() {
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-8 text-gray-300">
               <Sparkles className="w-4 h-4 text-indigo-400" />
-              <span>Discover 10,000+ Professional Services</span>
+              <TranslatableText text="Discover 10,000+ Professional Services" as="span" wrapperAs="span" className="inline" />
             </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-8 leading-tight text-white tracking-tight">
-              Find Expert Services
-              <span className="block bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">For Your Business</span>
+              <TranslatableText text="Find Expert Services" as="span" wrapperAs="span" className="inline" />
+              <span className="block bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"><TranslatableText text="For Your Business" as="span" wrapperAs="span" className="inline" /></span>
             </h1>
             
             <p className="text-lg sm:text-xl mb-12 text-gray-400 max-w-2xl mx-auto leading-relaxed">
-              Connect with verified professionals. From marketing to development, 
-              get quality work delivered on time.
+              <TranslatableText text="Connect with verified professionals. From marketing to development, get quality work delivered on time." as="span" wrapperAs="span" className="inline" />
             </p>
             
             {/* Search Bar */}
@@ -224,17 +224,17 @@ export default async function MarketPage() {
             <div className="flex flex-wrap justify-center gap-12 mt-16">
               <div className="text-center">
                 <div className="text-4xl font-bold text-white">10K+</div>
-                <div className="text-sm text-gray-500 mt-1">Active Services</div>
+                <div className="text-sm text-gray-500 mt-1"><TranslatableText text="Active Services" as="span" wrapperAs="span" className="inline" /></div>
               </div>
               <div className="h-12 w-px bg-gray-700 hidden sm:block"></div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-white">5K+</div>
-                <div className="text-sm text-gray-500 mt-1">Verified Experts</div>
+                <div className="text-sm text-gray-500 mt-1"><TranslatableText text="Verified Experts" as="span" wrapperAs="span" className="inline" /></div>
               </div>
               <div className="h-12 w-px bg-gray-700 hidden sm:block"></div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-white">98%</div>
-                <div className="text-sm text-gray-500 mt-1">Satisfaction Rate</div>
+                <div className="text-sm text-gray-500 mt-1"><TranslatableText text="Satisfaction Rate" as="span" wrapperAs="span" className="inline" /></div>
               </div>
             </div>
           </div>
@@ -246,7 +246,7 @@ export default async function MarketPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-4">
             <TrendingUp className="w-4 h-4 text-indigo-500" />
-            <span className="text-sm font-semibold text-gray-900 dark:text-white">Popular Searches</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white"><TranslatableText text="Popular Searches" as="span" wrapperAs="span" className="inline" /></span>
           </div>
           <div className="flex flex-wrap gap-2">
             {featuredSearches.map(({ name, hot }) => (
@@ -255,8 +255,8 @@ export default async function MarketPage() {
                 href={`/market/${tagToSlug(name)}`}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg text-sm font-medium transition-all border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800"
               >
-                {name}
-                {hot && <span className="px-1.5 py-0.5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] rounded font-bold uppercase tracking-wide">Hot</span>}
+                <TranslatableText text={name} as="span" wrapperAs="span" className="inline" />
+                {hot && <span className="px-1.5 py-0.5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] rounded font-bold uppercase tracking-wide"><TranslatableText text="Hot" as="span" wrapperAs="span" className="inline" /></span>}
               </Link>
             ))}
           </div>
@@ -274,9 +274,9 @@ export default async function MarketPage() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Trending Now
+                    <TranslatableText text="Trending Now" as="span" wrapperAs="span" className="inline" />
                   </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Most searched services this week</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Most searched services this week" as="span" wrapperAs="span" className="inline" /></p>
                 </div>
               </div>
             </div>
@@ -294,10 +294,10 @@ export default async function MarketPage() {
                     </span>
                   )}
                   <div className="font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors truncate">
-                    {tag}
+                    <TranslatableText text={tag} as="span" wrapperAs="span" className="inline" />
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {count} services
+                    <TranslatableText text={`${count} services`} as="span" wrapperAs="span" className="inline" />
                   </div>
                 </Link>
               ))}
@@ -311,10 +311,10 @@ export default async function MarketPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Explore by Category
+              <TranslatableText text="Explore by Category" as="span" wrapperAs="span" className="inline" />
             </h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Find exactly what you need from our organized collection of professional services
+              <TranslatableText text="Find exactly what you need from our organized collection of professional services" as="span" wrapperAs="span" className="inline" />
             </p>
           </div>
           
@@ -332,10 +332,10 @@ export default async function MarketPage() {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                        {category.name}
+                        <TranslatableText text={category.name} as="span" wrapperAs="span" className="inline" />
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {category.tags.length} subcategories
+                        <TranslatableText text={`${category.tags.length} subcategories`} as="span" wrapperAs="span" className="inline" />
                       </p>
                     </div>
                   </div>
@@ -350,12 +350,12 @@ export default async function MarketPage() {
                         href={`/market/${tagToSlug(tag)}`}
                         className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-700 dark:hover:text-indigo-400 rounded-lg text-sm transition-colors"
                       >
-                        {tag}
+                        <TranslatableText text={tag} as="span" wrapperAs="span" className="inline" />
                       </Link>
                     ))}
                     {category.tags.length > 6 && (
                       <span className="px-3 py-1.5 text-gray-400 dark:text-gray-500 text-sm">
-                        +{category.tags.length - 6} more
+                        <TranslatableText text={`+${category.tags.length - 6} more`} as="span" wrapperAs="span" className="inline" />
                       </span>
                     )}
                   </div>
@@ -374,22 +374,22 @@ export default async function MarketPage() {
               <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-indigo-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Secure Payments</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Your payments are protected with bank-level security</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2"><TranslatableText text="Secure Payments" as="span" wrapperAs="span" className="inline" /></h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm"><TranslatableText text="Your payments are protected with bank-level security" as="span" wrapperAs="span" className="inline" /></p>
             </div>
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-purple-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Verified Sellers</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">All freelancers are verified for quality assurance</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2"><TranslatableText text="Verified Sellers" as="span" wrapperAs="span" className="inline" /></h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm"><TranslatableText text="All freelancers are verified for quality assurance" as="span" wrapperAs="span" className="inline" /></p>
             </div>
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Star className="w-8 h-8 text-pink-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Quality Guarantee</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Not satisfied? Get your money back, no questions</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2"><TranslatableText text="Quality Guarantee" as="span" wrapperAs="span" className="inline" /></h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm"><TranslatableText text="Not satisfied? Get your money back, no questions" as="span" wrapperAs="span" className="inline" /></p>
             </div>
           </div>
         </div>
@@ -399,7 +399,7 @@ export default async function MarketPage() {
       <section className="py-12 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-            All Service Categories
+            <TranslatableText text="All Service Categories" as="span" wrapperAs="span" className="inline" />
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-3">
             {popularTagCategories.flatMap(cat => cat.tags).map((tag) => (
@@ -408,7 +408,7 @@ export default async function MarketPage() {
                 href={`/market/${tagToSlug(tag)}`}
                 className="text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm transition-colors truncate"
               >
-                {tag}
+                <TranslatableText text={tag} as="span" wrapperAs="span" className="inline" />
               </Link>
             ))}
           </div>
@@ -424,23 +424,23 @@ export default async function MarketPage() {
         </div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">Ready to Get Started?</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white"><TranslatableText text="Ready to Get Started?" as="span" wrapperAs="span" className="inline" /></h2>
           <p className="text-lg text-gray-400 mb-10 max-w-2xl mx-auto">
-            Join thousands of satisfied customers who found their perfect service on FomKart
+            <TranslatableText text="Join thousands of satisfied customers who found their perfect service on FomKart" as="span" wrapperAs="span" className="inline" />
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/category/services"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg shadow-indigo-500/25"
             >
-              Browse All Offerings
+              <TranslatableText text="Browse All Offerings" as="span" wrapperAs="span" className="inline" />
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               href="/auth/creator-signup"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
             >
-              Become a Seller
+              <TranslatableText text="Become a Seller" as="span" wrapperAs="span" className="inline" />
             </Link>
           </div>
         </div>

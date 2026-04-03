@@ -19,6 +19,7 @@ import { ReviewsSlider } from '@/components/ReviewsSlider';
 import { SocialIconsBar } from '@/components/SocialIconsBar';
 import { ToastContainer, ToastItem } from '@/components/Toast';
 import { ShareModal } from '@/components/ShareModal';
+import { TranslatableText } from '@/components/TranslatableText';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { convertToUSD } from '@/lib/currency';
 
@@ -953,8 +954,16 @@ export default function CreatorPage() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold mb-1 line-clamp-2 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">{p.title}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{p.description}</p>
+                  <TranslatableText
+                    text={p.title}
+                    as="h3"
+                    className="font-semibold mb-1 line-clamp-2 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200"
+                  />
+                  <TranslatableText
+                    text={p.description || ''}
+                    className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3"
+                    showListingControls
+                  />
                   <div className="flex items-center justify-between">
                     <div className="flex gap-1 flex-wrap">
                       {hasVideo && (
@@ -991,7 +1000,7 @@ export default function CreatorPage() {
                   onClick={() => setShowAllProducts(!showAllProducts)}
                   className="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50 inline-flex items-center gap-1"
                 >
-                  {showAllProducts ? 'Show Less' : 'View All'}
+                  <TranslatableText text={showAllProducts ? 'Show Less' : 'View All'} as="span" wrapperAs="span" className="inline" />
                 </button>
                 {isOwner && (
                   <button onClick={() => {
@@ -1000,13 +1009,13 @@ export default function CreatorPage() {
                       return;
                     }
                     setAddProductOpen(true);
-                  }} className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"><AddCircleOutlineIcon fontSize="small"/>Add Product</button>
+                  }} className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"><AddCircleOutlineIcon fontSize="small"/><TranslatableText text="Add Product" as="span" wrapperAs="span" className="inline" /></button>
                 )}
               </div>
             </div>
             
             {productList.length === 0 ? (
-              <p className="text-sm text-gray-500">No products yet.</p>
+              <p className="text-sm text-gray-500"><TranslatableText text="No products yet." as="span" wrapperAs="span" className="inline" /></p>
             ) : showAllProducts ? (
               <div className="grid gap-5 md:grid-cols-3">
                 {productList.map(p => renderProduct(p))}
@@ -1052,7 +1061,7 @@ export default function CreatorPage() {
                 <div className="flex items-center gap-2">
                   {renderDragHandle('links')}
                   <h2 className="text-xl font-semibold flex items-center gap-2 dark:text-white">
-                    Links
+                    <TranslatableText text="Links" as="span" wrapperAs="span" className="inline" />
                     {latestPost && (
                       <span className="text-xs font-medium text-gray-400 flex items-center gap-1">
                         {latestPostLabel}
@@ -1072,7 +1081,7 @@ export default function CreatorPage() {
                   onClick={() => setShowAllPosts(!showAllPosts)}
                   className="px-3 py-1.5 text-sm rounded-lg border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white inline-flex items-center gap-1"
                 >
-                  {showAllPosts ? 'Show Less' : 'View All'}
+                  <TranslatableText text={showAllPosts ? 'Show Less' : 'View All'} as="span" wrapperAs="span" className="inline" />
                 </button>
                 {isOwner && (
                   <>
@@ -1082,14 +1091,14 @@ export default function CreatorPage() {
                         disabled={deletingPostId === latestPost.id}
                         className="px-3 py-1.5 text-sm rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60"
                       >
-                        {deletingPostId === latestPost.id ? 'Deleting…' : 'Delete Post'}
+                        <TranslatableText text={deletingPostId === latestPost.id ? 'Deleting…' : 'Delete Post'} as="span" wrapperAs="span" className="inline" />
                       </button>
                     )}
                     <button
                       onClick={() => { resetPostForm(); setAddPostOpen(true); }}
                       className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"
                     >
-                      <AddCircleOutlineIcon fontSize="small"/>Add Post
+                      <AddCircleOutlineIcon fontSize="small"/><TranslatableText text="Add Post" as="span" wrapperAs="span" className="inline" />
                     </button>
                   </>
                 )}
@@ -1097,21 +1106,21 @@ export default function CreatorPage() {
             </div>
 
             {postsLoading ? (
-              <div className="text-sm text-gray-500 dark:text-gray-400">Loading recent posts…</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Loading recent posts…" as="span" wrapperAs="span" className="inline" /></div>
             ) : !latestPost ? (
               <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-300">
                 {isOwner ? (
                   <div className="space-y-3">
-                    <p>Add your favorite links, updates, or embeds to showcase your work.</p>
+                    <p><TranslatableText text="Add your favorite links, updates, or embeds to showcase your work." as="span" wrapperAs="span" className="inline" /></p>
                     <button
                       onClick={() => { resetPostForm(); setAddPostOpen(true); }}
                       className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
                     >
-                      <AddCircleOutlineIcon fontSize="inherit"/>Share your first link
+                      <AddCircleOutlineIcon fontSize="inherit"/><TranslatableText text="Share your first link" as="span" wrapperAs="span" className="inline" />
                     </button>
                   </div>
                 ) : (
-                  <p>{creator?.full_name} hasn’t shared anything yet.</p>
+                  <p><TranslatableText text={`${creator?.full_name} hasn’t shared anything yet.`} as="span" wrapperAs="span" className="inline" /></p>
                 )}
               </div>
             ) : showAllPosts ? (
@@ -1291,8 +1300,8 @@ export default function CreatorPage() {
     };
   }, [creator, buildActivityEntryFromPost]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400">Loading…</div>;
-  if (!creator) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400">Creator not found.</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400"><TranslatableText text="Loading…" as="span" wrapperAs="span" className="inline" /></div>;
+  if (!creator) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400"><TranslatableText text="Creator not found." as="span" wrapperAs="span" className="inline" /></div>;
 
   // Get unique product images for mosaic banner
   const bannerImages = (creator.products ?? [])
@@ -1404,14 +1413,14 @@ export default function CreatorPage() {
                 className="flex items-center gap-2 px-5 py-2.5 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                Contact
+                <TranslatableText text="Contact" as="span" wrapperAs="span" className="inline" />
               </button>
               <button
                 onClick={() => setSubscribeOpen(true)}
                 className="flex items-center gap-2 px-5 py-2.5 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                Follow
+                <TranslatableText text="Follow" as="span" wrapperAs="span" className="inline" />
               </button>
             </div>
           </div>
@@ -1424,13 +1433,13 @@ export default function CreatorPage() {
           <div className="flex items-center justify-between">
             <div className="flex">
               <button className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white">
-                Items
+                <TranslatableText text="Items" as="span" wrapperAs="span" className="inline" />
               </button>
               <Link href={`/creator/${creator.username}/bio`} className="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-b-2 border-transparent hover:border-gray-300 transition-colors">
-                About
+                <TranslatableText text="About" as="span" wrapperAs="span" className="inline" />
               </Link>
               <button className="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-b-2 border-transparent hover:border-gray-300 transition-colors">
-                Reviews
+                <TranslatableText text="Reviews" as="span" wrapperAs="span" className="inline" />
               </button>
             </div>
             {/* Search within shop */}
@@ -1458,11 +1467,11 @@ export default function CreatorPage() {
                 <span className="text-gray-400">{productTypeCounts.all}</span>
               </button>
               <button className="w-full text-left py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-between">
-                Digital Products
+                <TranslatableText text="Digital Products" as="span" wrapperAs="span" className="inline" />
                 <span className="text-gray-400">{productTypeCounts.product}</span>
               </button>
               <button className="w-full text-left py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-between">
-                Services
+                <TranslatableText text="Services" as="span" wrapperAs="span" className="inline" />
                 <span className="text-gray-400">{productTypeCounts.service}</span>
               </button>
             </div>
@@ -1473,7 +1482,7 @@ export default function CreatorPage() {
               className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-4"
             >
               <ChatBubbleLeftRightIcon className="w-4 h-4" />
-              Contact shop owner
+              <TranslatableText text="Contact shop owner" as="span" wrapperAs="span" className="inline" />
             </button>
 
             {/* Shop Stats */}
@@ -1485,7 +1494,7 @@ export default function CreatorPage() {
             {/* Report Link */}
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
               <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400">
-                Report this shop
+                <TranslatableText text="Report this shop" as="span" wrapperAs="span" className="inline" />
               </button>
             </div>
           </aside>
@@ -1497,7 +1506,7 @@ export default function CreatorPage() {
               <div className="flex items-center gap-2">
                 <div className="w-1 h-6 bg-gray-900 dark:bg-white rounded-full"></div>
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {showAllProducts ? 'All items' : 'Featured items'}
+                  <TranslatableText text={showAllProducts ? 'All items' : 'Featured items'} as="span" wrapperAs="span" className="inline" />
                 </h2>
               </div>
               <div className="flex items-center gap-3">
@@ -1513,7 +1522,7 @@ export default function CreatorPage() {
                     className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 inline-flex items-center gap-1 shadow-sm transition-transform active:scale-95"
                   >
                     <AddCircleOutlineIcon fontSize="small" />
-                    Add Product
+                    <TranslatableText text="Add Product" as="span" wrapperAs="span" className="inline" />
                   </button>
                 )}
                 <div className="relative">
@@ -1601,9 +1610,11 @@ export default function CreatorPage() {
                       </div>
                       {/* Product Info */}
                       <div className="p-3">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                          {p.title}
-                        </h3>
+                        <TranslatableText
+                          text={p.title}
+                          as="h3"
+                          className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors"
+                        />
                         <div className="flex items-center justify-between">
                           <span className="text-base font-bold text-gray-900 dark:text-white">
                             {price !== undefined ? formatPrice(price) : formatPrice(0)}
@@ -1634,14 +1645,14 @@ export default function CreatorPage() {
                   onClick={() => setShowAllProducts(true)}
                   className="px-6 py-3 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  View all {(creator.products ?? []).length} items
+                  <TranslatableText text={`View all ${(creator.products ?? []).length} items`} as="span" wrapperAs="span" className="inline" />
                 </button>
               </div>
             )}
 
             {/* Reviews Section */}
             <div className="mt-12">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Reviews</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6"><TranslatableText text="Reviews" as="span" wrapperAs="span" className="inline" /></h2>
               <ReviewsSlider creatorId={creator.id} />
             </div>
           </div>
@@ -2281,12 +2292,12 @@ export default function CreatorPage() {
                   <UserCircleIcon className="h-12 w-12 text-gray-300"/>
                 )}
               </div>
-              <h3 className="font-semibold mb-2 dark:text-white">Subscribe to {creator.username}</h3>
+              <h3 className="font-semibold mb-2 dark:text-white"><TranslatableText text={`Subscribe to ${creator.username}`} as="span" wrapperAs="span" className="inline" /></h3>
               <form onSubmit={async e=>{e.preventDefault(); if(!subscribeEmail) return; setSubscribing(true); try { await supabase.from('newsletter_subscriptions').insert({ creator_id: creator.id, email: subscribeEmail, source: 'creator_profile' }); setSubscribeEmail(''); setSubscribeOpen(false); } catch(err){ console.warn('Subscribe failed', err);} finally { setSubscribing(false);} }} className="w-full flex rounded-lg overflow-hidden border dark:border-gray-600 focus-within:ring-2 focus-within:ring-blue-500">
                 <input type="email" required placeholder="Sign Up" value={subscribeEmail} onChange={e=>setSubscribeEmail(e.target.value)} className="flex-1 px-3 py-2 text-sm outline-none dark:bg-gray-700 dark:text-white" />
-                <button disabled={subscribing} className="px-4 bg-gray-800 dark:bg-gray-700 text-white text-sm font-medium hover:bg-black dark:hover:bg-gray-600 disabled:opacity-50">{subscribing? '...' : 'Submit'}</button>
+                <button disabled={subscribing} className="px-4 bg-gray-800 dark:bg-gray-700 text-white text-sm font-medium hover:bg-black dark:hover:bg-gray-600 disabled:opacity-50"><TranslatableText text={subscribing? '...' : 'Submit'} as="span" wrapperAs="span" className="inline" /></button>
               </form>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">We respect your inbox. Unsubscribe anytime.</p>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-2"><TranslatableText text="We respect your inbox. Unsubscribe anytime." as="span" wrapperAs="span" className="inline" /></p>
             </div>
           </div>
         </div>
@@ -2296,13 +2307,13 @@ export default function CreatorPage() {
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold dark:text-white">Message {creator.full_name}</h3>
+              <h3 className="text-lg font-semibold dark:text-white"><TranslatableText text={`Message ${creator.full_name}`} as="span" wrapperAs="span" className="inline" /></h3>
               <button onClick={()=>setMessageOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl leading-none">×</button>
             </div>
             <textarea value={messageBody} onChange={e=>setMessageBody(e.target.value)} placeholder="Write your message..." className="w-full border dark:border-gray-600 rounded px-3 py-2 text-sm h-40 dark:bg-gray-700 dark:text-white" />
             <div className="flex justify-end gap-2">
-              <button onClick={()=>setMessageOpen(false)} className="px-3 py-2 text-sm rounded border dark:border-gray-600 dark:text-white">Cancel</button>
-              <button onClick={handleSendMessage} disabled={!messageBody.trim()} className="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">Send</button>
+              <button onClick={()=>setMessageOpen(false)} className="px-3 py-2 text-sm rounded border dark:border-gray-600 dark:text-white"><TranslatableText text="Cancel" as="span" wrapperAs="span" className="inline" /></button>
+              <button onClick={handleSendMessage} disabled={!messageBody.trim()} className="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"><TranslatableText text="Send" as="span" wrapperAs="span" className="inline" /></button>
             </div>
           </div>
         </div>
@@ -2312,7 +2323,7 @@ export default function CreatorPage() {
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-2xl shadow-lg w-full max-w-lg p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold dark:text-white">Profile Settings</h3>
+              <h3 className="text-lg font-semibold dark:text-white"><TranslatableText text="Profile Settings" as="span" wrapperAs="span" className="inline" /></h3>
               <button onClick={()=>setSettingsOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl leading-none">×</button>
             </div>
             <div className="grid gap-4">
@@ -2339,7 +2350,7 @@ export default function CreatorPage() {
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={()=>setSettingsOpen(false)} className="px-4 py-2 text-sm rounded-lg border dark:border-gray-600 dark:text-white">Cancel</button>
+              <button onClick={()=>setSettingsOpen(false)} className="px-4 py-2 text-sm rounded-lg border dark:border-gray-600 dark:text-white"><TranslatableText text="Cancel" as="span" wrapperAs="span" className="inline" /></button>
               <button onClick={async ()=>{
                 const socialEntries = {
                   twitter: settings.twitter,
@@ -2364,7 +2375,7 @@ export default function CreatorPage() {
                   setSettingsOpen(false);
                   pushToast({ type:'success', title:'Saved', message:'Profile settings updated' });
                 }
-              }} className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700">Save</button>
+              }} className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"><TranslatableText text="Save" as="span" wrapperAs="span" className="inline" /></button>
             </div>
           </div>
         </div>
@@ -2375,8 +2386,8 @@ export default function CreatorPage() {
           <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold dark:text-white">Share a new post</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Drop a quick update, image, or video for your audience.</p>
+                <h3 className="text-lg font-semibold dark:text-white"><TranslatableText text="Share a new post" as="span" wrapperAs="span" className="inline" /></h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400"><TranslatableText text="Drop a quick update, image, or video for your audience." as="span" wrapperAs="span" className="inline" /></p>
               </div>
               <button type="button" onClick={closePostModal} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none">×</button>
             </div>

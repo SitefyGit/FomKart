@@ -32,6 +32,8 @@ import { SiAdobephotoshop } from 'react-icons/si'
 import { supabase } from '@/lib/supabase'
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { useCurrency } from '@/contexts/CurrencyContext'
+import { TranslatableText } from '@/components/TranslatableText'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 type ProductCard = {
   id: string
@@ -179,6 +181,7 @@ const subcategories = {
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = React.use(params)
   const { formatPrice } = useCurrency()
+  const { t: uiT } = useLanguage()
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('popular')
   const [products, setProducts] = useState<ProductCard[]>([])
@@ -507,7 +510,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400">
             <Link href="/" className="hover:text-emerald-600 dark:hover:text-emerald-400">FomKart</Link>
             <span className="mx-2">/</span>
-            <span className="text-gray-900 dark:text-white truncate">{category.name}</span>
+            <TranslatableText text={category.name} as="span" wrapperAs="span" className="text-gray-900 dark:text-white truncate" />
           </nav>
         </div>
       </div>
@@ -519,8 +522,8 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             <div className="flex justify-center mb-4 sm:mb-6">
               <category.icon className="w-16 h-16 sm:w-20 sm:h-20" />
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">{category.name}</h1>
-            <p className="text-base sm:text-lg lg:text-xl opacity-90 max-w-2xl mx-auto px-4">{category.description}</p>
+            <TranslatableText text={category.name} as="h1" className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4" />
+            <TranslatableText text={category.description} className="text-base sm:text-lg lg:text-xl opacity-90 max-w-2xl mx-auto px-4" showListingControls />
           </div>
         </div>
       </div>
@@ -528,7 +531,10 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       {/* Subcategories */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Explore {category.name}</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+            <TranslatableText text="Explore" as="span" wrapperAs="span" className="inline" />{' '}
+            <TranslatableText text={category.name} as="span" wrapperAs="span" className="inline" />
+          </h2>
           <div className="flex flex-wrap gap-2">
             {subs.map((sub, index) => (
               <button 
@@ -540,7 +546,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                     : 'bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 text-gray-700 dark:text-gray-300'
                 }`}
               >
-                {sub}
+                <TranslatableText text={sub} as="span" wrapperAs="span" className="inline" />
               </button>
             ))}
           </div>
@@ -557,7 +563,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder={`Search in ${category.name}...`}
+                placeholder={uiT('searchInCategory', `Search in ${category.name}...`)}
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -572,7 +578,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
               }`}
             >
               <Filter className="h-4 w-4" />
-              <span>All Filters</span>
+              <TranslatableText text="All Filters" as="span" wrapperAs="span" className="inline" />
             </button>
             
             {/* Budget Dropdown */}
@@ -587,17 +593,17 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                   budgetRange ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                 }`}
               >
-                <span>{budgetRange ? `$${budgetRange.replace('-', ' - $').replace('under-', 'Under $').replace('over-', 'Over $')}` : 'Budget'}</span>
+                <span>{budgetRange ? `$${budgetRange.replace('-', ' - $').replace('under-', 'Under $').replace('over-', 'Over $')}` : uiT('budgetLabel', 'Budget')}</span>
                 <ChevronDown className="h-4 w-4" />
               </button>
               {showBudgetDropdown && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-                  <button onClick={() => { setBudgetRange(null); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Any Budget</button>
-                  <button onClick={() => { setBudgetRange('under-25'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Under $25</button>
+                  <button onClick={() => { setBudgetRange(null); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">{uiT('anyBudget', 'Any Budget')}</button>
+                  <button onClick={() => { setBudgetRange('under-25'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">{uiT('under25', 'Under $25')}</button>
                   <button onClick={() => { setBudgetRange('25-50'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">$25 - $50</button>
                   <button onClick={() => { setBudgetRange('50-100'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">$50 - $100</button>
                   <button onClick={() => { setBudgetRange('100-200'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">$100 - $200</button>
-                  <button onClick={() => { setBudgetRange('over-200'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Over $200</button>
+                  <button onClick={() => { setBudgetRange('over-200'); setShowBudgetDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">{uiT('over200', 'Over $200')}</button>
                 </div>
               )}
             </div>
@@ -614,16 +620,16 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                   deliveryTime ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                 }`}
               >
-                <span className="hidden sm:inline">{deliveryTime ? (deliveryTime === '24h' ? '24 Hours' : deliveryTime === '3days' ? 'Up to 3 Days' : 'Up to 7 Days') : 'Delivery Time'}</span>
-                <span className="sm:hidden">{deliveryTime ? (deliveryTime === '24h' ? '24h' : deliveryTime === '3days' ? '3 Days' : '7 Days') : 'Delivery'}</span>
+                <span className="hidden sm:inline">{deliveryTime ? (deliveryTime === '24h' ? uiT('hours24', '24 Hours') : deliveryTime === '3days' ? uiT('upto3days', 'Up to 3 Days') : uiT('upto7days', 'Up to 7 Days')) : uiT('deliveryTime', 'Delivery Time')}</span>
+                <span className="sm:hidden">{deliveryTime ? (deliveryTime === '24h' ? '24h' : deliveryTime === '3days' ? uiT('days3Short', '3 Days') : uiT('days7Short', '7 Days')) : uiT('delivery', 'Delivery')}</span>
                 <ChevronDown className="h-4 w-4" />
               </button>
               {showDeliveryDropdown && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-                  <button onClick={() => { setDeliveryTime(null); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Any Time</button>
-                  <button onClick={() => { setDeliveryTime('24h'); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">24 Hours</button>
-                  <button onClick={() => { setDeliveryTime('3days'); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Up to 3 Days</button>
-                  <button onClick={() => { setDeliveryTime('7days'); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Up to 7 Days</button>
+                  <button onClick={() => { setDeliveryTime(null); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">{uiT('anyTime', 'Any Time')}</button>
+                  <button onClick={() => { setDeliveryTime('24h'); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">{uiT('hours24', '24 Hours')}</button>
+                  <button onClick={() => { setDeliveryTime('3days'); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">{uiT('upto3days', 'Up to 3 Days')}</button>
+                  <button onClick={() => { setDeliveryTime('7days'); setShowDeliveryDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">{uiT('upto7days', 'Up to 7 Days')}</button>
                 </div>
               )}
             </div>
@@ -640,31 +646,33 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                   sellerLevel ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                 }`}
               >
-                <span className="hidden sm:inline">{sellerLevel ? 'Verified Only' : 'Seller Level'}</span>
-                <span className="sm:hidden">{sellerLevel ? 'Verified' : 'Level'}</span>
+                <span className="hidden sm:inline">{sellerLevel ? uiT('verifiedOnly', 'Verified Only') : uiT('sellerLevel', 'Seller Level')}</span>
+                <span className="sm:hidden">{sellerLevel ? uiT('verified', 'Verified') : uiT('level', 'Level')}</span>
                 <ChevronDown className="h-4 w-4" />
               </button>
               {showLevelDropdown && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-                  <button onClick={() => { setSellerLevel(null); setShowLevelDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Any Level</button>
-                  <button onClick={() => { setSellerLevel('verified'); setShowLevelDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Verified Sellers Only</button>
+                  <button onClick={() => { setSellerLevel(null); setShowLevelDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">{uiT('anyLevel', 'Any Level')}</button>
+                  <button onClick={() => { setSellerLevel('verified'); setShowLevelDropdown(false) }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">{uiT('verifiedSellersOnly', 'Verified Sellers Only')}</button>
                 </div>
               )}
             </div>
           </div>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
-            <span className="text-sm text-gray-600 dark:text-gray-400">{displayedProducts.length} services available</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              <TranslatableText text={`${displayedProducts.length} services available`} as="span" wrapperAs="span" className="inline" />
+            </span>
             <select 
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm w-full sm:w-auto bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="popular">Best Selling</option>
-              <option value="newest">Newest</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
+              <option value="popular">{uiT('bestSelling', 'Best Selling')}</option>
+              <option value="newest">{uiT('newest', 'Newest')}</option>
+              <option value="price-low">{uiT('priceLowToHigh', 'Price: Low to High')}</option>
+              <option value="price-high">{uiT('priceHighToLow', 'Price: High to Low')}</option>
+              <option value="rating">{uiT('highestRated', 'Highest Rated')}</option>
             </select>
           </div>
         </div>
@@ -672,7 +680,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         {/* Active Filters Display */}
         {(selectedSubcategory || budgetRange || deliveryTime || sellerLevel) && (
           <div className="mb-6 flex flex-wrap items-center gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400"><TranslatableText text="Active filters:" as="span" wrapperAs="span" className="inline" /></span>
             {selectedSubcategory && (
               <button 
                 onClick={() => setSelectedSubcategory(null)}
@@ -718,7 +726,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
               }}
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline"
             >
-              Clear all
+              <TranslatableText text="Clear all" as="span" wrapperAs="span" className="inline" />
             </button>
           </div>
         )}
@@ -819,9 +827,12 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                   </div>
                   
                   {/* Title */}
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 leading-5 text-sm sm:text-base">
-                    {product.title}
-                  </h3>
+                  <TranslatableText
+                    text={product.title}
+                    as="h3"
+                    className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 leading-5 text-sm sm:text-base"
+                    showListingControls
+                  />
                   
                   {/* Rating + Category Badge */}
                   <div className="flex items-center gap-2 mb-3">
@@ -838,9 +849,9 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                   
                   {/* Price */}
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 uppercase">Starting at</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 uppercase"><TranslatableText text="Starting at" as="span" wrapperAs="span" className="inline" /></span>
                     <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                      From {formatPrice(product.price)}
+                      <TranslatableText text="From" as="span" wrapperAs="span" className="inline" /> {formatPrice(product.price)}
                     </div>
                   </div>
                 </div>
@@ -853,7 +864,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         {displayedProducts.length > 0 && !isLoading && (
           <div className="text-center mt-8 sm:mt-12">
             <button className="bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 border-2 border-emerald-600 dark:border-emerald-500 px-6 sm:px-8 py-3 rounded-lg hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 transition-colors font-semibold w-full sm:w-auto">
-              Load More {category.name}
+              <TranslatableText text="Load More" as="span" wrapperAs="span" className="inline" /> <TranslatableText text={category.name} as="span" wrapperAs="span" className="inline" />
             </button>
           </div>
         )}
@@ -864,14 +875,14 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             <div className="text-gray-400 dark:text-gray-600 mb-4">
               <Search className="w-16 h-16 mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No results</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">Try adjusting your search terms or browse all {category.name.toLowerCase()}.</p>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2"><TranslatableText text="No results" as="span" wrapperAs="span" className="inline" /></h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6"><TranslatableText text={`Try adjusting your search terms or browse all ${category.name.toLowerCase()}.`} as="span" wrapperAs="span" className="inline" showListingControls /></p>
             {searchTerm ? (
               <button
                 onClick={() => handleSearchChange('')}
                 className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 font-semibold"
               >
-                Clear search
+                <TranslatableText text="Clear search" as="span" wrapperAs="span" className="inline" />
               </button>
             ) : null}
           </div>
@@ -880,7 +891,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         {/* Popular Tags Section for SEO */}
         {products.length > 0 && Array.from(new Set(products.flatMap(p => p.tags || []))).length > 0 && (
           <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Popular Tags in {category.name}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4"><TranslatableText text="Popular Tags in" as="span" wrapperAs="span" className="inline" /> <TranslatableText text={category.name} as="span" wrapperAs="span" className="inline" /></h2>
             <div className="flex flex-wrap gap-2">
               {Array.from(new Set(products.flatMap(p => p.tags || []))).slice(0, 20).map((tag) => (
                 <Link

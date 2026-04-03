@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import RouteProgress from './RouteProgress'
-import NotificationsBell from '@/components/NotificationsBell'
-import AuthButton from '@/components/AuthButton'
-import ProfileMenu from '@/components/ProfileMenu'
 import AnnouncementBanner from '@/components/AnnouncementBanner'
 import MaintenanceGuard from '@/components/MaintenanceGuard'
 import Footer from '@/components/Footer'
-import CartIcon from '@/components/CartIcon'
 import { CurrencyProvider } from '@/contexts/CurrencyContext'
+import { LanguageProvider } from '@/contexts/LanguageContext'
+import SiteHeader from '@/components/SiteHeader'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,60 +55,16 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <CurrencyProvider>
+        <LanguageProvider>
         <MaintenanceGuard>
         <AnnouncementBanner />
-        {/* Global Header */}
-        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-4">
-            <div className="flex items-center gap-6">
-              <Link href="/" prefetch className="flex items-center">
-                {/* Light mode logo (green text) */}
-                <Image 
-                  src="/fomkart_green_text.png" 
-                  alt="FomKart" 
-                  width={90} 
-                  height={24} 
-                  className="h-6 w-auto dark:hidden"
-                  priority
-                  suppressHydrationWarning
-                />
-                {/* Dark mode logo (white text) */}
-                <Image 
-                  src="/fomkart_white_text.png" 
-                  alt="FomKart" 
-                  width={90} 
-                  height={24} 
-                  className="h-6 w-auto hidden dark:block"
-                  priority
-                  suppressHydrationWarning
-                />
-              </Link>
-              <nav className="hidden md:flex items-center gap-6 text-sm">
-              <Link href="/market" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Explore</Link>
-              <Link href="/category/digital-products" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Digital Products</Link>
-              <Link href="/category/courses" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Courses</Link>
-              <Link href="/category/services" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">
-                Services
-              </Link>
-              <Link href="/category/consultation" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Consultations</Link>
-              <Link href="/orders" prefetch className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">Orders</Link>
-              <AuthButton />
-              </nav>
-            </div>
-            {/* Right actions always visible */}
-            <div className="flex items-center gap-2 sm:gap-3 ml-auto">
-              <CartIcon />
-              <NotificationsBell />
-              <ProfileMenu />
-            </div>
-          </div>
-        </header>
-  <RouteProgress />
+        <SiteHeader />
         <main className="min-h-[calc(100vh-theme(spacing.16))]">
           {children}
         </main>
         <Footer />
         </MaintenanceGuard>
+        </LanguageProvider>
         </CurrencyProvider>
       </body>
     </html>

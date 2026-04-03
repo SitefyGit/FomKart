@@ -13,11 +13,15 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import { useCurrency } from '@/contexts/CurrencyContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function Footer() {
   const { currency, currencies, setCurrency } = useCurrency()
+  const { language, languages, setLanguage, t } = useLanguage()
   const [currencyOpen, setCurrencyOpen] = useState(false)
+  const [languageOpen, setLanguageOpen] = useState(false)
   const currentCurrencyObj = currencies.find(c => c.code === currency) ?? currencies[0]
+  const currentLanguageObj = languages.find(l => l.code === language) ?? languages[0]
   return (
     <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,7 +49,7 @@ export default function Footer() {
               />
             </Link>
             <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-              The premier marketplace for digital creators. Sell products, courses, services, and consultations all in one place.
+              {t('marketplaceDescription', 'The premier marketplace for digital creators. Sell products, courses, services, and consultations all in one place.')}
             </p>
             <div className="flex gap-4">
               <Link href="#" className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full text-gray-600 dark:text-gray-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
@@ -65,31 +69,31 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">Marketplace</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">{t('marketplace', 'Marketplace')}</h3>
             <ul className="space-y-4">
               <li>
                 <Link href="/market" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  All Products
+                  {t('allProducts', 'All Products')}
                 </Link>
               </li>
               <li>
                 <Link href="/category/digital-products" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  Digital Products
+                  {t('digitalProducts', 'Digital Products')}
                 </Link>
               </li>
               <li>
                 <Link href="/category/courses" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  Online Courses
+                  {t('onlineCourses', 'Online Courses')}
                 </Link>
               </li>
               <li>
                 <Link href="/category/services" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  Services
+                  {t('services', 'Services')}
                 </Link>
               </li>
               <li>
                 <Link href="/category/consultation" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  Consultations
+                  {t('consultations', 'Consultations')}
                 </Link>
               </li>
             </ul>
@@ -97,26 +101,26 @@ export default function Footer() {
 
           {/* Creator Resources */}
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">For Creators</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">{t('forCreators', 'For Creators')}</h3>
             <ul className="space-y-4">
               <li>
                 <Link href="/start-selling" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  Start Selling
+                  {t('startSelling', 'Start Selling')}
                 </Link>
               </li>
               <li>
                 <Link href="/creator/onboarding" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  Creator Dashboard
+                  {t('creatorDashboard', 'Creator Dashboard')}
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  Success Stories
+                  {t('successStories', 'Success Stories')}
                 </Link>
               </li>
               <li>
                 <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                   Creator Community
+                   {t('creatorCommunity', 'Creator Community')}
                 </Link>
               </li>
             </ul>
@@ -124,15 +128,15 @@ export default function Footer() {
 
           {/* Contact & Newsletter */}
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">Stay Updated</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">{t('stayUpdated', 'Stay Updated')}</h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              Subscribe to our newsletter for the latest updates and creator tips.
+              {t('newsletterDescription', 'Subscribe to our newsletter for the latest updates and creator tips.')}
             </p>
             <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
               <div className="relative">
                 <input 
                   type="email" 
-                  placeholder="Enter your email" 
+                  placeholder={t('enterYourEmail', 'Enter your email')} 
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm text-gray-900 dark:text-white placeholder-gray-500"
                 />
                 <Mail className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
@@ -141,7 +145,7 @@ export default function Footer() {
                 type="button" 
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
               >
-                Subscribe
+                {t('subscribe', 'Subscribe')}
               </button>
             </form>
           </div>
@@ -151,20 +155,67 @@ export default function Footer() {
         <div className="border-t border-gray-200 dark:border-gray-800 pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-gray-500 dark:text-gray-500 text-sm">
-              © {new Date().getFullYear()} FomKart. All rights reserved.
+              © {new Date().getFullYear()} FomKart. {t('allRightsReserved', 'All rights reserved.')}
             </div>
             
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
-              <Link href="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Terms of Service</Link>
-              <Link href="/cookies" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Cookie Settings</Link>
-              <Link href="/site-map" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Sitemap</Link>
+              <Link href="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('privacyPolicy', 'Privacy Policy')}</Link>
+              <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('termsOfService', 'Terms of Service')}</Link>
+              <Link href="/cookies" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('cookieSettings', 'Cookie Settings')}</Link>
+              <Link href="/site-map" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('sitemap', 'Sitemap')}</Link>
             </div>
 
-            <div className="flex items-center gap-2 text-gray-400 relative">
+            <div className="flex items-center gap-5 text-gray-400 relative">
+              <div className="flex items-center gap-2 relative">
+                <Globe className="w-4 h-4" />
+                <button
+                  onClick={() => {
+                    setCurrencyOpen(false)
+                    setLanguageOpen(o => !o)
+                  }}
+                  className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                  aria-label="Select language"
+                >
+                  <span>{currentLanguageObj.code.toUpperCase()}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${languageOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {languageOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setLanguageOpen(false)} />
+                    <div className="absolute bottom-8 right-0 z-50 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden">
+                      <div className="p-3 border-b border-gray-100 dark:border-gray-700">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                          {t('selectLanguage', 'Select Language')}
+                        </p>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {languages.map((lang) => (
+                          <button
+                            key={lang.code}
+                            onClick={() => { setLanguage(lang.code); setLanguageOpen(false); }}
+                            className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-3 transition-colors ${
+                              lang.code === language
+                                ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                          >
+                            <span>{lang.nativeName}</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500 uppercase">{lang.code}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 relative">
               <Globe className="w-4 h-4" />
               <button
-                onClick={() => setCurrencyOpen(o => !o)}
+                onClick={() => {
+                  setLanguageOpen(false)
+                  setCurrencyOpen(o => !o)
+                }}
                 className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                 aria-label="Select currency"
               >
@@ -180,7 +231,7 @@ export default function Footer() {
                   <div className="absolute bottom-8 right-0 z-50 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden">
                     <div className="p-3 border-b border-gray-100 dark:border-gray-700">
                       <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Select Currency
+                        {t('selectCurrency', 'Select Currency')}
                       </p>
                     </div>
                     <div className="max-h-64 overflow-y-auto">
@@ -205,6 +256,7 @@ export default function Footer() {
                   </div>
                 </>
               )}
+              </div>
             </div>
           </div>
         </div>

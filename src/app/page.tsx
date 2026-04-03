@@ -6,6 +6,7 @@ import { HomeLeadCapture } from './HomeClientWidgets'
 import TopCreatorsSection from '@/app/top-creators'
 import FeaturedServicesSection from '@/app/featured-services'
 import StartSellingButton from '@/components/StartSellingButton'
+import { TranslatableText } from '@/components/TranslatableText'
 
 const featuredCategories = [
   {
@@ -81,20 +82,12 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           {/* Badge */}
           <div className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-emerald-300 ring-1 ring-inset ring-emerald-500/30 mb-8 bg-emerald-500/10 backdrop-blur-sm animate-fade-in-up">
-            ✨ The marketplace for creators
+            <TranslatableText as="span" wrapperAs="span" text="The marketplace for creators" className="text-emerald-300" />
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 drop-shadow-sm">
-            Find the perfect offering <br className="hidden sm:block"/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
-              for your business
-            </span>
-          </h1>
+          <TranslatableText as="h1" text="Find the perfect offering for your business" className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 drop-shadow-sm" />
           
-          <p className="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Connect with talented creators offering digital products, courses, and custom services. 
-            From design to development, find everything you need to grow.
-          </p>
+          <TranslatableText text="Connect with talented creators offering digital products, courses, and custom services. From design to development, find everything you need to grow." className="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed" showListingControls />
           
           {/* Lightweight search form using GET to avoid client handlers */}
           <form action="/category/digital-products" method="get" className="max-w-xl mx-auto mb-8 hidden">
@@ -107,7 +100,7 @@ export default async function HomePage() {
               prefetch
               className="w-full sm:w-auto px-8 py-4 rounded-full bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition-all duration-300 hover:scale-105 shadow-[0_0_20px_rgba(5,150,105,0.4)] hover:shadow-[0_0_30px_rgba(5,150,105,0.6)] flex items-center justify-center gap-2"
             >
-              Browse Offerings <ArrowRight className="w-4 h-4" />
+              <TranslatableText as="span" wrapperAs="span" text="Browse Offerings" className="inline" /> <ArrowRight className="w-4 h-4" />
             </Link>
             <div className="w-full sm:w-auto">
               <StartSellingButton />
@@ -142,10 +135,8 @@ export default async function HomePage() {
                   <div className={`w-12 h-12 sm:w-16 sm:h-16 ${category.color} rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-all duration-300 relative z-10 group-hover:rotate-6 shadow-[0_8px_20px_rgba(0,0,0,0.12)]`}>
                     <category.icon className="h-6 w-6 sm:h-8 sm:w-8 text-white drop-shadow" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-emerald-600 transition-colors duration-300">
-                    {category.name}
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">{category.description}</p>
+                  <TranslatableText as="h3" text={category.name} className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-emerald-600 transition-colors duration-300" />
+                  <TranslatableText text={category.description} className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors" showListingControls />
                   <div className="flex items-center justify-between">
                     <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1">
                       <TrendingUp className="w-3 h-3" /> {category.count}
@@ -162,22 +153,22 @@ export default async function HomePage() {
             <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
               <BadgeCheck className="w-4 h-4 text-emerald-600" />
               <div>
-                <div className="text-sm font-semibold text-gray-900 dark:text-white">Verified creators</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Handpicked quality profiles</div>
+                <TranslatableText as="div" text="Verified creators" className="text-sm font-semibold text-gray-900 dark:text-white" />
+                <TranslatableText text="Handpicked quality profiles" className="text-xs text-gray-500 dark:text-gray-400" showListingControls />
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <div>
-                <div className="text-sm font-semibold text-gray-900 dark:text-white">Secure payments</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Protected checkout flow</div>
+                <TranslatableText as="div" text="Secure payments" className="text-sm font-semibold text-gray-900 dark:text-white" />
+                <TranslatableText text="Protected checkout flow" className="text-xs text-gray-500 dark:text-gray-400" showListingControls />
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
               <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
               <div>
-                <div className="text-sm font-semibold text-gray-900 dark:text-white">Satisfaction focus</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Clear deliverables, refund policy</div>
+                <TranslatableText as="div" text="Satisfaction focus" className="text-sm font-semibold text-gray-900 dark:text-white" />
+                <TranslatableText text="Clear deliverables, refund policy" className="text-xs text-gray-500 dark:text-gray-400" showListingControls />
               </div>
             </div>
           </div>
@@ -194,12 +185,8 @@ export default async function HomePage() {
       <section className="py-12 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Popular Offerings
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Explore trending categories and find exactly what you need
-            </p>
+            <TranslatableText as="h2" text="Popular Offerings" className="text-2xl font-bold text-gray-900 dark:text-white mb-2" />
+            <TranslatableText text="Explore trending categories and find exactly what you need" className="text-gray-600 dark:text-gray-400" showListingControls />
           </div>
           <div className="flex flex-wrap justify-center gap-3">
             {[

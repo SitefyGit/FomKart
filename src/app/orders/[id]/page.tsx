@@ -8,6 +8,8 @@ import { getOrderById, getOrderMessages, listDeliverables, sendOrderMessage, cre
 import { ToastContainer, type ToastItem } from '@/components/Toast'
 import WebRTCVideoCall from '@/components/WebRTCVideoCall'
 import { useCurrency } from '@/contexts/CurrencyContext'
+import { TranslatableText } from '@/components/TranslatableText'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 type TabKey = 'activity' | 'details' | 'requirements' | 'delivery'
 
@@ -41,6 +43,7 @@ export default function OrderPage({ params }: OrderPageProps) {
   const [inCall, setInCall] = useState(false)
   const [callActive, setCallActive] = useState(false)
   const [callType, setCallType] = useState<'video' | 'audio'>('video')
+  const { t: uiT } = useLanguage()
 
   const pushToast = (type: ToastItem['type'], message: string, title?: string) => {
     const id = Math.random().toString(36).slice(2)
@@ -481,7 +484,7 @@ export default function OrderPage({ params }: OrderPageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading order…</p>
+          <TranslatableText text="Loading order…" as="p" wrapperAs="span" className="mt-4 text-gray-600" />
         </div>
       </div>
     )
@@ -490,7 +493,7 @@ export default function OrderPage({ params }: OrderPageProps) {
   if (!order) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-600">
-        <div className="flex items-center gap-2"><AlertCircle className="w-5 h-5"/> Order not found</div>
+        <div className="flex items-center gap-2"><AlertCircle className="w-5 h-5"/> <TranslatableText text="Order not found" as="span" wrapperAs="span" className="inline" /></div>
       </div>
     )
   }
@@ -516,7 +519,8 @@ export default function OrderPage({ params }: OrderPageProps) {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <button onClick={() => router.back()} className="mb-6 flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <TranslatableText text="Back" as="span" wrapperAs="span" className="inline" />
         </button>
 
         {isSuccess && (
@@ -524,8 +528,8 @@ export default function OrderPage({ params }: OrderPageProps) {
             <div className="flex items-center">
               <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400 mr-3" />
               <div>
-                <h3 className="text-lg font-semibold text-green-800 dark:text-green-300">Order Confirmed!</h3>
-                <p className="text-green-700 dark:text-green-400">Your payment has been processed successfully.</p>
+                <h3 className="text-lg font-semibold text-green-800 dark:text-green-300"><TranslatableText text="Order Confirmed!" as="span" wrapperAs="span" className="inline" /></h3>
+                <TranslatableText text="Your payment has been processed successfully." as="p" wrapperAs="span" className="text-green-700 dark:text-green-400" />
               </div>
             </div>
           </div>
@@ -537,7 +541,9 @@ export default function OrderPage({ params }: OrderPageProps) {
             {/* Header card with tabs */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Order #{orderShort}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <TranslatableText text={`Order #${orderShort}`} as="span" wrapperAs="span" className="inline" />
+                </h1>
                 <div className="flex items-center gap-3">
                   {isLiveCallEnabled && (
                     <>
@@ -553,14 +559,14 @@ export default function OrderPage({ params }: OrderPageProps) {
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm ${callActive ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
                           >
                             <Video className="w-4 h-4" />
-                            {callActive ? 'Join Video' : 'Video Call'}
+                            <TranslatableText text={callActive ? 'Join Video' : 'Video Call'} as="span" wrapperAs="span" className="inline" />
                           </button>
                           <button 
                             onClick={() => handleJoinCall('audio')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm ${callActive ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
                           >
                             <Phone className="w-4 h-4" />
-                            {callActive ? 'Join Audio' : 'Audio Call'}
+                            <TranslatableText text={callActive ? 'Join Audio' : 'Audio Call'} as="span" wrapperAs="span" className="inline" />
                           </button>
                         </>
                       )}
@@ -571,8 +577,10 @@ export default function OrderPage({ params }: OrderPageProps) {
               </div>
 
               <div className="mt-5 flex gap-2 border-b dark:border-gray-700">
-                {(['activity','details','requirements','delivery'] as TabKey[]).map(t => (
-                  <button key={t} onClick={()=>setActiveTab(t)} className={`px-3 py-2 text-sm font-medium -mb-px border-b-2 ${activeTab===t ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}>{t[0].toUpperCase()+t.slice(1)}</button>
+                {(['activity','details','requirements','delivery'] as TabKey[]).map(tab => (
+                  <button key={tab} onClick={()=>setActiveTab(tab)} className={`px-3 py-2 text-sm font-medium -mb-px border-b-2 ${activeTab===tab ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}>
+                    <TranslatableText text={tab[0].toUpperCase()+tab.slice(1)} as="span" wrapperAs="span" className="inline" />
+                  </button>
                 ))}
               </div>
 
@@ -582,16 +590,16 @@ export default function OrderPage({ params }: OrderPageProps) {
                   <div className="space-y-4">
                     {/* Timeline (basic) */}
                     <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                      <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> Order placed</div>
-                      {order.requirements ? <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> Requirements submitted</div> : null}
-                      {order.status==='in_progress' && <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-blue-600 dark:text-blue-400"/> Order in progress</div>}
-                      {order.status==='delivered' && <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> Delivered</div>}
-                      {order.status==='completed' && <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> Completed</div>}
+                      <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> <TranslatableText text="Order placed" as="span" wrapperAs="span" className="inline" /></div>
+                      {order.requirements ? <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> <TranslatableText text="Requirements submitted" as="span" wrapperAs="span" className="inline" /></div> : null}
+                      {order.status==='in_progress' && <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-blue-600 dark:text-blue-400"/> <TranslatableText text="Order in progress" as="span" wrapperAs="span" className="inline" /></div>}
+                      {order.status==='delivered' && <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> <TranslatableText text="Delivered" as="span" wrapperAs="span" className="inline" /></div>}
+                      {order.status==='completed' && <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> <TranslatableText text="Completed" as="span" wrapperAs="span" className="inline" /></div>}
                     </div>
                     
                     <div className="border-t dark:border-gray-700 my-4"></div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Order Discussion</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Use this chat to discuss requirements, share files, and communicate updates.</p>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2"><TranslatableText text="Order Discussion" as="span" wrapperAs="span" className="inline" /></h3>
+                    <TranslatableText text="Use this chat to discuss requirements, share files, and communicate updates." as="p" wrapperAs="span" className="text-sm text-gray-500 dark:text-gray-400 mb-4" />
 
                     {/* Messages */}
                     <div className="space-y-3">
@@ -620,7 +628,12 @@ export default function OrderPage({ params }: OrderPageProps) {
                                       <Icon className="w-3.5 h-3.5"/> System
                                     </div>
                                   </div>
-                                  <div className="text-sm whitespace-pre-wrap text-gray-900 dark:text-gray-100">{m.message}</div>
+                                  <TranslatableText
+                                    text={typeof m.message === 'string' ? m.message : ''}
+                                    className="text-sm whitespace-pre-wrap text-gray-900 dark:text-gray-100"
+                                    manualToggle
+                                    translationButtonClassName="text-[11px] underline text-blue-600 dark:text-blue-400"
+                                  />
                                   {Array.isArray(m.attachments) && m.attachments.length>0 && (
                                     <div className="mt-2 flex flex-wrap gap-2">
                                       {m.attachments.map((a:string, i:number)=> (
@@ -662,7 +675,12 @@ export default function OrderPage({ params }: OrderPageProps) {
                                   <span className="mx-1">•</span>
                                   <span className="text-gray-500 dark:text-gray-400">{new Date(m.created_at).toLocaleString()}</span>
                                 </div>
-                                <div className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{m.message}</div>
+                                <TranslatableText
+                                  text={typeof m.message === 'string' ? m.message : ''}
+                                  className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap"
+                                  manualToggle
+                                  translationButtonClassName="text-[11px] underline text-blue-600 dark:text-blue-400"
+                                />
                                 {Array.isArray(m.attachments) && m.attachments.length>0 && (
                                   <div className="mt-2 flex flex-wrap gap-2">
                                     {m.attachments.map((a:string, i:number)=> (
@@ -681,16 +699,16 @@ export default function OrderPage({ params }: OrderPageProps) {
                       <label className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200">
                         <Paperclip className="w-4 h-4"/>
                         <input type="file" multiple className="hidden" onChange={e=>setAttachments(e.target.files)} />
-                        Attach
+                        <TranslatableText text="Attach" as="span" wrapperAs="span" className="inline" />
                       </label>
-                      <input value={compose} onChange={e=>setCompose(e.target.value)} className="flex-1 border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" placeholder="Write a message..." />
+                      <input value={compose} onChange={e=>setCompose(e.target.value)} className="flex-1 border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" placeholder={uiT('writeMessage', 'Write a message...')} />
                       <button onClick={handleSend} disabled={posting || uploading || (!compose.trim() && !(attachments && attachments.length))} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50 flex items-center gap-1">
                         <Send className="w-4 h-4"/>
-                        {posting || uploading ? 'Sending…' : 'Send'}
+                        <TranslatableText text={posting || uploading ? 'Sending…' : 'Send'} as="span" wrapperAs="span" className="inline" />
                       </button>
                     </div>
                     {attachments && attachments.length > 0 && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{attachments.length} file(s) attached</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1"><TranslatableText text={`${attachments.length} file(s) attached`} as="span" wrapperAs="span" className="inline" /></div>
                     )}
                   </div>
                 )}
@@ -699,13 +717,19 @@ export default function OrderPage({ params }: OrderPageProps) {
                   <div className="space-y-6">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <div className="font-semibold text-gray-900 dark:text-white text-lg">{order.product?.title}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">by {order.seller?.full_name || order.seller?.username}</div>
+                        <TranslatableText
+                          text={order.product?.title || ''}
+                          as="div"
+                          className="font-semibold text-gray-900 dark:text-white text-lg"
+                        />
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          <TranslatableText text={`by ${order.seller?.full_name || order.seller?.username}`} as="span" wrapperAs="span" className="inline" />
+                        </div>
                       </div>
                       <div className="inline-flex items-center gap-2 text-xs">
-                        <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">{order.package?.name || 'Standard'} package</span>
+                        <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"><TranslatableText text={`${order.package?.name || 'Standard'} package`} as="span" wrapperAs="span" className="inline" /></span>
                         {order.package?.delivery_time ? (
-                          <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">{order.package.delivery_time} days</span>
+                          <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"><TranslatableText text={`${order.package.delivery_time} days`} as="span" wrapperAs="span" className="inline" /></span>
                         ) : null}
                       </div>
                     </div>
@@ -713,22 +737,22 @@ export default function OrderPage({ params }: OrderPageProps) {
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50/80 dark:bg-gray-800/80">
                           <tr className="text-left text-gray-600 dark:text-gray-400">
-                            <th className="p-3">Item</th>
-                            <th className="p-3">Qty.</th>
-                            <th className="p-3">Duration</th>
-                            <th className="p-3">Price</th>
+                            <th className="p-3"><TranslatableText text="Item" as="span" wrapperAs="span" className="inline" /></th>
+                            <th className="p-3"><TranslatableText text="Qty." as="span" wrapperAs="span" className="inline" /></th>
+                            <th className="p-3"><TranslatableText text="Duration" as="span" wrapperAs="span" className="inline" /></th>
+                            <th className="p-3"><TranslatableText text="Price" as="span" wrapperAs="span" className="inline" /></th>
                           </tr>
                         </thead>
                         <tbody className="dark:text-gray-300">
                           <tr className="border-t dark:border-gray-700">
                             <td className="p-4 align-top">
-                              <div className="font-medium text-gray-900 dark:text-white">{order.package?.name || 'Standard'}</div>
+                              <div className="font-medium text-gray-900 dark:text-white"><TranslatableText text={order.package?.name || 'Standard'} as="span" wrapperAs="span" className="inline" /></div>
                               <ul className="list-disc pl-5 text-gray-600 dark:text-gray-400">
                                 {(order.package?.features||[]).map((f:string,i:number)=> <li key={i}>{f}</li>)}
                               </ul>
                             </td>
                             <td className="p-4">{order.quantity ?? 1}</td>
-                            <td className="p-4">{order.package?.delivery_time ? `${order.package.delivery_time} days` : '—'}</td>
+                            <td className="p-4">{order.package?.delivery_time ? <TranslatableText text={`${order.package.delivery_time} days`} as="span" wrapperAs="span" className="inline" /> : '—'}</td>
                             <td className="p-4">{formatPrice(order.package?.price ?? order.unit_price ?? 0)}</td>
                           </tr>
                         </tbody>
@@ -742,9 +766,9 @@ export default function OrderPage({ params }: OrderPageProps) {
                       const total = typeof order?.total_price === 'number' ? order.total_price : subtotal + fee
                       return (
                         <div className="space-y-2 text-sm">
-                          <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Subtotal</span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(subtotal)}</span></div>
-                          <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Service Fee</span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(fee)}</span></div>
-                          <div className="flex justify-between text-base font-semibold pt-2 border-t dark:border-gray-700 text-gray-900 dark:text-white"><span>Total</span><span>{formatPrice(total)}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400"><TranslatableText text="Subtotal" as="span" wrapperAs="span" className="inline" /></span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(subtotal)}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400"><TranslatableText text="Service Fee" as="span" wrapperAs="span" className="inline" /></span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(fee)}</span></div>
+                          <div className="flex justify-between text-base font-semibold pt-2 border-t dark:border-gray-700 text-gray-900 dark:text-white"><span><TranslatableText text="Total" as="span" wrapperAs="span" className="inline" /></span><span>{formatPrice(total)}</span></div>
                         </div>
                       )
                     })()}
@@ -755,7 +779,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                   <div className="space-y-4">
                     {!order.requirements ? (
                       <div className="space-y-3">
-                        <div className="p-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-sm">No requirements submitted yet.</div>
+                        <div className="p-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-sm"><TranslatableText text="No requirements submitted yet." as="span" wrapperAs="span" className="inline" /></div>
                         {isBuyer && (
                           <RequirementsForm order={order} reqForm={reqForm} setReqForm={setReqForm}
                             onSubmitted={(next)=> {
@@ -766,7 +790,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                           />
                         )}
                         {!isBuyer && (
-                          <div className="text-sm text-gray-600 dark:text-gray-400">Waiting for buyer to submit requirements.</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400"><TranslatableText text="Waiting for buyer to submit requirements." as="span" wrapperAs="span" className="inline" /></div>
                         )}
                       </div>
                     ) : (
@@ -789,13 +813,13 @@ export default function OrderPage({ params }: OrderPageProps) {
                   <div className="space-y-4">
                     {isBuyer && order.status==='delivered' && (
                       <div className={`p-4 rounded-lg border ${overdue ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300' : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300'}`}>
-                        {overdue ? 'Approval window ended. Please review the delivery.' : `Please review the delivery by ${approveByLabel || 'the deadline'}.`}
+                        <TranslatableText text={overdue ? 'Approval window ended. Please review the delivery.' : `Please review the delivery by ${approveByLabel || 'the deadline'}.`} as="span" wrapperAs="span" className="inline" />
                       </div>
                     )}
-                    {deliveries.length===0 && <div className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 text-sm">No deliveries yet.</div>}
+                    {deliveries.length===0 && <div className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 text-sm"><TranslatableText text="No deliveries yet." as="span" wrapperAs="span" className="inline" /></div>}
                     {deliveries.map((d:any, idx:number)=> (
                       <div key={d.id} className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-800">
-                        <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Delivery #{idx+1} • {new Date(d.created_at).toLocaleString()}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mb-2"><TranslatableText text={`Delivery #${idx+1} • ${new Date(d.created_at).toLocaleString()}`} as="span" wrapperAs="span" className="inline" /></div>
                         {d.description && <div className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">{d.description}</div>}
                         <div className="mt-2 flex flex-wrap gap-2">
                           <a href={d.file_url} target="_blank" className="text-xs text-blue-600 dark:text-blue-400 underline flex items-center gap-1"><Paperclip className="w-3 h-3"/> {d.file_name}</a>
@@ -804,13 +828,13 @@ export default function OrderPage({ params }: OrderPageProps) {
                     ))}
                     {isBuyer && order.status === 'delivered' && (
                       <div className="flex flex-wrap gap-2">
-                        <button onClick={approveDelivery} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">Yes, I approve delivery</button>
-                        <button onClick={requestRevision} className="px-4 py-2 border dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">Request revision</button>
+                        <button onClick={approveDelivery} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm"><TranslatableText text="Yes, I approve delivery" as="span" wrapperAs="span" className="inline" /></button>
+                        <button onClick={requestRevision} className="px-4 py-2 border dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200"><TranslatableText text="Request revision" as="span" wrapperAs="span" className="inline" /></button>
                       </div>
                     )}
                     {isSeller && (order.status==='in_progress' || order.status==='revision_requested' || order.status==='confirmed') ? (
                       <div>
-                        <button onClick={()=>setShowDeliverModal(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-1"><Upload className="w-4 h-4"/> Send delivery</button>
+                        <button onClick={()=>setShowDeliverModal(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-1"><Upload className="w-4 h-4"/> <TranslatableText text="Send delivery" as="span" wrapperAs="span" className="inline" /></button>
                       </div>
                     ) : null}
                   </div>
@@ -822,7 +846,7 @@ export default function OrderPage({ params }: OrderPageProps) {
           {/* Right rail */}
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Order Summary</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4"><TranslatableText text="Order Summary" as="span" wrapperAs="span" className="inline" /></h3>
               {(() => {
                 const unit = order?.package?.price ?? order?.unit_price ?? 0
                 const qty = order?.quantity ?? 1
@@ -831,14 +855,14 @@ export default function OrderPage({ params }: OrderPageProps) {
                 const total = typeof order?.total_price === 'number' ? order.total_price : subtotal + fee
                 return (
                   <div className="space-y-3 text-sm">
-                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Package Price</span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(subtotal)}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Service Fee (5%)</span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(fee)}</span></div>
-                    <div className="border-t dark:border-gray-700 pt-3 flex justify-between font-semibold text-lg text-gray-900 dark:text-white"><span>Total</span><span>{formatPrice(total)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400"><TranslatableText text="Package Price" as="span" wrapperAs="span" className="inline" /></span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(subtotal)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400"><TranslatableText text="Service Fee (5%)" as="span" wrapperAs="span" className="inline" /></span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(fee)}</span></div>
+                    <div className="border-t dark:border-gray-700 pt-3 flex justify-between font-semibold text-lg text-gray-900 dark:text-white"><span><TranslatableText text="Total" as="span" wrapperAs="span" className="inline" /></span><span>{formatPrice(total)}</span></div>
                   </div>
                 )
               })()}
               <button onClick={()=>setShowBilling(v=>!v)} className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1">
-                <Info className="w-4 h-4"/> {showBilling ? 'Hide' : 'View'} billing details
+                <Info className="w-4 h-4"/> <TranslatableText text={`${showBilling ? 'Hide' : 'View'} billing details`} as="span" wrapperAs="span" className="inline" />
               </button>
               {showBilling && (()=>{
                 const unit = order?.package?.price ?? order?.unit_price ?? 0
@@ -858,56 +882,56 @@ export default function OrderPage({ params }: OrderPageProps) {
             </div>
             {/* Order meta */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Order details</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3"><TranslatableText text="Order details" as="span" wrapperAs="span" className="inline" /></h3>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
                   {order.product?.images?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={order.product.images[0]} alt="thumb" className="w-full h-full object-cover"/>
                   ) : (
-                    <span className="text-xs text-gray-400">No image</span>
+                    <span className="text-xs text-gray-400"><TranslatableText text="No image" as="span" wrapperAs="span" className="inline" /></span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 truncate">{order.product?.title || 'Product'}</div>
-                  <div className="text-xs text-gray-600 truncate">Seller: {order.seller?.full_name || order.seller?.username || '—'}</div>
+                  <div className="text-sm font-medium text-gray-900 truncate"><TranslatableText text={order.product?.title || 'Product'} as="span" wrapperAs="span" className="inline" /></div>
+                  <div className="text-xs text-gray-600 truncate"><TranslatableText text={`Seller: ${order.seller?.full_name || order.seller?.username || '—'}`} as="span" wrapperAs="span" className="inline" /></div>
                 </div>
               </div>
               <div className="mt-3 text-xs text-gray-600 flex items-center justify-between">
-                <div>Order #: <span className="font-mono">{order.order_number || orderShort}</span></div>
+                <div><TranslatableText text="Order #:" as="span" wrapperAs="span" className="inline" /> <span className="font-mono">{order.order_number || orderShort}</span></div>
                 <button onClick={async ()=>{ try{ await navigator.clipboard.writeText(order.order_number || order.id); pushToast('success','Order number copied'); }catch{ pushToast('error','Copy failed'); } }} className="inline-flex items-center gap-1 text-blue-600 hover:underline">
-                  <Copy className="w-3 h-3"/> Copy
+                  <Copy className="w-3 h-3"/> <TranslatableText text="Copy" as="span" wrapperAs="span" className="inline" />
                 </button>
               </div>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Track Order</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3"><TranslatableText text="Track Order" as="span" wrapperAs="span" className="inline" /></h3>
               <ol className="space-y-2 text-sm">
-                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> Order placed</li>
-                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">{order.requirements ? <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> : <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} Requirements submitted</li>
-                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">{order.status==='in_progress' || order.status==='delivered' || order.status==='completed' ? <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> : <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} Order in progress</li>
-                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">{order.status==='delivered' || order.status==='completed' ? <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> : <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} Review delivery</li>
-                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">{order.status==='completed' ? <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> : <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} Complete order</li>
+                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400"><CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> <TranslatableText text="Order placed" as="span" wrapperAs="span" className="inline" /></li>
+                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">{order.requirements ? <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> : <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} <TranslatableText text="Requirements submitted" as="span" wrapperAs="span" className="inline" /></li>
+                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">{order.status==='in_progress' || order.status==='delivered' || order.status==='completed' ? <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> : <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} <TranslatableText text="Order in progress" as="span" wrapperAs="span" className="inline" /></li>
+                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">{order.status==='delivered' || order.status==='completed' ? <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> : <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} <TranslatableText text="Review delivery" as="span" wrapperAs="span" className="inline" /></li>
+                <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">{order.status==='completed' ? <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400"/> : <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} <TranslatableText text="Complete order" as="span" wrapperAs="span" className="inline" /></li>
               </ol>
-              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">Expected delivery: {expectedDate || (order.package?.delivery_time ? `within ${order.package.delivery_time} days` : '—')}</div>
+              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400"><TranslatableText text={`Expected delivery: ${expectedDate || (order.package?.delivery_time ? `within ${order.package.delivery_time} days` : '—')}`} as="span" wrapperAs="span" className="inline" /></div>
               {order.status==='delivered' && (
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">Approve by: {approveByLabel || '—'}</div>
+                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400"><TranslatableText text={`Approve by: ${approveByLabel || '—'}`} as="span" wrapperAs="span" className="inline" /></div>
               )}
             </div>
             {isBuyer && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 p-6">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Leave a review</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-3"><TranslatableText text="Leave a review" as="span" wrapperAs="span" className="inline" /></h3>
                 {hasSubmittedReview ? (
                   <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                    <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 text-green-700 dark:text-green-300 text-sm">Thank you! Your review has been submitted.</div>
+                    <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 text-green-700 dark:text-green-300 text-sm"><TranslatableText text="Thank you! Your review has been submitted." as="span" wrapperAs="span" className="inline" /></div>
                     <div>
-                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Product rating</div>
+                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1"><TranslatableText text="Product rating" as="span" wrapperAs="span" className="inline" /></div>
                       <div className="font-medium text-gray-900 dark:text-white">{existingReview?.rating ?? reviewForm.rating}/5</div>
                       {existingReview?.comment && <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{existingReview.comment}</p>}
                     </div>
                     {existingReview?.seller_rating ? (
                       <div>
-                        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Seller experience</div>
+                        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1"><TranslatableText text="Seller experience" as="span" wrapperAs="span" className="inline" /></div>
                         <div className="font-medium text-gray-900 dark:text-white">{existingReview.seller_rating}/5</div>
                         {existingReview.seller_comment && <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{existingReview.seller_comment}</p>}
                       </div>
@@ -916,50 +940,50 @@ export default function OrderPage({ params }: OrderPageProps) {
                 ) : canReview ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1">Product rating *</label>
+                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1"><TranslatableText text="Product rating *" as="span" wrapperAs="span" className="inline" /></label>
                       <select
                         value={reviewForm.rating}
                         onChange={e => setReviewForm(prev => ({ ...prev, rating: Number(e.target.value) }))}
                         className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                       >
                         {[5,4,3,2,1].map(val => (
-                          <option key={val} value={val}>{val} Stars</option>
+                          <option key={val} value={val}>{uiT('starsLabel', `${val} Stars`)}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1">Product feedback</label>
+                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1"><TranslatableText text="Product feedback" as="span" wrapperAs="span" className="inline" /></label>
                       <textarea
                         value={reviewForm.comment}
                         onChange={e => setReviewForm(prev => ({ ...prev, comment: e.target.value }))}
                         rows={3}
                         maxLength={500}
-                        placeholder="Share your experience for future buyers"
+                        placeholder={uiT('productFeedbackPlaceholder', 'Share your experience for future buyers')}
                         className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       />
                       <div className="text-[10px] text-gray-500 dark:text-gray-400 text-right">{reviewForm.comment.length}/500</div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1">Seller rating (optional)</label>
+                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1"><TranslatableText text="Seller rating (optional)" as="span" wrapperAs="span" className="inline" /></label>
                       <select
                         value={reviewForm.sellerRating}
                         onChange={e => setReviewForm(prev => ({ ...prev, sellerRating: Number(e.target.value) }))}
                         className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                       >
                         {[0,5,4,3,2,1].map(val => (
-                          <option key={val} value={val}>{val === 0 ? 'Skip' : `${val} Stars`}</option>
+                          <option key={val} value={val}>{val === 0 ? uiT('skipLabel', 'Skip') : uiT('starsLabel', `${val} Stars`)}</option>
                         ))}
                       </select>
                     </div>
                     {reviewForm.sellerRating > 0 && (
                       <div>
-                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1">Seller feedback</label>
+                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1"><TranslatableText text="Seller feedback" as="span" wrapperAs="span" className="inline" /></label>
                         <textarea
                           value={reviewForm.sellerComment}
                           onChange={e => setReviewForm(prev => ({ ...prev, sellerComment: e.target.value }))}
                           rows={3}
                           maxLength={400}
-                          placeholder="Let the seller know what stood out."
+                          placeholder={uiT('sellerFeedbackPlaceholder', 'Let the seller know what stood out.')}
                           className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                         />
                         <div className="text-[10px] text-gray-500 dark:text-gray-400 text-right">{reviewForm.sellerComment.length}/400</div>
@@ -970,19 +994,19 @@ export default function OrderPage({ params }: OrderPageProps) {
                       disabled={submittingReview}
                       className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm disabled:opacity-50"
                     >
-                      {submittingReview ? 'Submitting…' : 'Submit review'}
+                      <TranslatableText text={submittingReview ? 'Submitting…' : 'Submit review'} as="span" wrapperAs="span" className="inline" />
                     </button>
                   </div>
                 ) : (
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Reviews unlock once the order is delivered. We'll remind you again after completion.
+                    <TranslatableText text="Reviews unlock once the order is delivered. We'll remind you again after completion." as="span" wrapperAs="span" className="inline" />
                   </div>
                 )}
               </div>
             )}
             <div className="space-y-3">
-              <Link href="/" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center block">Continue Shopping</Link>
-              <Link href="/orders" className="w-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold py-3 px-4 rounded-lg border dark:border-gray-700 transition-colors text-center block">View All Orders</Link>
+              <Link href="/" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center block"><TranslatableText text="Continue Shopping" as="span" wrapperAs="span" className="inline" /></Link>
+              <Link href="/orders" className="w-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold py-3 px-4 rounded-lg border dark:border-gray-700 transition-colors text-center block"><TranslatableText text="View All Orders" as="span" wrapperAs="span" className="inline" /></Link>
             </div>
           </div>
         </div>
@@ -993,23 +1017,23 @@ export default function OrderPage({ params }: OrderPageProps) {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-gray-900 dark:text-white"><PackageOpen className="w-5 h-5"/><h3 className="font-semibold">Send Delivery</h3></div>
+              <div className="flex items-center gap-2 text-gray-900 dark:text-white"><PackageOpen className="w-5 h-5"/><h3 className="font-semibold"><TranslatableText text="Send Delivery" as="span" wrapperAs="span" className="inline" /></h3></div>
               <button onClick={()=>setShowDeliverModal(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">✕</button>
             </div>
             <div className="space-y-3">
-              <textarea value={deliveryNote} onChange={e=>setDeliveryNote(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" rows={4} placeholder="Add a note about this delivery (optional)" />
+              <textarea value={deliveryNote} onChange={e=>setDeliveryNote(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" rows={4} placeholder={uiT('deliveryNotePlaceholder', 'Add a note about this delivery (optional)')} />
               <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer hover:text-gray-900 dark:hover:text-white">
                 <Upload className="w-4 h-4"/>
                 <input type="file" multiple className="hidden" onChange={e=>setDeliveryFiles(e.target.files)} />
-                Attach files
+                <TranslatableText text="Attach files" as="span" wrapperAs="span" className="inline" />
               </label>
               {deliveryFiles && deliveryFiles.length>0 && (
-                <div className="text-xs text-gray-500 dark:text-gray-400">{deliveryFiles.length} file(s) selected</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400"><TranslatableText text={`${deliveryFiles.length} file(s) selected`} as="span" wrapperAs="span" className="inline" /></div>
               )}
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button onClick={()=>setShowDeliverModal(false)} className="px-3 py-2 border dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
-              <button onClick={handleSendDelivery} disabled={uploading || !(deliveryFiles && deliveryFiles.length)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">Send delivery</button>
+              <button onClick={()=>setShowDeliverModal(false)} className="px-3 py-2 border dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"><TranslatableText text="Cancel" as="span" wrapperAs="span" className="inline" /></button>
+              <button onClick={handleSendDelivery} disabled={uploading || !(deliveryFiles && deliveryFiles.length)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50"><TranslatableText text="Send delivery" as="span" wrapperAs="span" className="inline" /></button>
             </div>
           </div>
         </div>
@@ -1022,6 +1046,7 @@ export default function OrderPage({ params }: OrderPageProps) {
 
 function RequirementsForm({ order, reqForm, setReqForm, onSubmitted, notify }:{ order:any; reqForm:any; setReqForm: (v:any)=>void; onSubmitted:(r:any)=>void; notify: (type:ToastItem['type'], msg:string, title?:string)=>void }){
   const [saving, setSaving] = useState(false)
+  const { t: uiT } = useLanguage()
   const onSubmit = async () => {
     const payload = {
       details: reqForm.details?.trim() || undefined,
@@ -1047,19 +1072,19 @@ function RequirementsForm({ order, reqForm, setReqForm, onSubmitted, notify }:{ 
   }
   return (
     <div className="border rounded-lg p-4">
-      <div className="font-medium mb-2">Submit Requirements</div>
+      <div className="font-medium mb-2"><TranslatableText text="Submit Requirements" as="span" wrapperAs="span" className="inline" /></div>
       <div className="space-y-3 text-sm">
         <div>
-          <div className="text-gray-600 mb-1">Project details</div>
-          <textarea className="w-full border rounded-lg p-2" rows={3} value={reqForm.details} onChange={e=>setReqForm({...reqForm, details: e.target.value})} placeholder="Describe your project and goals" />
+          <div className="text-gray-600 mb-1"><TranslatableText text="Project details" as="span" wrapperAs="span" className="inline" /></div>
+          <textarea className="w-full border rounded-lg p-2" rows={3} value={reqForm.details} onChange={e=>setReqForm({...reqForm, details: e.target.value})} placeholder={uiT('requirementsDetailsPlaceholder', 'Describe your project and goals')} />
         </div>
         <div>
-          <div className="text-gray-600 mb-1">Notes to seller</div>
-          <textarea className="w-full border rounded-lg p-2" rows={2} value={reqForm.notes} onChange={e=>setReqForm({...reqForm, notes: e.target.value})} placeholder="Any additional context" />
+          <div className="text-gray-600 mb-1"><TranslatableText text="Notes to seller" as="span" wrapperAs="span" className="inline" /></div>
+          <textarea className="w-full border rounded-lg p-2" rows={2} value={reqForm.notes} onChange={e=>setReqForm({...reqForm, notes: e.target.value})} placeholder={uiT('requirementsNotesPlaceholder', 'Any additional context')} />
         </div>
       </div>
       <div className="mt-3 flex justify-end">
-        <button onClick={onSubmit} disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-50">{saving?'Submitting…':'Submit requirements'}</button>
+        <button onClick={onSubmit} disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-50"><TranslatableText text={saving?'Submitting…':'Submit requirements'} as="span" wrapperAs="span" className="inline" /></button>
       </div>
     </div>
   )
@@ -1087,8 +1112,8 @@ function RequestInfoCard({ orderId, onRequested }:{ orderId:string; onRequested:
   }
   return (
     <div className="mt-3 p-3 border rounded-lg bg-gray-50 flex items-center justify-between">
-      <div className="text-sm text-gray-700">Need additional information?</div>
-      <button onClick={askMore} disabled={sending} className="px-3 py-2 border rounded-lg text-sm">{sending?'Requesting…':'Request more info'}</button>
+      <div className="text-sm text-gray-700"><TranslatableText text="Need additional information?" as="span" wrapperAs="span" className="inline" /></div>
+      <button onClick={askMore} disabled={sending} className="px-3 py-2 border rounded-lg text-sm"><TranslatableText text={sending?'Requesting…':'Request more info'} as="span" wrapperAs="span" className="inline" /></button>
     </div>
   )
 }

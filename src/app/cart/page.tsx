@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { supabase, type User } from '@/lib/supabase'
 import { useCurrency } from '@/contexts/CurrencyContext'
+import { TranslatableText } from '@/components/TranslatableText'
 
 // Local type for cart items with normalized relationships
 interface CartItemNormalized {
@@ -265,7 +266,7 @@ export default function CartPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading cart...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400"><TranslatableText text="Loading cart..." as="span" wrapperAs="span" className="inline" /></p>
         </div>
       </div>
     )
@@ -278,16 +279,16 @@ export default function CartPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Shopping Cart</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white"><TranslatableText text="Shopping Cart" as="span" wrapperAs="span" className="inline" /></h1>
               <p className="text-gray-600 dark:text-gray-400">
-                {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
+                <TranslatableText text={`${cartItems.length} ${cartItems.length === 1 ? 'item' : 'items'} in your cart`} as="span" wrapperAs="span" className="inline" />
               </p>
             </div>
             <Link
               href="/"
               className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium"
             >
-              Continue Shopping
+              <TranslatableText text="Continue Shopping" as="span" wrapperAs="span" className="inline" />
             </Link>
           </div>
         </div>
@@ -297,15 +298,15 @@ export default function CartPage() {
         {cartItems.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
             <ShoppingBag className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Your cart is empty</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2"><TranslatableText text="Your cart is empty" as="span" wrapperAs="span" className="inline" /></h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Looks like you haven&apos;t added any items to your cart yet.
+              <TranslatableText text="Looks like you haven't added any items to your cart yet." as="span" wrapperAs="span" className="inline" showListingControls />
             </p>
             <Link
               href="/"
               className="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
             >
-              Start Shopping
+              <TranslatableText text="Start Shopping" as="span" wrapperAs="span" className="inline" />
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </div>
@@ -315,7 +316,7 @@ export default function CartPage() {
             <div className="lg:col-span-2">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Cart Items</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white"><TranslatableText text="Cart Items" as="span" wrapperAs="span" className="inline" /></h2>
                 </div>
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
                   {cartItems.map((item) => (
@@ -353,7 +354,7 @@ export default function CartPage() {
                               
                               {/* Creator */}
                               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                by{' '}
+                                <TranslatableText text="by" as="span" wrapperAs="span" className="inline" />{' '}
                                 <Link
                                   href={`/creator/${item.product?.creator?.username}`}
                                   className="font-medium hover:text-emerald-600 dark:hover:text-emerald-400"
@@ -365,14 +366,14 @@ export default function CartPage() {
                               {/* Package */}
                               {item.package && (
                                 <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 mb-3">
-                                  <div className="font-medium text-emerald-900 dark:text-emerald-300">{item.package.name} Package</div>
+                                  <div className="font-medium text-emerald-900 dark:text-emerald-300"><TranslatableText text={`${item.package.name} Package`} as="span" wrapperAs="span" className="inline" /></div>
                                   <div className="text-sm text-emerald-700 dark:text-emerald-400 mt-1">
                                     {item.package.description}
                                   </div>
                                   {(item.package.delivery_time || item.package.delivery_days) && (
                                     <div className="flex items-center gap-1 mt-2 text-sm text-emerald-600 dark:text-emerald-400">
                                       <Clock className="w-4 h-4" />
-                                      {item.package.delivery_time || item.package.delivery_days} days delivery
+                                      <TranslatableText text={`${item.package.delivery_time || item.package.delivery_days} days delivery`} as="span" wrapperAs="span" className="inline" />
                                     </div>
                                   )}
                                 </div>
@@ -381,7 +382,7 @@ export default function CartPage() {
                               {/* Requirements */}
                               {item.requirements && Object.keys(item.requirements).length > 0 && (
                                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-3">
-                                  <div className="font-medium text-gray-900 dark:text-white mb-2">Requirements</div>
+                                  <div className="font-medium text-gray-900 dark:text-white mb-2"><TranslatableText text="Requirements" as="span" wrapperAs="span" className="inline" /></div>
                                   <div className="space-y-1">
                                     {Object.entries(item.requirements).map(([key, value]) => (
                                       <div key={key} className="text-sm">
@@ -398,7 +399,7 @@ export default function CartPage() {
                                 <span className="text-lg font-bold text-gray-900 dark:text-white">
                                   {formatPrice(item.package?.price || item.product?.base_price || 0)}
                                 </span>
-                                <span className="text-gray-500 dark:text-gray-400">per item</span>
+                                <span className="text-gray-500 dark:text-gray-400"><TranslatableText text="per item" as="span" wrapperAs="span" className="inline" /></span>
                               </div>
                             </div>
 
@@ -446,7 +447,7 @@ export default function CartPage() {
                       {/* Item Total */}
                       <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600 dark:text-gray-400">Item Total</span>
+                          <span className="text-gray-600 dark:text-gray-400"><TranslatableText text="Item Total" as="span" wrapperAs="span" className="inline" /></span>
                           <span className="font-semibold text-gray-900 dark:text-white">
                             {formatPrice((item.package?.price || item.product?.base_price || 0) * item.quantity)}
                           </span>
@@ -461,20 +462,20 @@ export default function CartPage() {
             {/* Order Summary */}
             <div className="lg:col-span-1">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 sticky top-8">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Order Summary</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4"><TranslatableText text="Order Summary" as="span" wrapperAs="span" className="inline" /></h3>
                 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Subtotal ({cartItems.length} items)</span>
+                    <span className="text-gray-600 dark:text-gray-400"><TranslatableText text={`Subtotal (${cartItems.length} items)`} as="span" wrapperAs="span" className="inline" /></span>
                     <span className="text-gray-900 dark:text-white">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Service Fee (5%)</span>
+                    <span className="text-gray-600 dark:text-gray-400"><TranslatableText text="Service Fee (5%)" as="span" wrapperAs="span" className="inline" /></span>
                     <span className="text-gray-900 dark:text-white">{formatPrice(serviceFee)}</span>
                   </div>
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
                     <div className="flex justify-between">
-                      <span className="font-semibold text-gray-900 dark:text-white">Total</span>
+                      <span className="font-semibold text-gray-900 dark:text-white"><TranslatableText text="Total" as="span" wrapperAs="span" className="inline" /></span>
                       <span className="font-bold text-xl text-gray-900 dark:text-white">{formatPrice(total)}</span>
                     </div>
                   </div>
@@ -485,11 +486,11 @@ export default function CartPage() {
                   className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                 >
                   <CreditCard className="w-5 h-5" />
-                  Proceed to Checkout
+                  <TranslatableText text="Proceed to Checkout" as="span" wrapperAs="span" className="inline" />
                 </button>
 
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
-                  Secure checkout powered by Stripe
+                  <TranslatableText text="Secure checkout powered by Stripe" as="span" wrapperAs="span" className="inline" />
                 </p>
 
                 {/* Trust Indicators */}
@@ -497,15 +498,15 @@ export default function CartPage() {
                   <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      <span>Secure payment processing</span>
+                      <span><TranslatableText text="Secure payment processing" as="span" wrapperAs="span" className="inline" /></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      <span>Money-back guarantee</span>
+                      <span><TranslatableText text="Money-back guarantee" as="span" wrapperAs="span" className="inline" /></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      <span>24/7 customer support</span>
+                      <span><TranslatableText text="24/7 customer support" as="span" wrapperAs="span" className="inline" /></span>
                     </div>
                   </div>
                 </div>

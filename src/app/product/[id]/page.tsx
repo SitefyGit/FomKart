@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { addToCart as addToCartApi, getCurrentUser, supabase } from '@/lib/supabase';
 import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { TranslatableText } from '@/components/TranslatableText';
 import {
   Star,
   Clock,
@@ -414,8 +415,8 @@ export default function ProductPage({ params }: ProductPageProps) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
-          <p className="text-gray-600">The product you&apos;re looking for doesn&apos;t exist.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4"><TranslatableText text="Product Not Found" as="span" wrapperAs="span" className="inline" /></h1>
+          <p className="text-gray-600"><TranslatableText text="The product you're looking for doesn't exist." as="span" wrapperAs="span" className="inline" /></p>
         </div>
       </div>
     );
@@ -435,9 +436,9 @@ export default function ProductPage({ params }: ProductPageProps) {
             </button>
             <Link href="/" className="hover:text-emerald-600">FomKart</Link>
             <span className="mx-2">/</span>
-            <Link href="/category/digital-products" className="hover:text-emerald-600">Products</Link>
+            <Link href="/category/digital-products" className="hover:text-emerald-600"><TranslatableText text="Products" as="span" wrapperAs="span" className="inline" /></Link>
             <span className="mx-2">/</span>
-            <span className="text-gray-900 dark:text-white truncate">{product.title}</span>
+            <TranslatableText text={product.title} as="span" wrapperAs="span" className="text-gray-900 dark:text-white truncate" />
           </nav>
         </div>
       </div>
@@ -464,7 +465,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                     className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
                     <Globe className="w-4 h-4 mr-2" />
-                    Live Demo
+                    <TranslatableText text="Live Demo" as="span" wrapperAs="span" className="inline" />
                   </a>
                 </div>
               )}
@@ -474,30 +475,38 @@ export default function ProductPage({ params }: ProductPageProps) {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
               {/* Title & quick actions */}
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight flex-1">{product.title}</h1>
+                <TranslatableText
+                  text={product.title}
+                  as="h1"
+                  className="text-2xl font-bold text-gray-900 dark:text-white leading-tight flex-1"
+                />
                 <div className="flex items-center gap-2 self-start">
                   <button
                     onClick={() => setShowShareModal(true)}
                     className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <Share2 className="w-4 h-4" />
-                    Share
+                    <TranslatableText text="Share" as="span" wrapperAs="span" className="inline" />
                   </button>
                   {currentUserId && product.creator_id === currentUserId && (
                     <button
                       onClick={() => router.push(`/product/${product.id}/edit`)}
                       className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                      Edit
+                      <TranslatableText text="Edit" as="span" wrapperAs="span" className="inline" />
                     </button>
                   )}
                 </div>
               </div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">About This Service</h2>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 whitespace-pre-wrap">{product.description}</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4"><TranslatableText text="About This Service" as="span" wrapperAs="span" className="inline" /></h2>
+              <TranslatableText
+                text={product.description}
+                className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 whitespace-pre-wrap"
+                showListingControls
+              />
               {product.features && product.features.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Key Features</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2"><TranslatableText text="Key Features" as="span" wrapperAs="span" className="inline" /></h3>
                   <ul className="grid md:grid-cols-2 gap-2 text-sm text-gray-700 dark:text-gray-300">
                     {product.features.map((f,i)=>(
                       <li key={i} className="flex items-start gap-2"><Check className="w-4 h-4 text-green-600 mt-0.5" /> <span>{f}</span></li>
@@ -507,7 +516,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               )}
               {product.requirements && product.requirements.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Included / Links</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2"><TranslatableText text="Included / Links" as="span" wrapperAs="span" className="inline" /></h3>
                   <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300 break-all">
                     {product.requirements.map((r,i)=>{
                       const isLink = /https?:\/\//i.test(r);
@@ -520,7 +529,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               {/* Tags - Clickable links to tag pages for SEO */}
               {product.tags.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Related tags</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3"><TranslatableText text="Related tags" as="span" wrapperAs="span" className="inline" /></h3>
                   <div className="flex flex-wrap gap-2">
                     {product.tags.map((tag, index) => (
                       <Link
@@ -539,36 +548,36 @@ export default function ProductPage({ params }: ProductPageProps) {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">{product.totalSales}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Sales</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Sales" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center mb-1">
                     <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     <span className="text-lg font-bold text-gray-900 dark:text-white ml-1">{Number(product.avgRating ?? 0).toFixed(1)}</span>
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Rating</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Rating" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     {selectedPackage ? `${selectedPackage.delivery_time}` : '—'}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Delivery</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Delivery" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     {selectedPackage?.revisions || 'Unlimited'}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Revisions</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Revisions" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
               </div>
             </div>
 
             {/* Reviews Section */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Reviews ({product.reviewCount ?? reviews.length})</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6"><TranslatableText text={`Reviews (${product.reviewCount ?? reviews.length})`} as="span" wrapperAs="span" className="inline" /></h2>
               <div className="space-y-6">
                 {reviews.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">No reviews yet.</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="No reviews yet." as="span" wrapperAs="span" className="inline" /></p>
                 ) : reviews.map((review) => (
                   <div key={review.id} className="flex space-x-4">
                     <Image
@@ -639,7 +648,11 @@ export default function ProductPage({ params }: ProductPageProps) {
                     </div>
                   </div>
                 </Link>
-                <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">{product.creator.bio}</p>
+                <TranslatableText
+                  text={product.creator.bio}
+                  className="text-gray-700 dark:text-gray-300 text-sm mb-4"
+                  showListingControls
+                />
                 <button
                   onClick={() => {
                     if (product?.creator?.username) {
@@ -649,7 +662,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                   className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  Contact Creator
+                  <TranslatableText text="Contact Creator" as="span" wrapperAs="span" className="inline" />
                 </button>
               </div>
             )}
@@ -687,16 +700,16 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                       <Clock className="w-4 h-4 mr-2" />
-                      <span className="font-semibold">{selectedPackage.delivery_time} delivery</span>
+                      <span className="font-semibold"><TranslatableText text={`${selectedPackage.delivery_time} delivery`} as="span" wrapperAs="span" className="inline" /></span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                       <ArrowRight className="w-4 h-4 mr-2" />
-                      <span className="font-semibold">{selectedPackage.revisions} revisions</span>
+                      <span className="font-semibold"><TranslatableText text={`${selectedPackage.revisions} revisions`} as="span" wrapperAs="span" className="inline" /></span>
                     </div>
                   </div>
 
                   <div className="mb-6">
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">What you get:</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3"><TranslatableText text="What you get:" as="span" wrapperAs="span" className="inline" /></h4>
                     <div className="space-y-2">
                       {selectedPackage.features.map((feature, index) => (
                         <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
@@ -714,7 +727,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                       className={`w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 transition-colors flex items-center justify-center font-medium ${currentUserId===product.creator_id ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       <ArrowRight className="w-5 h-5 mr-2" />
-                      Continue ({formatPrice(selectedPackage.price)})
+                      <TranslatableText text={`Continue (${formatPrice(selectedPackage.price)})`} as="span" wrapperAs="span" className="inline" />
                     </button>
                     <button
                       onClick={handleAddToCart}
@@ -722,13 +735,13 @@ export default function ProductPage({ params }: ProductPageProps) {
                       className={`w-full border border-gray-800 dark:border-gray-300 bg-gray-900 dark:bg-transparent text-white dark:text-gray-200 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors flex items-center justify-center disabled:opacity-60 ${currentUserId===product.creator_id ? 'cursor-not-allowed' : ''}`}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
-                      {addingToCart ? 'Adding…' : 'Add to Cart'}
+                      <TranslatableText text={addingToCart ? 'Adding…' : 'Add to Cart'} as="span" wrapperAs="span" className="inline" />
                     </button>
                     {currentUserId === product.creator_id && (
-                      <div className="text-center text-sm text-red-600 dark:text-red-400">You cannot purchase your own product or service.</div>
+                      <div className="text-center text-sm text-red-600 dark:text-red-400"><TranslatableText text="You cannot purchase your own product or service." as="span" wrapperAs="span" className="inline" /></div>
                     )}
                     {cartFeedback && (
-                      <div className="text-center text-sm text-green-600 dark:text-green-400">{cartFeedback}</div>
+                      <div className="text-center text-sm text-green-600 dark:text-green-400"><TranslatableText text={cartFeedback} as="span" wrapperAs="span" className="inline" /></div>
                     )}
                   </div>
                 </div>

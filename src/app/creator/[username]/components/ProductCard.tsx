@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { TranslatableText } from '@/components/TranslatableText';
 
 export interface ProductCardProps {
   product: {
@@ -44,6 +46,7 @@ export default function ProductCard({
   const rating = product.rating ?? 0;
   const reviewsCount = product.reviews_count ?? 0;
   const { formatPrice } = useCurrency();
+  const { t } = useLanguage();
 
   if (variant === 'list') {
     return (
@@ -62,20 +65,24 @@ export default function ProductCard({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-              No image
+              {t('noImage', 'No image')}
             </div>
           )}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors line-clamp-2 mb-1">
-            {product.title}
-          </h3>
+          <TranslatableText
+            text={product.title}
+            as="h3"
+            className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors line-clamp-2 mb-1"
+          />
           {showDescription && product.description && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
-              {product.description}
-            </p>
+            <TranslatableText
+              text={product.description}
+              className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2"
+              showListingControls
+            />
           )}
           <div className="flex items-center gap-4">
             {showRating && (
@@ -99,7 +106,7 @@ export default function ProductCard({
 
         {/* Price */}
         <div className="shrink-0 text-right">
-          <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">From</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t('from', 'From')}</div>
           <div className="text-lg font-bold text-gray-900 dark:text-white">
             {formatPrice(price ?? 0)}
           </div>
@@ -128,7 +135,7 @@ export default function ProductCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-            No image
+            {t('noImage', 'No image')}
           </div>
         )}
 
@@ -175,14 +182,18 @@ export default function ProductCard({
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors line-clamp-2 mb-2">
-          {product.title}
-        </h3>
+        <TranslatableText
+          text={product.title}
+          as="h3"
+          className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors line-clamp-2 mb-2"
+        />
 
         {showDescription && product.description && variant === 'featured' && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
-            {product.description}
-          </p>
+          <TranslatableText
+            text={product.description}
+            className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3"
+            showListingControls
+          />
         )}
 
         {/* Rating & Price */}
@@ -199,7 +210,7 @@ export default function ProductCard({
             </div>
           )}
           <div className="text-right">
-            <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">From</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t('from', 'From')}</div>
             <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
               {formatPrice(price ?? 0)}
             </div>

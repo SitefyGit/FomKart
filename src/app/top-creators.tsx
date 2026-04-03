@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { BadgeCheck, Star, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { TranslatableText } from '@/components/TranslatableText'
 
 // Cache this section for 60s to avoid re-fetching on every request
 export const revalidate = 60
@@ -73,8 +74,8 @@ export default async function TopCreatorsSection() {
     <section className="py-12 sm:py-16 bg-gray-100 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Meet our top creators</h2>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Talented professionals ready to help your business succeed</p>
+          <TranslatableText as="h2" text="Meet our top creators" className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4" />
+          <TranslatableText text="Talented professionals ready to help your business succeed" className="text-base sm:text-lg text-gray-600 dark:text-gray-300" showListingControls />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
@@ -90,7 +91,7 @@ export default async function TopCreatorsSection() {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 overflow-hidden flex items-center justify-center text-2xl sm:text-3xl group-hover:scale-110 transition-all duration-300 relative flex-shrink-0">
                   {creator.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={creator.avatar_url} alt={creator.full_name || creator.username} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                    <img src={creator.avatar_url} alt={creator.full_name || creator.username} className="w-full h-full object-cover" loading="lazy" decoding="async" suppressHydrationWarning />
                   ) : (
                     <span className="text-white font-bold">{(creator.full_name || creator.username).slice(0,1)}</span>
                   )}
@@ -101,7 +102,7 @@ export default async function TopCreatorsSection() {
                     {creator.full_name || creator.username}
                   </h3>
                   {creator.bio ? (
-                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-3 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors line-clamp-2">{creator.bio}</p>
+                    <TranslatableText text={creator.bio} className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-3 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors line-clamp-2" showListingControls />
                   ) : null}
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                     <div className="flex items-center space-x-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 sm:px-3 py-1 rounded-full">

@@ -88,6 +88,7 @@ export function ProductMediaGallery({ images, youtubeVideoId, title }: ProductMe
                      src={`https://img.youtube.com/vi/${item.src}/0.jpg`} 
                      alt="Video thumbnail"
                      className="w-full h-full object-cover opacity-70"
+                     suppressHydrationWarning
                    />
                    <div className="absolute inset-0 flex items-center justify-center">
                      <Play className="w-8 h-8 text-white fill-white" />

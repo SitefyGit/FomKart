@@ -68,7 +68,7 @@ export default function ProfileMenu() {
     <div className="relative" ref={rootRef}>
       <button onClick={()=>setOpen(v=>!v)} className="h-8 pl-1 pr-2 rounded-full flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={avatar} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
+        <img src={avatar} alt="avatar" className="w-8 h-8 rounded-full object-cover" suppressHydrationWarning />
         <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-300" />
       </button>
       {open && (

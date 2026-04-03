@@ -14,6 +14,7 @@ import { Search, Grid3X3, List, MessageCircle, Star, Package, ShoppingBag } from
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import { MapPinIcon, LinkIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { SocialIconsBar } from '@/components/SocialIconsBar';
+import { TranslatableText } from '@/components/TranslatableText';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 interface Product {
@@ -258,8 +259,8 @@ export default function CreatorStorePage() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Creator not found</h1>
-          <Link href="/" className="text-emerald-600 hover:underline">Go back home</Link>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4"><TranslatableText text="Creator not found" as="span" wrapperAs="span" className="inline" /></h1>
+          <Link href="/" className="text-emerald-600 hover:underline"><TranslatableText text="Go back home" as="span" wrapperAs="span" className="inline" /></Link>
         </div>
       </div>
     );
@@ -302,12 +303,12 @@ export default function CreatorStorePage() {
                 </span>
                 <span className="flex items-center gap-1">
                   <Package className="w-4 h-4" />
-                  {creator.totalProducts} products
+                  <TranslatableText text={`${creator.totalProducts} products`} as="span" wrapperAs="span" className="inline" />
                 </span>
                 {creator.totalSales !== undefined && creator.totalSales > 0 && (
                   <span className="flex items-center gap-1">
                     <ShoppingBag className="w-4 h-4" />
-                    {creator.totalSales} sales
+                    <TranslatableText text={`${creator.totalSales} sales`} as="span" wrapperAs="span" className="inline" />
                   </span>
                 )}
               </div>
@@ -319,7 +320,7 @@ export default function CreatorStorePage() {
                 href={`/creator/${creator.username}/bio`}
                 className="px-4 py-2 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
-                About Me
+                <TranslatableText text="About Me" as="span" wrapperAs="span" className="inline" />
               </Link>
               {!isOwner && (
                 <button
@@ -333,7 +334,7 @@ export default function CreatorStorePage() {
                   className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors flex items-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Contact
+                  <TranslatableText text="Contact" as="span" wrapperAs="span" className="inline" />
                 </button>
               )}
               {isOwner && (
@@ -341,7 +342,7 @@ export default function CreatorStorePage() {
                   href="/profile"
                   className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Edit Profile
+                  <TranslatableText text="Edit Profile" as="span" wrapperAs="span" className="inline" />
                 </Link>
               )}
             </div>
@@ -356,9 +357,13 @@ export default function CreatorStorePage() {
           <aside className="hidden lg:block w-64 shrink-0 space-y-6">
             {/* About Card */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <h2 className="font-semibold text-gray-900 dark:text-white mb-4">About</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-white mb-4"><TranslatableText text="About" as="span" wrapperAs="span" className="inline" /></h2>
               {creator.bio && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{creator.bio}</p>
+                <TranslatableText
+                  text={creator.bio}
+                  className="text-sm text-gray-600 dark:text-gray-400 mb-4"
+                  showListingControls
+                />
               )}
               {creator.location && (
                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
@@ -384,7 +389,7 @@ export default function CreatorStorePage() {
 
             {/* Filter Card */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Filter by Type</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-white mb-4"><TranslatableText text="Filter by Type" as="span" wrapperAs="span" className="inline" /></h2>
               <div className="space-y-2">
                 {(['all', 'product', 'service'] as const).map((type) => (
                   <button
@@ -396,7 +401,7 @@ export default function CreatorStorePage() {
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
-                    {type === 'all' ? 'All Products' : type === 'product' ? 'Digital Products' : 'Services'}
+                    <TranslatableText text={type === 'all' ? 'All Products' : type === 'product' ? 'Digital Products' : 'Services'} as="span" wrapperAs="span" className="inline" />
                   </button>
                 ))}
               </div>
@@ -464,16 +469,14 @@ export default function CreatorStorePage() {
 
             {/* Results Count */}
             <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-              Showing {filteredProducts.length} of {products.length} products
+              <TranslatableText text={`Showing ${filteredProducts.length} of ${products.length} products`} as="span" wrapperAs="span" className="inline" />
             </div>
 
             {/* Products */}
             {filteredProducts.length === 0 ? (
               <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
                 <p className="text-gray-500 dark:text-gray-400">
-                  {searchTerm || productType !== 'all'
-                    ? 'No products match your filters.'
-                    : 'No products available yet.'}
+                  <TranslatableText text={searchTerm || productType !== 'all' ? 'No products match your filters.' : 'No products available yet.'} as="span" wrapperAs="span" className="inline" />
                 </p>
               </div>
             ) : viewMode === 'grid' ? (
@@ -507,7 +510,7 @@ export default function CreatorStorePage() {
 
         {/* Reviews Section */}
         <div className="mt-12 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Customer Reviews</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4"><TranslatableText text="Customer Reviews" as="span" wrapperAs="span" className="inline" /></h2>
           <ReviewsSlider creatorId={creator.id} />
         </div>
       </div>

@@ -9,6 +9,7 @@ import { supabase, fetchCreatorPosts, createCreatorPost, deleteCreatorPost, type
 import { ShareModal } from '@/components/ShareModal';
 import { ToastContainer, ToastItem } from '@/components/Toast';
 import { SocialIconsBar } from '@/components/SocialIconsBar';
+import { TranslatableText } from '@/components/TranslatableText';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import { 
@@ -428,7 +429,7 @@ export default function CreatorBioPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Creator not found</h1>
-          <Link href="/" className="text-emerald-600 hover:underline">Go back home</Link>
+          <Link href="/" className="text-emerald-600 hover:underline"><TranslatableText text="Go back home" as="span" wrapperAs="span" className="inline" /></Link>
         </div>
       </div>
     );
@@ -466,7 +467,11 @@ export default function CreatorBioPage() {
 
           {/* Bio */}
           {creator.bio && (
-            <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">{creator.bio}</p>
+                <TranslatableText
+                  text={creator.bio}
+                  className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed"
+                  showListingControls
+                />
           )}
 
           {/* Social Icons */}
@@ -485,7 +490,7 @@ export default function CreatorBioPage() {
               >
                 <span className="flex items-center gap-2">
                   <ShoppingBag className="w-4 h-4" />
-                  Store
+                  <TranslatableText text="Store" as="span" wrapperAs="span" className="inline" />
                 </span>
               </Link>
               <button
@@ -495,7 +500,7 @@ export default function CreatorBioPage() {
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                   </svg>
-                  Bio
+                  <TranslatableText text="Bio" as="span" wrapperAs="span" className="inline" />
                 </span>
               </button>
             </div>
@@ -533,10 +538,10 @@ export default function CreatorBioPage() {
         >
           <div className="flex items-center gap-3">
             <ShoppingBag className="w-5 h-5" />
-            <span className="font-semibold">View My Store</span>
+            <span className="font-semibold"><TranslatableText text="View My Store" as="span" wrapperAs="span" className="inline" /></span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm opacity-90">{creator.totalProducts} products</span>
+            <span className="text-sm opacity-90"><TranslatableText text={`${creator.totalProducts} products`} as="span" wrapperAs="span" className="inline" /></span>
             <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </div>
         </Link>
@@ -545,7 +550,7 @@ export default function CreatorBioPage() {
         {products.length > 0 && (
           <div className="mb-6">
              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /> Featured
+               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /> <TranslatableText text="Featured" as="span" wrapperAs="span" className="inline" />
              </h2>
              <div className="space-y-3">
               {products.map((product) => (
@@ -558,13 +563,15 @@ export default function CreatorBioPage() {
                     {product.images && product.images[0] ? (
                       <Image src={product.images[0]} alt={product.title} fill className="object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No img</div>
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs"><TranslatableText text="No image" as="span" wrapperAs="span" className="inline" /></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-emerald-600 transition-colors">
-                      {product.title}
-                    </h3>
+                    <TranslatableText
+                      text={product.title}
+                      as="h3"
+                      className="font-medium text-gray-900 dark:text-white truncate group-hover:text-emerald-600 transition-colors"
+                    />
                     <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatPrice(product.base_price || 0)}</span>
                        <span className="text-xs">•</span>
@@ -578,7 +585,7 @@ export default function CreatorBioPage() {
             {creator.totalProducts > products.length && (
                 <div className="mt-3 text-center">
                     <Link href={`/creator/${creator.username}`} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
-                        View all {creator.totalProducts} products
+                        <TranslatableText text={`View all ${creator.totalProducts} products`} as="span" wrapperAs="span" className="inline" />
                     </Link>
                 </div>
             )}
@@ -589,21 +596,21 @@ export default function CreatorBioPage() {
         <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <LinkIcon className="w-4 h-4" /> Links
+                    <LinkIcon className="w-4 h-4" /> <TranslatableText text="Links" as="span" wrapperAs="span" className="inline" />
                 </h2>
                 {isOwner && (
                     <button 
                        onClick={() => setAddLinkOpen(true)} 
                        className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors font-medium flex items-center gap-1"
                     >
-                        <PlusIcon className="w-3 h-3" /> Add Post
+                        <PlusIcon className="w-3 h-3" /> <TranslatableText text="Add Post" as="span" wrapperAs="span" className="inline" />
                     </button>
                 )}
             </div>
 
             {posts.length === 0 && (
                 <div className="p-8 text-center bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 text-gray-500">
-                    <p>No links or updates yet.</p>
+                    <p><TranslatableText text="No links or updates yet." as="span" wrapperAs="span" className="inline" /></p>
                 </div>
             )}
 
@@ -689,7 +696,7 @@ export default function CreatorBioPage() {
         {/* Subscribe & Footer */}
         {!isOwner && (
             <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 text-center">
-                 <h3 className="font-medium text-gray-900 dark:text-white mb-3">Newsletter</h3>
+                 <h3 className="font-medium text-gray-900 dark:text-white mb-3"><TranslatableText text="Newsletter" as="span" wrapperAs="span" className="inline" /></h3>
                  {subscribeOpen ? (
                    <div className="flex gap-2">
                        <input 
@@ -699,10 +706,10 @@ export default function CreatorBioPage() {
                           value={subscribeEmail}
                           onChange={e => setSubscribeEmail(e.target.value)}
                        />
-                       <button onClick={handleSubscribe} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700">Join</button>
+                        <button onClick={handleSubscribe} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700"><TranslatableText text="Join" as="span" wrapperAs="span" className="inline" /></button>
                    </div>
                  ) : (
-                    <button onClick={() => setSubscribeOpen(true)} className="text-emerald-600 hover:text-emerald-700 font-medium text-sm">Subscribe for updates</button>
+                      <button onClick={() => setSubscribeOpen(true)} className="text-emerald-600 hover:text-emerald-700 font-medium text-sm"><TranslatableText text="Subscribe for updates" as="span" wrapperAs="span" className="inline" /></button>
                  )}
             </div>
         )}
@@ -725,7 +732,7 @@ export default function CreatorBioPage() {
       {messageOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-                <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white">Message {creator.full_name}</h3>
+                <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white"><TranslatableText text={`Message ${creator.full_name}`} as="span" wrapperAs="span" className="inline" /></h3>
                 <textarea 
                    className="w-full border p-3 rounded-xl mb-4 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
                    rows={4} 
@@ -734,8 +741,8 @@ export default function CreatorBioPage() {
                    onChange={e => setMessageBody(e.target.value)}
                 />
                 <div className="flex justify-end gap-2">
-                   <button onClick={() => setMessageOpen(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
-                   <button onClick={handleSendMessage} className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Send</button>
+                   <button onClick={() => setMessageOpen(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"><TranslatableText text="Cancel" as="span" wrapperAs="span" className="inline" /></button>
+                   <button onClick={handleSendMessage} className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"><TranslatableText text="Send" as="span" wrapperAs="span" className="inline" /></button>
                 </div>
              </div>
           </div>

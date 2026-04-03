@@ -17,6 +17,8 @@ import {
 import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 import { supabase } from '@/lib/supabase'
 import { useCurrency } from '@/contexts/CurrencyContext'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { TranslatableText } from '@/components/TranslatableText'
 
 type ProductCard = {
   id: string
@@ -93,6 +95,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
   const tagSlug = resolvedParams.tag
   const tagName = tagSlugToName(tagSlug)
   const { formatPrice } = useCurrency()
+  const { t } = useLanguage()
   
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('popular')
@@ -296,7 +299,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
           <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
             <Link href="/" className="hover:text-emerald-600">FomKart</Link>
             <span className="mx-2">/</span>
-            <Link href="/market" className="hover:text-emerald-600">Market</Link>
+            <Link href="/market" className="hover:text-emerald-600">{t('marketplace', 'Market')}</Link>
             <span className="mx-2">/</span>
             <span className="text-gray-900 dark:text-white">{tagName}</span>
           </nav>
@@ -308,18 +311,22 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                {tagName} Offerings
+                <TranslatableText text={`${tagName} Offerings`} as="span" wrapperAs="span" className="inline" />
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {filteredProducts.length} {getTypeLabel(productTypeFilter)} available
+                <TranslatableText text={`${filteredProducts.length} ${getTypeLabel(productTypeFilter)} available`} as="span" wrapperAs="span" className="inline" />
               </p>
             </div>
           </div>
 
           {/* SEO Description */}
           <p className="text-gray-700 dark:text-gray-300 max-w-3xl">
-            Find the best {tagName.toLowerCase()} offerings on FomKart. Browse top-rated creators 
-            offering professional {tagName.toLowerCase()} products and services with fast delivery and satisfaction guaranteed.
+            <TranslatableText
+              text={`Find the best ${tagName.toLowerCase()} offerings on FomKart. Browse top-rated creators offering professional ${tagName.toLowerCase()} products and services with fast delivery and satisfaction guaranteed.`}
+              as="span"
+              wrapperAs="span"
+              className="inline"
+            />
           </p>
         </div>
       </section>
@@ -329,7 +336,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
         <section className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Related Tags
+              <TranslatableText text="Related Tags" as="span" wrapperAs="span" className="inline" />
             </h2>
             <div className="flex flex-wrap gap-2">
               {relatedTags.map((tag) => (
@@ -338,7 +345,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                   href={`/market/${tagToSlug(tag)}`}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-700 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-full text-sm font-medium transition-colors border border-gray-200 dark:border-gray-600 hover:border-emerald-300 dark:hover:border-emerald-600"
                 >
-                  {tag}
+                  <TranslatableText text={tag} as="span" wrapperAs="span" className="inline" />
                 </Link>
               ))}
             </div>
@@ -359,7 +366,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
-                All
+                <TranslatableText text="All" as="span" wrapperAs="span" className="inline" />
               </button>
               <button
                 onClick={() => setProductTypeFilter('product')}
@@ -369,7 +376,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
-                Digital Products
+                {t('digitalProducts', 'Digital Products')}
               </button>
               <button
                 onClick={() => setProductTypeFilter('service')}
@@ -379,7 +386,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
-                Services
+                {t('services', 'Services')}
               </button>
             </div>
           </div>
@@ -410,8 +417,8 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 onChange={(e) => setBudgetRange(e.target.value || null)}
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
-                <option value="">Budget</option>
-                <option value="0-50">Under $50</option>
+                <option value="">{t('budget', 'Budget')}</option>
+                <option value="0-50">{t('under50', 'Under $50')}</option>
                 <option value="50-100">$50 - $100</option>
                 <option value="100-500">$100 - $500</option>
                 <option value="500-">$500+</option>
@@ -423,11 +430,11 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 onChange={(e) => setDeliveryFilter(e.target.value || null)}
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
-                <option value="">Delivery Time</option>
-                <option value="1">Up to 24 hours</option>
-                <option value="3">Up to 3 days</option>
-                <option value="7">Up to 7 days</option>
-                <option value="14">Up to 14 days</option>
+                <option value="">{t('deliveryTime', 'Delivery Time')}</option>
+                <option value="1">{t('upTo24Hours', 'Up to 24 hours')}</option>
+                <option value="3">{t('upTo3Days', 'Up to 3 days')}</option>
+                <option value="7">{t('upTo7Days', 'Up to 7 days')}</option>
+                <option value="14">{t('upTo14Days', 'Up to 14 days')}</option>
               </select>
 
               {/* Sort */}
@@ -436,11 +443,11 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
-                <option value="popular">Most Popular</option>
-                <option value="rating">Best Rating</option>
-                <option value="price_low">Price: Low to High</option>
-                <option value="price_high">Price: High to Low</option>
-                <option value="newest">Newest</option>
+                <option value="popular">{t('mostPopular', 'Most Popular')}</option>
+                <option value="rating">{t('bestRating', 'Best Rating')}</option>
+                <option value="price_low">{t('priceLowToHigh', 'Price: Low to High')}</option>
+                <option value="price_high">{t('priceHighToLow', 'Price: High to Low')}</option>
+                <option value="newest">{t('newest', 'Newest')}</option>
               </select>
 
               {/* Clear Filters */}
@@ -450,7 +457,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                   className="px-3 py-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
                 >
                   <X className="w-4 h-4" />
-                  Clear
+                  {t('clear', 'Clear')}
                 </button>
               )}
             </div>
@@ -478,12 +485,12 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             <div className="text-center py-16">
               <Tag className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No {getTypeLabel(productTypeFilter)} found
+                <TranslatableText text={`No ${getTypeLabel(productTypeFilter)} found`} as="span" wrapperAs="span" className="inline" />
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {hasActiveFilters 
-                  ? 'Try adjusting your filters or search term'
-                  : `No ${getTypeLabel(productTypeFilter)} tagged with "${tagName}" yet`
+                  ? t('adjustFiltersOrSearch', 'Try adjusting your filters or search term')
+                  : t('noTaggedYet', `No ${getTypeLabel(productTypeFilter)} tagged with "${tagName}" yet`)
                 }
               </p>
               {hasActiveFilters ? (
@@ -491,14 +498,14 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                   onClick={clearFilters}
                   className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                 >
-                  Clear Filters
+                  {t('clearFilters', 'Clear Filters')}
                 </button>
               ) : (
                 <Link
                   href="/category/digital-products"
                   className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors inline-block"
                 >
-                  Browse All Offerings
+                  {t('browseAllOfferings', 'Browse All Offerings')}
                 </Link>
               )}
             </div>
@@ -600,7 +607,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              About {tagName} Services on FomKart
+              <TranslatableText text={`About ${tagName} Services on FomKart`} as="span" wrapperAs="span" className="inline" />
             </h2>
             <div className="prose dark:prose-invert text-gray-600 dark:text-gray-300">
               <p>
@@ -614,7 +621,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 secure payments and satisfaction guarantee.
               </p>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-2">
-                Why Choose FomKart for {tagName}?
+                <TranslatableText text={`Why Choose FomKart for ${tagName}?`} as="span" wrapperAs="span" className="inline" />
               </h3>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Verified and rated freelancers</li>
@@ -632,17 +639,17 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
       <section className="py-8 bg-gray-100 dark:bg-gray-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Explore More Services
+            <TranslatableText text="Explore More Services" as="span" wrapperAs="span" className="inline" />
           </h2>
           <div className="flex flex-wrap justify-center gap-2">
             <Link href="/market" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-sm font-medium hover:bg-emerald-700 transition-colors">
-              Browse All Tags
+              {t('browseAllTags', 'Browse All Tags')}
             </Link>
             <Link href="/category/services" className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600">
-              All Services
+              {t('allServices', 'All Services')}
             </Link>
             <Link href="/category/digital-products" className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600">
-              Digital Products
+              {t('digitalProducts', 'Digital Products')}
             </Link>
           </div>
         </div>

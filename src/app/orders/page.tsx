@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle, Clock, Package, ArrowRight, AlertCircle, Loader2, Truck, Ban, RefreshCw } from 'lucide-react'
 import { supabase, getUserOrders } from '@/lib/supabase'
 import { useCurrency } from '@/contexts/CurrencyContext'
+import { TranslatableText } from '@/components/TranslatableText'
 
 type TabKey = 'buying' | 'selling'
 
@@ -107,7 +108,7 @@ function OrdersDashboardContent() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading your orders…</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400"><TranslatableText text="Loading your orders..." as="span" wrapperAs="span" className="inline" /></p>
         </div>
       </div>
     )
@@ -120,8 +121,8 @@ function OrdersDashboardContent() {
       {/* Header */}
       <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-800/60 border-b border-gray-100 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your Orders</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Track progress, view details, and manage your purchases and sales.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white"><TranslatableText text="Your Orders" as="span" wrapperAs="span" className="inline" /></h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1"><TranslatableText text="Track progress, view details, and manage your purchases and sales." as="span" wrapperAs="span" className="inline" showListingControls /></p>
         </div>
       </div>
 
@@ -132,13 +133,13 @@ function OrdersDashboardContent() {
             onClick={() => setActiveTab('buying')}
             className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${activeTab==='buying' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'}`}
           >
-            Buying
+            <TranslatableText text="Buying" as="span" wrapperAs="span" className="inline" />
           </button>
           <button
             onClick={() => setActiveTab('selling')}
             className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${activeTab==='selling' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'}`}
           >
-            Selling
+            <TranslatableText text="Selling" as="span" wrapperAs="span" className="inline" />
           </button>
         </div>
 
@@ -160,7 +161,7 @@ function OrdersDashboardContent() {
               />
             </div>
             {(search || statusFilter.length) ? (
-              <button onClick={clearFilters} className="text-sm text-gray-600 dark:text-gray-400 hover:underline">Clear filters</button>
+              <button onClick={clearFilters} className="text-sm text-gray-600 dark:text-gray-400 hover:underline"><TranslatableText text="Clear filters" as="span" wrapperAs="span" className="inline" /></button>
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2 mt-3">
@@ -168,7 +169,7 @@ function OrdersDashboardContent() {
               onClick={() => setStatusFilter([])}
               className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${statusFilter.length ? 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-200 dark:border-gray-600' : 'bg-gray-900 dark:bg-gray-700 text-white border-gray-900 dark:border-gray-700 shadow-sm'}`}
             >
-              All ({orders.length})
+              <TranslatableText text={`All (${orders.length})`} as="span" wrapperAs="span" className="inline" />
             </button>
             {allStatuses.filter(s => statusCounts[s.key]).map((s) => (
               <button
@@ -185,11 +186,11 @@ function OrdersDashboardContent() {
 
         {orders.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center text-gray-600 dark:text-gray-400">
-            {activeTab==='buying' ? 'No purchases yet.' : 'No sales yet.'}
+            <TranslatableText text={activeTab==='buying' ? 'No purchases yet.' : 'No sales yet.'} as="span" wrapperAs="span" className="inline" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center text-gray-600 dark:text-gray-400">
-            No orders match your filters.
+            <TranslatableText text="No orders match your filters." as="span" wrapperAs="span" className="inline" />
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
@@ -210,10 +211,10 @@ function OrdersDashboardContent() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <Package className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                        <span className="font-semibold text-gray-900 dark:text-white line-clamp-1">{productTitle}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white line-clamp-1"><TranslatableText text={productTitle} as="span" wrapperAs="span" className="inline" /></span>
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        <span className="font-medium">{pkgName}</span>
+                        <span className="font-medium"><TranslatableText text={pkgName} as="span" wrapperAs="span" className="inline" /></span>
                         {o.quantity ? <span> • Qty {o.quantity}</span> : null}
                       </div>
                       <div className="flex items-center gap-3 mt-2 text-sm">
@@ -230,7 +231,7 @@ function OrdersDashboardContent() {
                     <div className="text-right">
                       <div className="text-gray-900 dark:text-white font-semibold">{formatPrice(Number(price))}</div>
                       <div className="text-blue-600 dark:text-blue-400 inline-flex items-center gap-1 text-sm mt-1">
-                        View details <ArrowRight className="w-4 h-4" />
+                        <TranslatableText text="View details" as="span" wrapperAs="span" className="inline" /> <ArrowRight className="w-4 h-4" />
                       </div>
                     </div>
                   </div>

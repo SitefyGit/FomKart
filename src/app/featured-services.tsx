@@ -3,6 +3,7 @@ import { Star, ArrowRight } from 'lucide-react'
 import { CubeIcon } from '@heroicons/react/24/solid'
 import { supabase } from '@/lib/supabase'
 import { CurrencyPrice } from '@/components/CurrencyPrice'
+import { TranslatableText } from '@/components/TranslatableText'
 
 // Cache this list for 60s; content stays fresh enough and speeds navigation
 export const revalidate = 60
@@ -86,8 +87,8 @@ export default async function FeaturedServicesSection() {
     <section className="py-12 sm:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Popular offerings</h2>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Trending offerings from our community</p>
+          <TranslatableText as="h2" text="Popular offerings" className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4" />
+          <TranslatableText text="Trending offerings from our community" className="text-base sm:text-lg text-gray-600 dark:text-gray-300" showListingControls />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
@@ -103,19 +104,19 @@ export default async function FeaturedServicesSection() {
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-blue-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
                 {service.images && service.images.length > 0 ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={service.images[0]} alt={service.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                  <img src={service.images[0]} alt={service.title} className="w-full h-full object-cover" loading="lazy" decoding="async" suppressHydrationWarning />
                 ) : (
                   <CubeIcon className="w-10 h-10 text-emerald-600" />
                 )}
               </div>
               <div className="p-4 sm:p-6">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors text-sm sm:text-base">{service.title}</h3>
+                <TranslatableText as="h3" text={service.title} className="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors text-sm sm:text-base" />
 
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 overflow-hidden flex items-center justify-center text-xs sm:text-sm text-white">
                     {service.creator?.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={service.creator.avatar_url} alt={service.creator.full_name || service.creator.username} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                      <img src={service.creator.avatar_url} alt={service.creator.full_name || service.creator.username} className="w-full h-full object-cover" loading="lazy" decoding="async" suppressHydrationWarning />
                     ) : (
                       <span className="font-bold">{(service.creator?.full_name || service.creator?.username || 'U').slice(0,1)}</span>
                     )}

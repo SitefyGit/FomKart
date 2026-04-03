@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { MapPinIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
 import { SocialIconsBar } from '@/components/SocialIconsBar';
+import { TranslatableText } from '@/components/TranslatableText';
 
 export interface CreatorHeaderProps {
   creator: {
@@ -102,7 +103,11 @@ export default function CreatorHeader({
 
                 {/* Bio */}
                 {creator.bio && (
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 max-w-xl">{creator.bio}</p>
+                  <TranslatableText
+                    text={creator.bio}
+                    className="text-gray-600 dark:text-gray-300 mb-4 max-w-xl"
+                    showListingControls
+                  />
                 )}
 
                 {/* Meta Info */}
