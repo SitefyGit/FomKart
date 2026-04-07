@@ -121,7 +121,9 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
     const fetchProducts = async () => {
       setIsLoading(true)
       try {
-        // Search for products containing this tag (case-insensitive)
+        let filteredData: ProductRow[] = [];
+        // Search for products matching the query (title or tag)
+        const searchQuery = tagSlug.replace(/-/g, ' ')
         const { data, error, count } = await supabase
           .from('products')
           .select(`
@@ -138,35 +140,46 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
             creator:creator_id(id, username, full_name, avatar_url, is_verified)
           `, { count: 'exact' })
           .eq('status', 'active')
+          .or(`title.ilike.%${searchQuery}%,tags.cs.{"${searchQuery}"}`)
           .order('orders_count', { ascending: false })
-          .limit(50)
+          .limit(100)
 
         if (error) throw error
-        if (!data) {
-          setProducts([])
-          setTotalCount(0)
-          return
+        
+        if (!data || data.length === 0) {
+          // If no results with strict tag search, try a fallback search on just title
+          const { data: fallbackData } = await supabase
+            .from('products')
+            .select(`
+              id,
+              title,
+              images,
+              base_price,
+              rating,
+              reviews_count,
+              delivery_time,
+              tags,
+              type,
+              category_data:category_id(name),
+              creator:creator_id(id, username, full_name, avatar_url, is_verified)
+            `)
+            .eq('status', 'active')
+            .ilike('title', `%${searchQuery}%`)
+            .order('orders_count', { ascending: false })
+            .limit(100)
+            
+          if (!fallbackData || fallbackData.length === 0) {
+            setProducts([])
+            setTotalCount(0)
+            setIsLoading(false)
+            return
+          }
+          filteredData = fallbackData as ProductRow[]
+        } else {
+          filteredData = data as ProductRow[]
         }
-
-        // Filter products that contain this tag (case-insensitive)
-        const tagLower = tagSlug.replace(/-/g, ' ').toLowerCase()
-        const tagVariants = [
-          tagLower,
-          tagSlug.toLowerCase(),
-          tagName.toLowerCase()
-        ]
-
-        const filteredData = (data as ProductRow[]).filter(product => {
-          if (!product.tags || product.tags.length === 0) return false
-          return product.tags.some(t => {
-            const tLower = t.toLowerCase()
-            return tagVariants.some(variant => 
-              tLower.includes(variant) || variant.includes(tLower)
-            )
-          })
-        })
-
-        // Collect related tags from the filtered products
+        
+        // Collect related tags
         const tagSet = new Set<string>()
         filteredData.forEach(product => {
           product.tags?.forEach(t => {

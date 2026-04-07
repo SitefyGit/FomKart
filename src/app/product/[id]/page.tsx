@@ -503,6 +503,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 text={product.description}
                 className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 whitespace-pre-wrap"
                 showListingControls
+                allowOriginalToggle
               />
               {product.features && product.features.length > 0 && (
                 <div className="mb-6">

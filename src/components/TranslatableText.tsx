@@ -14,6 +14,7 @@ interface TranslatableTextProps {
   sourceLanguage?: string;
   showListingControls?: boolean;
   manualToggle?: boolean;
+  allowOriginalToggle?: boolean;
   translationButtonClassName?: string;
   containerClassName?: string;
 }
@@ -26,6 +27,7 @@ export function TranslatableText({
   sourceLanguage,
   showListingControls = false,
   manualToggle = false,
+  allowOriginalToggle = false,
   translationButtonClassName,
   containerClassName,
 }: TranslatableTextProps) {
@@ -72,7 +74,8 @@ export function TranslatableText({
   const Tag = as;
   const Wrapper = wrapperAs;
 
-  const showMeta = (showListingControls || manualToggle) && language !== inferredSource;
+  const canShowToggle = allowOriginalToggle && (showListingControls || manualToggle) && language !== inferredSource;
+  const showMeta = canShowToggle;
   const buttonClass = translationButtonClassName
     ?? 'text-xs underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300';
   const MetaContainer = Wrapper === 'span' ? 'span' : 'div';
@@ -81,26 +84,23 @@ export function TranslatableText({
     <Wrapper className={containerClassName}>
       {showMeta && (
         <MetaContainer className="mb-1 flex flex-wrap items-center gap-2">
-          {showListingControls && !showOriginal && (
-            <span className="text-[11px] text-gray-500 dark:text-gray-400">
-              {t('automaticTranslation', 'Automatic translation')} - {t('translatedFrom', 'Translated from')} {inferredSource.toUpperCase()}
-            </span>
+          {canShowToggle && (
+            <button
+              type="button"
+              className={buttonClass}
+              onClick={() => {
+                if (useLocalToggle) {
+                  setLocalShowOriginal((prev) => !prev);
+                  return;
+                }
+                setShowOriginalListings(!showOriginalListings);
+              }}
+            >
+              {(useLocalToggle ? localShowOriginal : showOriginalListings)
+                ? t('viewTranslation', 'View translation')
+                : t('viewOriginal', 'View original')}
+            </button>
           )}
-          <button
-            type="button"
-            className={buttonClass}
-            onClick={() => {
-              if (useLocalToggle) {
-                setLocalShowOriginal((prev) => !prev);
-                return;
-              }
-              setShowOriginalListings(!showOriginalListings);
-            }}
-          >
-            {(useLocalToggle ? localShowOriginal : showOriginalListings)
-              ? t('viewTranslation', 'View translation')
-              : t('viewOriginal', 'View original')}
-          </button>
         </MetaContainer>
       )}
       <Tag className={className}>{displayedText}</Tag>

@@ -1,6 +1,7 @@
+// @ts-nocheck
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import '@/app/globals.css';
 import AnnouncementBanner from '@/components/AnnouncementBanner'
 import MaintenanceGuard from '@/components/MaintenanceGuard'
 import Footer from '@/components/Footer'

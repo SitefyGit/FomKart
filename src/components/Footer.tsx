@@ -17,7 +17,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function Footer() {
   const { currency, currencies, setCurrency } = useCurrency()
-  const { language, languages, setLanguage, t } = useLanguage()
+  const { language, languages, setLanguage, t, showOriginalListings, setShowOriginalListings } = useLanguage()
   const [currencyOpen, setCurrencyOpen] = useState(false)
   const [languageOpen, setLanguageOpen] = useState(false)
   const currentCurrencyObj = currencies.find(c => c.code === currency) ?? currencies[0]
@@ -157,6 +157,18 @@ export default function Footer() {
             <div className="text-gray-500 dark:text-gray-500 text-sm">
               © {new Date().getFullYear()} FomKart. {t('allRightsReserved', 'All rights reserved.')}
             </div>
+
+            {language !== 'en' && (
+              <button
+                type="button"
+                onClick={() => setShowOriginalListings(!showOriginalListings)}
+                className="text-xs underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+              >
+                {showOriginalListings
+                  ? t('viewTranslation', 'View translation')
+                  : t('viewOriginal', 'View original')}
+              </button>
+            )}
             
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
               <Link href="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('privacyPolicy', 'Privacy Policy')}</Link>

@@ -7,6 +7,8 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "allowArbitraryExtensions": true,
+    "ignoreDeprecations": "6.0",
   "module": "esnext",
     "moduleResolution": "bundler",
   "baseUrl": ".",
@@ -23,6 +25,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
