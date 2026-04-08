@@ -392,6 +392,16 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 {t('digitalProducts', 'Digital Products')}
               </button>
               <button
+                onClick={() => setProductTypeFilter('course')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  productTypeFilter === 'course'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                {t('courses', 'Courses')}
+              </button>
+              <button
                 onClick={() => setProductTypeFilter('service')}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                   productTypeFilter === 'service'
@@ -400,6 +410,16 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 }`}
               >
                 {t('services', 'Services')}
+              </button>
+              <button
+                onClick={() => setProductTypeFilter('consultation')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  productTypeFilter === 'consultation'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                {t('consultations', 'Consultations')}
               </button>
             </div>
           </div>
@@ -615,39 +635,8 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
         </div>
       </section>
 
-      {/* SEO Content Section */}
-      <section className="bg-white dark:bg-gray-800 py-12 border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              <TranslatableText text={`About ${tagName} Services on FomKart`} as="span" wrapperAs="span" className="inline" />
-            </h2>
-            <div className="prose dark:prose-invert text-gray-600 dark:text-gray-300">
-              <p>
-                Looking for professional {tagName.toLowerCase()} services? FomKart connects you with 
-                talented freelancers who specialize in {tagName.toLowerCase()}. Whether you need 
-                quick turnaround or premium quality, our verified sellers deliver outstanding results.
-              </p>
-              <p>
-                Our {tagName.toLowerCase()} experts offer competitive prices starting from affordable 
-                rates, with various packages to suit your budget and timeline. All services come with 
-                secure payments and satisfaction guarantee.
-              </p>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-2">
-                <TranslatableText text={`Why Choose FomKart for ${tagName}?`} as="span" wrapperAs="span" className="inline" />
-              </h3>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Verified and rated freelancers</li>
-                <li>Secure payment protection</li>
-                <li>24/7 customer support</li>
-                <li>Money-back guarantee</li>
-                <li>Fast delivery options</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      {/* SEO Content Section removed as per request */}
+      
       {/* Browse More Tags CTA */}
       <section className="py-8 bg-gray-100 dark:bg-gray-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

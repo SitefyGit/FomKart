@@ -1438,7 +1438,15 @@ export default function CreatorPage() {
               <Link href={`/creator/${creator.username}/bio`} className="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-b-2 border-transparent hover:border-gray-300 transition-colors">
                 <TranslatableText text="About" as="span" wrapperAs="span" className="inline" />
               </Link>
-              <button className="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-b-2 border-transparent hover:border-gray-300 transition-colors">
+              <button 
+                onClick={() => {
+                  const el = document.getElementById('reviews-section')
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' })
+                  }
+                }}
+                className="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-b-2 border-transparent hover:border-gray-300 transition-colors"
+               >
                 <TranslatableText text="Reviews" as="span" wrapperAs="span" className="inline" />
               </button>
             </div>
@@ -1651,7 +1659,7 @@ export default function CreatorPage() {
             )}
 
             {/* Reviews Section */}
-            <div className="mt-12">
+            <div id="reviews-section" className="mt-12">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6"><TranslatableText text="Reviews" as="span" wrapperAs="span" className="inline" /></h2>
               <ReviewsSlider creatorId={creator.id} />
             </div>
@@ -2279,7 +2287,7 @@ export default function CreatorPage() {
               <button onClick={()=>setSubscribeOpen(false)} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none">×</button>
             </div>
             <div className="flex flex-col items-center text-center -mt-8">
-              <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-white dark:ring-gray-700 shadow mb-3 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+              <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-white dark:ring-gray-700 shadow mb-3 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                 {creator.avatar_url ? (
                   <Image
                     src={creator.avatar_url}

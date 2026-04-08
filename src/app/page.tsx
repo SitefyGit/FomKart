@@ -71,39 +71,40 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-slate-950 py-24 sm:py-32">
-        {/* Background Gradients & Effects */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/40 via-slate-950/80 to-slate-950" />
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[100px] animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-teal-500/10 rounded-full blur-[100px] animate-pulse" style={{animationDelay: '2s'}} />
+      <section className="relative overflow-hidden bg-white dark:bg-gray-900 pt-28 pb-24 sm:pt-40 sm:pb-32 transition-colors duration-300">
+        {/* Background Gradients & Mesh Effects */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100/50 via-emerald-50/20 to-transparent dark:from-emerald-900/30 dark:via-emerald-900/10 dark:to-transparent" /> 
+          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-300/20 dark:bg-emerald-800/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-300/20 dark:bg-blue-900/20 rounded-full blur-[100px] animate-pulse" style={{animationDelay: '1.5s'}} />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           {/* Badge */}
-          <div className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-emerald-300 ring-1 ring-inset ring-emerald-500/30 mb-8 bg-emerald-500/10 backdrop-blur-sm animate-fade-in-up">
-            <TranslatableText as="span" wrapperAs="span" text="The marketplace for creators" className="text-emerald-300" />
+          <div className="inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold text-emerald-800 dark:text-emerald-300 ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-400/30 mb-8 bg-emerald-50/80 dark:bg-emerald-900/30 backdrop-blur-md shadow-sm">
+            <TranslatableText as="span" wrapperAs="span" text="The marketplace for creators" className="" />
+            <SparklesIcon className="w-4 h-4 ml-2 text-emerald-600 dark:text-emerald-400" />
           </div>
 
-          <TranslatableText as="h1" text="Find the perfect offering for your business" className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 drop-shadow-sm" />
-          
-          <TranslatableText text="Connect with talented creators offering digital products, courses, and custom services. From design to development, find everything you need to grow." className="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed" showListingControls />
-          
-          {/* Lightweight search form using GET to avoid client handlers */}
+          <TranslatableText as="h1" text="Find the perfect offering for your business" className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-8 drop-shadow-sm" />
+
+          <TranslatableText text="Connect with talented creators offering digital products, courses, and custom services. From design to development, find everything you need to grow." className="text-lg sm:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed" showListingControls />
+
+          {/* Lightweight search form using GET to avoid client handlers */}    
           <form action="/category/digital-products" method="get" className="max-w-xl mx-auto mb-8 hidden">
-            <input type="text" name="search" placeholder="Search offerings..." className="w-full px-5 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:outline-none backdrop-blur-sm transition-all" />
+            <input type="text" name="search" placeholder="Search offerings..." className="w-full px-5 py-3 rounded-full bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none backdrop-blur-sm transition-all" />
           </form>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Link 
-              href="/category/digital-products" 
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-5">
+            <Link
+              href="/category/digital-products"
               prefetch
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition-all duration-300 hover:scale-105 shadow-[0_0_20px_rgba(5,150,105,0.4)] hover:shadow-[0_0_30px_rgba(5,150,105,0.6)] flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group"
             >
-              <TranslatableText as="span" wrapperAs="span" text="Browse Offerings" className="inline" /> <ArrowRight className="w-4 h-4" />
+              <TranslatableText as="span" wrapperAs="span" text="Browse Offerings" className="inline" /> 
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <div className="w-full sm:w-auto">
-              <StartSellingButton />
+            <div className="w-full sm:w-auto hover:-translate-y-1 transition-transform duration-300">
             </div>
           </div>
         </div>
