@@ -251,20 +251,20 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gray-900 text-white py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <section className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-12 sm:py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center border-t border-transparent dark:border-gray-200 pt-12 sm:pt-16 -mt-12 sm:-mt-16">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to get started?</h2>
           <p className="text-base sm:text-lg mb-6 sm:mb-8 opacity-90 px-4">
             Join thousands of creators and businesses already using FomKart
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 px-4">
-            <Link 
-              href="/category/digital-products" 
+            <Link
+              href="/category/digital-products"
               className="bg-emerald-600 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors text-center inline-flex items-center justify-center whitespace-nowrap"
             >
               Find Offerings
             </Link>
-            <StartSellingButton />
+            <StartSellingButton isCTA />
           </div>
         </div>
       </section>

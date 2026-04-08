@@ -10,6 +10,7 @@ import NotificationsBell from '@/components/NotificationsBell';
 import AuthButton from '@/components/AuthButton';
 import ProfileMenu from '@/components/ProfileMenu';
 import CartIcon from '@/components/CartIcon';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SiteHeader() {
@@ -141,6 +142,7 @@ export default function SiteHeader() {
                   </>
                 )}
               </div>
+              <ThemeToggle />
               <CartIcon />
               <NotificationsBell />
               <ProfileMenu />
@@ -197,9 +199,7 @@ export default function SiteHeader() {
                 />
               </Link>
               <div className="flex items-center justify-end gap-2 shrink-0">
-                <CartIcon />
-                <NotificationsBell />
-                <ProfileMenu />
+                <ThemeToggle />
                 <AuthButton />
               </div>
             </div>

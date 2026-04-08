@@ -7,6 +7,7 @@ import MaintenanceGuard from '@/components/MaintenanceGuard'
 import Footer from '@/components/Footer'
 import { CurrencyProvider } from '@/contexts/CurrencyContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
+import { ThemeProvider } from '@/components/ThemeProvider'
 import SiteHeader from '@/components/SiteHeader'
 
 const geistSans = Geist({
@@ -40,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="dns-prefetch" href="//picsum.photos" />
         <link rel="preconnect" href="https://picsum.photos" crossOrigin="" />
@@ -55,6 +56,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <CurrencyProvider>
         <LanguageProvider>
         <MaintenanceGuard>
@@ -67,6 +69,7 @@ export default function RootLayout({
         </MaintenanceGuard>
         </LanguageProvider>
         </CurrencyProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -94,28 +94,28 @@ export default function NotificationsBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-          <div className="px-4 py-2.5 border-b bg-gray-50/80 dark:bg-gray-900/50 dark:border-gray-700 flex items-center justify-between sticky top-0">
-            <div className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</div>
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl z-50 overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
+          <div className="px-4 py-3 border-b bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-md border-gray-200 dark:border-gray-800 flex items-center justify-between sticky top-0 z-10">
+            <div className="text-sm font-bold text-gray-900 dark:text-white">Notifications</div>
             {mounted && userId ? (
-              <button onClick={markAll} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">Mark all read</button>
+              <button onClick={markAll} className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">Mark all as read</button>
             ) : null}
           </div>
-          <div className="max-h-96 overflow-auto">
+          <div className="max-h-[400px] overflow-y-auto">
             {!mounted ? (
-              <div className="p-4 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/> Loading…</div>
+              <div className="p-8 text-sm text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center gap-3"><Loader2 className="w-6 h-6 animate-spin text-gray-400"/> Loading...</div>
             ) : !userId ? (
-              <div className="p-6 text-sm text-gray-700 dark:text-gray-300">
-                <div className="font-medium mb-1 dark:text-white">You're not signed in</div>
-                <div>Sign in to receive order updates and alerts.</div>
-                <div className="mt-3"><Link href="/auth/login" className="text-blue-600 dark:text-blue-400 hover:underline">Sign in</Link></div>
+              <div className="p-8 text-center text-sm text-gray-600 dark:text-gray-400">
+                <div className="font-semibold mb-2 text-gray-900 dark:text-white">You're not signed in</div>
+                <div className="mb-4">Sign in to receive order updates and alerts.</div>
+                <div><Link href="/auth/login" className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-colors">Sign in</Link></div>
               </div>
             ) : loading ? (
-              <div className="p-4 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/> Loading…</div>
+              <div className="p-8 text-sm text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center gap-3"><Loader2 className="w-6 h-6 animate-spin text-gray-400"/> Loading...</div>
             ) : items.length === 0 ? (
-              <div className="p-6 text-sm text-gray-600 dark:text-gray-400">No notifications</div>
+              <div className="p-8 text-center text-sm text-gray-500 dark:text-gray-400 flex flex-col items-center gap-2"><Bell className="w-8 h-8 text-gray-300 dark:text-gray-600 mb-1" /><p>No notifications yet</p></div>
             ) : (
-              <ul className="divide-y divide-gray-100 px-2 py-2">
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
                 {items.map(n => {
                   let Icon = Bell
                   if (n.type === 'delivery_posted') Icon = PackageOpen
@@ -130,25 +130,26 @@ export default function NotificationsBell() {
                                   n.type === 'order_message' ? 'bg-violet-600' :
                                   'bg-blue-600'
                   return (
-                    <li key={n.id} className="p-1">
-                      <button type="button" onClick={() => onOpenNotification(n)} className={`w-full text-left text-sm rounded-lg border ${n.is_read ? 'border-transparent' : 'border-blue-100'} ${n.is_read ? 'bg-white' : 'bg-blue-50/60'} hover:bg-gray-50 transition-colors flex items-start gap-3 p-3` }>
-                        <div className="flex items-stretch gap-3 min-w-0 flex-1">
-                          <div className={`w-1 rounded ${accent} ${n.is_read ? 'opacity-30' : 'opacity-70'}`} />
-                          <div className={`mt-0.5 w-8 h-8 rounded-full flex items-center justify-center ${n.is_read ? 'bg-gray-100' : 'bg-white' } border ${n.is_read ? 'border-gray-200' : 'border-blue-200' }`}>
-                            <Icon className={`w-4 h-4 ${n.is_read ? 'text-gray-600' : 'text-blue-700'}`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-900 leading-tight">{n.title}</div>
-                            <div className="text-gray-700 truncate">{n.message}</div>
-                            <div className="text-[11px] text-gray-500 mt-1">{new Date(n.created_at).toLocaleString()}</div>
+                    <li key={n.id} className="relative">
+                      <button type="button" onClick={() => onOpenNotification(n)} className={`w-full text-left text-sm transition-all duration-200 flex items-start gap-4 p-4 ${n.is_read ? 'bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50' : 'bg-emerald-50/40 dark:bg-emerald-500/[0.04] hover:bg-emerald-50 dark:hover:bg-emerald-500/[0.08]'}` }>
+                        <div className={`shrink-0 mt-0.5 w-10 h-10 rounded-full flex items-center justify-center ${n.is_read ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400' : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' }`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0 pr-2">
+                          <div className={`font-semibold ${n.is_read ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-gray-100'} leading-snug mb-0.5`}>{n.title}</div>
+                          <div className="text-gray-600 dark:text-gray-400 line-clamp-2">{n.message}</div>
+                          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2">
+                            <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium">
+                              {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(n.created_at))}
+                            </span>
                             {n.data?.order_id && (
-                              <span className="text-blue-600 text-xs">Open order</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 text-[11px] font-medium hover:underline">View order</span>
                             )}
                           </div>
                         </div>
-                        <div className="pl-2 shrink-0">
-                          <span className="text-[11px] text-gray-500 inline-flex items-center gap-1"><Check className="w-3 h-3"/> {n.is_read ? 'Read' : 'New'}</span>
-                        </div>
+                        {!n.is_read && (
+                          <div className="shrink-0 w-2 h-2 mt-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                        )}
                       </button>
                     </li>
                   )
@@ -162,3 +163,5 @@ export default function NotificationsBell() {
     </div>
   )
 }
+
+
