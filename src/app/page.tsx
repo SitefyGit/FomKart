@@ -1,7 +1,7 @@
-﻿import React from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { TrendingUp, ArrowRight, ShieldCheck, BadgeCheck } from 'lucide-react'
-import { CubeIcon, BookOpenIcon, BoltIcon, SparklesIcon, CheckCircleIcon, VideoCameraIcon } from '@heroicons/react/24/solid'
+import { TrendingUp, ArrowRight, ShieldCheck, BadgeCheck, Box, GraduationCap, Video, Zap, CheckCircle } from 'lucide-react'
+import { SparklesIcon } from '@heroicons/react/24/solid'
 import { HomeLeadCapture } from './HomeClientWidgets'
 import TopCreatorsSection from '@/app/top-creators'
 import FeaturedServicesSection from '@/app/featured-services'
@@ -12,33 +12,37 @@ const featuredCategories = [
   {
     name: 'Digital Products',
     slug: 'digital-products',
-    icon: CubeIcon,
+    icon: Box,
     description: 'Templates, graphics, and digital assets',
-    color: 'bg-blue-500',
+    gradient: 'from-blue-500 to-cyan-400',
+    shadow: 'shadow-blue-500/30',
     count: '2,847 offerings'
   },
   {
     name: 'Online Courses',
     slug: 'courses',
-    icon: BookOpenIcon,
+    icon: GraduationCap,
     description: 'Learn new skills and advance your career',
-    color: 'bg-purple-500',
+    gradient: 'from-purple-500 to-pink-400',
+    shadow: 'shadow-purple-500/30',
     count: '1,293 courses'
   },
   {
     name: 'Consultations',
     slug: 'consultation',
-    icon: VideoCameraIcon,
+    icon: Video,
     description: 'Expert advice and 1-on-1 coaching',
-    color: 'bg-indigo-500',
+    gradient: 'from-indigo-500 to-blue-400',
+    shadow: 'shadow-indigo-500/30',
     count: '894 sessions'
   },
   {
     name: 'Custom Services',
     slug: 'services',
-    icon: BoltIcon,
+    icon: Zap,
     description: 'Professional services and consulting',
-    color: 'bg-emerald-500',
+    gradient: 'from-emerald-500 to-teal-400',
+    shadow: 'shadow-emerald-500/30',
     count: '4,156 services'
   }
 ]
@@ -71,40 +75,40 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-white dark:bg-gray-900 pt-28 pb-24 sm:pt-40 sm:pb-32 transition-colors duration-300">
-        {/* Background Gradients & Mesh Effects */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100/50 via-emerald-50/20 to-transparent dark:from-emerald-900/30 dark:via-emerald-900/10 dark:to-transparent" /> 
-          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-300/20 dark:bg-emerald-800/20 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-300/20 dark:bg-blue-900/20 rounded-full blur-[100px] animate-pulse" style={{animationDelay: '1.5s'}} />
+      <section className="relative overflow-hidden bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 pt-28 pb-24 sm:pt-40 sm:pb-32">
+        {/* Background Pattern */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/30 via-transparent to-transparent"></div>
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '8s'}}></div>
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '10s', animationDelay: '2s'}}></div>
+          {/* Grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           {/* Badge */}
-          <div className="inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold text-emerald-800 dark:text-emerald-300 ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-400/30 mb-8 bg-emerald-50/80 dark:bg-emerald-900/30 backdrop-blur-md shadow-sm">
-            <TranslatableText as="span" wrapperAs="span" text="The marketplace for creators" className="" />
-            <SparklesIcon className="w-4 h-4 ml-2 text-emerald-600 dark:text-emerald-400" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-8 text-gray-300 shadow-sm">
+            <SparklesIcon className="w-4 h-4 text-emerald-400" />
+            <TranslatableText as="span" wrapperAs="span" text="The marketplace for creators" className="inline" />
           </div>
 
-          <TranslatableText as="h1" text="Find the perfect offering for your business" className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-8 drop-shadow-sm" />
+          <TranslatableText as="h1" text="Find the perfect offering for your business" className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-8 drop-shadow-sm" />
 
-          <TranslatableText text="Connect with talented creators offering digital products, courses, and custom services. From design to development, find everything you need to grow." className="text-lg sm:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed" showListingControls />
-
-          {/* Lightweight search form using GET to avoid client handlers */}    
-          <form action="/category/digital-products" method="get" className="max-w-xl mx-auto mb-8 hidden">
-            <input type="text" name="search" placeholder="Search offerings..." className="w-full px-5 py-3 rounded-full bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none backdrop-blur-sm transition-all" />
-          </form>
+          <TranslatableText text="Connect with talented creators offering digital products, courses, and custom services. From design to development, find everything you need to grow." className="text-lg sm:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed" showListingControls />        
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-5">
             <Link
               href="/category/digital-products"
               prefetch
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold hover:from-emerald-400 hover:to-teal-400 transition-all duration-300 hover:-translate-y-1 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2 group"
             >
-              <TranslatableText as="span" wrapperAs="span" text="Browse Offerings" className="inline" /> 
+              <TranslatableText as="span" wrapperAs="span" text="Browse Offerings" className="inline" />
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <div className="w-full sm:w-auto hover:-translate-y-1 transition-transform duration-300">
+            <div className="flex items-center gap-4 mt-4 sm:mt-0 text-sm text-gray-400 font-medium">
+              <div className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Secure</div>
+              <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+              <div className="flex items-center gap-1.5"><BadgeCheck className="w-4 h-4 text-blue-400" /> Verified</div>
             </div>
           </div>
         </div>
@@ -132,15 +136,15 @@ export default async function HomePage() {
                 style={{animationDelay: `${index * 0.1}s`}}
               >
                 <div className="p-6 sm:p-8 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-transparent to-gray-50 dark:to-gray-900/40 rounded-full transform translate-x-16 -translate-y-16 group-hover:scale-150 transition-transform duration-500"></div>
-                  <div className={`w-12 h-12 sm:w-16 sm:h-16 ${category.color} rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-all duration-300 relative z-10 group-hover:rotate-6 shadow-[0_8px_20px_rgba(0,0,0,0.12)]`}>
-                    <category.icon className="h-6 w-6 sm:h-8 sm:w-8 text-white drop-shadow" />
+                  <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl ${category.gradient} opacity-5 dark:opacity-10 rounded-full transform translate-x-16 -translate-y-16 group-hover:scale-150 transition-transform duration-700 blur-2xl`}></div>
+                  <div className={`w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br ${category.gradient} rounded-2xl flex items-center justify-center mb-5 sm:mb-6 group-hover:-translate-y-1 group-hover:rotate-3 transition-all duration-300 relative z-10 shadow-lg ${category.shadow}`}>
+                    <category.icon className="h-7 w-7 sm:h-8 sm:w-8 text-white drop-shadow-md" strokeWidth={2} />
                   </div>
-                  <TranslatableText as="h3" text={category.name} className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-emerald-600 transition-colors duration-300" />
-                  <TranslatableText text={category.description} className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors" showListingControls />
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3" /> {category.count}
+                  <TranslatableText as="h3" text={category.name} className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-emerald-600 transition-colors duration-300 relative z-20" />
+                  <TranslatableText text={category.description} className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors relative z-20" showListingControls />        
+                  <div className="flex items-center justify-between relative z-20">
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full inline-flex items-center gap-1 font-medium">
+                      <TrendingUp className="w-3 h-3 text-emerald-500" /> {category.count}
                     </span>
                     <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500 group-hover:text-emerald-600 group-hover:translate-x-2 transition-all duration-300" />
                   </div>
@@ -166,7 +170,7 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
-              <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
               <div>
                 <TranslatableText as="div" text="Satisfaction focus" className="text-sm font-semibold text-gray-900 dark:text-white" />
                 <TranslatableText text="Clear deliverables, refund policy" className="text-xs text-gray-500 dark:text-gray-400" showListingControls />
@@ -240,7 +244,7 @@ export default async function HomePage() {
           
           <HomeLeadCapture
             title="Join the FomKart Community"
-            subtitle="Weekly insights • Exclusive deals • Creator spotlights • Industry trends"
+            subtitle="Weekly insights � Exclusive deals � Creator spotlights � Industry trends"
             placeholder="Enter your email address"
             buttonText="Join the Community"
             showNameField={true}
@@ -272,3 +276,11 @@ export default async function HomePage() {
     </div>
   )
 }
+
+
+
+
+
+
+
+
