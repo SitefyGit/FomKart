@@ -105,12 +105,12 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
   const [isLoading, setIsLoading] = useState(true)
   const [budgetRange, setBudgetRange] = useState<string | null>(null)
   const [deliveryFilter, setDeliveryFilter] = useState<string | null>(null)
-  const [productTypeFilter, setProductTypeFilter] = useState<'all' | 'product' | 'service'>('all')
+  const [productTypeFilter, setProductTypeFilter] = useState<'all' | 'product' | 'service' | 'course' | 'consultation'>('all')
   const [showFilters, setShowFilters] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
   
   // Helper function to get type label
-  const getTypeLabel = (filter: 'all' | 'product' | 'service') => {
+  const getTypeLabel = (filter: string) => {
     if (filter === 'service') return 'offerings'
     if (filter === 'product') return 'products'
     return 'offerings'
