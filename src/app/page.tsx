@@ -75,42 +75,78 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 pt-28 pb-24 sm:pt-40 sm:pb-32">
+      <section className="relative overflow-hidden pt-28 pb-24 sm:pt-40 sm:pb-32 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-center font-sans">
         {/* Background Pattern */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/30 via-transparent to-transparent"></div>
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '8s'}}></div>
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '10s', animationDelay: '2s'}}></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-transparent to-transparent dark:from-emerald-900/30 dark:via-transparent dark:to-transparent"></div>
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-teal-200/40 dark:bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '8s'}}></div>
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-emerald-200/40 dark:bg-emerald-500/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '10s', animationDelay: '2s'}}></div>
           {/* Grid pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-8 text-gray-300 shadow-sm">
-            <SparklesIcon className="w-4 h-4 text-emerald-400" />
-            <TranslatableText as="span" wrapperAs="span" text="The marketplace for creators" className="inline" />
-          </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          
+          {/* WELCOME LINE */}
+          <h2 className="text-[clamp(20px,2.5vw,28px)] font-medium text-gray-800 dark:text-gray-300 mb-3">
+            Welcome to the Future of marketplace (<strong className="font-extrabold text-emerald-600 dark:text-emerald-400">F<span className="font-black">o</span>m</strong>kart)
+          </h2>
 
-          <TranslatableText as="h1" text="Find the perfect offering for your business" className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-8 drop-shadow-sm" />
+          {/* MAIN HEADLINE */}
+          <h1 className="text-[clamp(42px,6vw,76px)] font-black text-gray-900 dark:text-white mb-4 tracking-tight leading-tight">
+            Buy anything digital.
+            <span className="block text-emerald-600 dark:text-emerald-400">Sell anything digital.</span>
+          </h1>
 
-          <TranslatableText text="Connect with talented creators offering digital products, courses, and custom services. From design to development, find everything you need to grow." className="text-lg sm:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed" showListingControls />        
+          {/* SUBTEXT */}
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
+            Discover, buy, and sell digital products, services, and consultations —
+            all in one place. Built for anyone, anywhere.
+          </p>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-5">
-            <Link
-              href="/category/digital-products"
-              prefetch
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold hover:from-emerald-400 hover:to-teal-400 transition-all duration-300 hover:-translate-y-1 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2 group"
-            >
-              <TranslatableText as="span" wrapperAs="span" text="Browse Offerings" className="inline" />
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <div className="flex items-center gap-4 mt-4 sm:mt-0 text-sm text-gray-400 font-medium">
-              <div className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Secure</div>
-              <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-              <div className="flex items-center gap-1.5"><BadgeCheck className="w-4 h-4 text-blue-400" /> Verified</div>
+          {/* 2 COLUMN GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+
+            {/* BUYER */}
+            <div className="bg-white/80 dark:bg-gray-800/90 dark:border-gray-700 p-8 sm:p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none border border-emerald-100 dark:border-gray-700 transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-gray-200/60 dark:hover:border-emerald-500/30 group">
+              <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Buy</h3>
+              <p className="text-base text-gray-600 dark:text-gray-300 mb-6">
+                Explore anything digital — from tools and courses to expert services —
+                and get things done faster.
+              </p>
+
+              <ul className="pl-5 mb-8 space-y-3">
+                <li className="text-gray-700 dark:text-emerald-100 font-medium list-disc marker:text-emerald-500">Courses, tools & digital products</li>
+                <li className="text-gray-700 dark:text-emerald-100 font-medium list-disc marker:text-emerald-500">Hire experts & services instantly</li>
+                <li className="text-gray-700 dark:text-emerald-100 font-medium list-disc marker:text-emerald-500">Learn, build, or grow anything</li>
+              </ul>
+
+              <Link href="/market" className="inline-block px-7 py-4 rounded-xl font-bold text-base text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/30 hover:shadow-emerald-600/40 transition-all">
+                Browse Marketplace
+              </Link>
             </div>
+
+            {/* SELLER */}
+            <div className="bg-white/80 dark:bg-gray-800/90 dark:border-gray-700 p-8 sm:p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none border border-indigo-100 dark:border-gray-700 transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-gray-200/60 dark:hover:border-indigo-500/30 group">
+              <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Sell</h3>
+              <p className="text-base text-gray-600 dark:text-gray-300 mb-6">
+                Turn your knowledge, skills, or products into income. Launch your
+                digital business in minutes.
+              </p>
+
+              <ul className="pl-5 mb-8 space-y-3">
+                <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500">Sell products, services & consultations</li>
+                <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500">Free link-in-bio storefront</li>
+                <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500">Launch fast & sell globally</li>
+              </ul>
+
+              <Link href="/creator/onboarding" className="inline-block px-7 py-4 rounded-xl font-bold text-base text-gray-800 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 shadow-sm transition-all">
+                Start Selling
+              </Link>
+            </div>
+
           </div>
+
         </div>
       </section>
 
@@ -256,8 +292,8 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Section */}
-        <section className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-12 sm:py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center border-t border-transparent dark:border-gray-200 pt-12 sm:pt-16 -mt-12 sm:-mt-16">
+      <section className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white py-12 sm:py-16 border-t border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-12 sm:pt-16 -mt-12 sm:-mt-16">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to get started?</h2>
           <p className="text-base sm:text-lg mb-6 sm:mb-8 opacity-90 px-4">
             Join thousands of creators and businesses already using FomKart

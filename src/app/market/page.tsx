@@ -416,7 +416,7 @@ export default async function MarketPage() {
       </section>
 
       {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-b from-gray-900 to-gray-950 dark:from-white dark:to-gray-50 relative overflow-hidden border-t dark:border-gray-200">
+        <section className="py-20 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 relative overflow-hidden border-t dark:border-gray-800 border-gray-200">
         {/* Background decorations */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-1/3 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl"></div>
@@ -424,8 +424,8 @@ export default async function MarketPage() {
         </div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white dark:text-gray-900"><TranslatableText text="Ready to Get Started?" as="span" wrapperAs="span" className="inline" /></h2>
-          <p className="text-lg text-gray-400 dark:text-gray-600 mb-10 max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900 dark:text-white"><TranslatableText text="Ready to Get Started?" as="span" wrapperAs="span" className="inline" /></h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
             <TranslatableText text="Join thousands of satisfied customers who found their perfect service on FomKart" as="span" wrapperAs="span" className="inline" />
           </p>
           <div className="flex flex-wrap justify-center gap-4">
@@ -438,7 +438,7 @@ export default async function MarketPage() {
             </Link>
             <Link
               href="/auth/creator-signup"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 dark:bg-gray-900/5 backdrop-blur-sm border border-white/20 dark:border-gray-900/10 text-white dark:text-gray-900 rounded-xl font-semibold hover:bg-white/20 dark:hover:bg-gray-900/10 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-sans"
             >
               <TranslatableText text="Become a Seller" as="span" wrapperAs="span" className="inline" />
             </Link>

@@ -9,7 +9,7 @@ export default function StartSellingButton({ isCTA = false }: { isCTA?: boolean 
   const [loading, setLoading] = useState(true)
 
   const buttonClasses = isCTA
-    ? "block w-full sm:w-auto border border-white/20 dark:border-gray-900/20 bg-white/5 dark:bg-gray-900/5 text-white dark:text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-white dark:hover:bg-gray-100 hover:text-emerald-900 dark:hover:text-emerald-700 transition-all duration-200 hover:scale-105 transform text-center flex items-center justify-center"
+    ? "block w-full sm:w-auto border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 transform text-center flex items-center justify-center"
     : "block w-full sm:w-auto border border-white/20 bg-white/5 backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-emerald-900 transition-all duration-200 hover:scale-105 transform text-center"
 
 
