@@ -89,59 +89,50 @@ export default async function HomePage() {
           
           {/* WELCOME LINE */}
           <h2 className="text-[clamp(20px,2.5vw,28px)] font-medium text-gray-800 dark:text-gray-300 mb-3">
-            Welcome to the Future of marketplace (<strong className="font-extrabold text-emerald-600 dark:text-emerald-400">F<span className="font-black">o</span>m</strong>kart)
+            <TranslatableText text="Welcome to the Future of marketplace" /> (<strong className="font-extrabold text-emerald-600 dark:text-emerald-400">F<span className="font-black">o</span>m</strong>kart)
           </h2>
 
           {/* MAIN HEADLINE */}
           <h1 className="text-[clamp(42px,6vw,76px)] font-black text-gray-900 dark:text-white mb-4 tracking-tight leading-tight">
-            Buy anything digital.
-            <span className="block text-emerald-600 dark:text-emerald-400">Sell anything digital.</span>
+            <TranslatableText text="Buy anything digital." />
+            <span className="block text-emerald-600 dark:text-emerald-400"><TranslatableText text="Sell anything digital." /></span>
           </h1>
 
           {/* SUBTEXT */}
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
-            Discover, buy, and sell digital products, services, and consultations —
-            all in one place. Built for anyone, anywhere.
-          </p>
+          <TranslatableText as="p" className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed" text="Discover, buy, and sell digital products, services, and consultations — all in one place. Built for anyone, anywhere." />
 
           {/* 2 COLUMN GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
 
             {/* BUYER */}
-            <div className="bg-white/80 dark:bg-gray-800/90 dark:border-gray-700 p-8 sm:p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none border border-emerald-100 dark:border-gray-700 transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-gray-200/60 dark:hover:border-emerald-500/30 group">
-              <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Buy</h3>
-              <p className="text-base text-gray-600 dark:text-gray-300 mb-6">
-                Explore anything digital — from tools and courses to expert services —
-                and get things done faster.
-              </p>
+            <div className="bg-white/80 dark:bg-gray-800/90 p-8 sm:p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none border border-emerald-100 dark:border-gray-700 transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-gray-200/60 dark:hover:border-emerald-500/30 group">
+              <TranslatableText as="h3" className="text-2xl font-bold mb-3 text-gray-900 dark:text-white" text="Buy" />
+              <TranslatableText as="p" className="text-base text-gray-600 dark:text-gray-300 mb-6" text="Explore anything digital — from tools and courses to expert services — and get things done faster." />
 
               <ul className="pl-5 mb-8 space-y-3">
-                <li className="text-gray-700 dark:text-emerald-100 font-medium list-disc marker:text-emerald-500">Courses, tools & digital products</li>
-                <li className="text-gray-700 dark:text-emerald-100 font-medium list-disc marker:text-emerald-500">Hire experts & services instantly</li>
-                <li className="text-gray-700 dark:text-emerald-100 font-medium list-disc marker:text-emerald-500">Learn, build, or grow anything</li>
+                <li className="text-gray-700 dark:text-emerald-100 font-medium list-disc marker:text-emerald-500"><TranslatableText text="Courses, tools & digital products" /></li>
+                <li className="text-gray-700 dark:text-emerald-100 font-medium list-disc marker:text-emerald-500"><TranslatableText text="Hire experts & services instantly" /></li>
+                <li className="text-gray-700 dark:text-emerald-100 font-medium list-disc marker:text-emerald-500"><TranslatableText text="Learn, build, or grow anything" /></li>
               </ul>
 
               <Link href="/market" className="inline-block px-7 py-4 rounded-xl font-bold text-base text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/30 hover:shadow-emerald-600/40 transition-all">
-                Browse Marketplace
+                <TranslatableText text="Browse Marketplace" />
               </Link>
             </div>
 
             {/* SELLER */}
-            <div className="bg-white/80 dark:bg-gray-800/90 dark:border-gray-700 p-8 sm:p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none border border-indigo-100 dark:border-gray-700 transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-gray-200/60 dark:hover:border-indigo-500/30 group">
-              <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Sell</h3>
-              <p className="text-base text-gray-600 dark:text-gray-300 mb-6">
-                Turn your knowledge, skills, or products into income. Launch your
-                digital business in minutes.
-              </p>
+            <div className="bg-white/80 dark:bg-gray-800/90 p-8 sm:p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none border border-indigo-100 dark:border-gray-700 transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-gray-200/60 dark:hover:border-indigo-500/30 group">
+              <TranslatableText as="h3" className="text-2xl font-bold mb-3 text-gray-900 dark:text-white" text="Sell" />
+              <TranslatableText as="p" className="text-base text-gray-600 dark:text-gray-300 mb-6" text="Turn your knowledge, skills, or products into income. Launch your digital business in minutes." />
 
               <ul className="pl-5 mb-8 space-y-3">
-                <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500">Sell products, services & consultations</li>
-                <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500">Free link-in-bio storefront</li>
-                <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500">Launch fast & sell globally</li>
+                <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500"><TranslatableText text="Sell products, services & consultations" /></li>
+                <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500"><TranslatableText text="Free link-in-bio storefront" /></li>
+                <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500"><TranslatableText text="Launch fast & sell globally" /></li>
               </ul>
 
               <Link href="/creator/onboarding" className="inline-block px-7 py-4 rounded-xl font-bold text-base text-gray-800 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 shadow-sm transition-all">
-                Start Selling
+                <TranslatableText text="Start Selling" />
               </Link>
             </div>
 
