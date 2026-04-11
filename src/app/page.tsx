@@ -131,7 +131,7 @@ export default async function HomePage() {
                 <li className="text-gray-700 dark:text-indigo-100 font-medium list-disc marker:text-indigo-500"><TranslatableText text="Launch fast & sell globally" /></li>
               </ul>
 
-              <Link href="/creator/onboarding" className="inline-block px-7 py-4 rounded-xl font-bold text-base text-gray-800 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 shadow-sm transition-all">
+              <Link href="/auth/creator-signup" className="inline-block px-7 py-4 rounded-xl font-bold text-base text-gray-800 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 shadow-sm transition-all">
                 <TranslatableText text="Start Selling" />
               </Link>
             </div>

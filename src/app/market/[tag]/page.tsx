@@ -309,7 +309,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
       <section className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb */}
-          <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <nav className="flex flex-wrap items-center gap-y-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
             <Link href="/" className="hover:text-emerald-600">FomKart</Link>
             <span className="mx-2">/</span>
             <Link href="/market" className="hover:text-emerald-600">{t('marketplace', 'Market')}</Link>

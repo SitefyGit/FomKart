@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { Globe, ChevronDown, Search } from 'lucide-react';
 import RouteProgress from '@/app/RouteProgress';
 import NotificationsBell from '@/components/NotificationsBell';
-import AuthButton from '@/components/AuthButton';
 import ProfileMenu from '@/components/ProfileMenu';
 import CartIcon from '@/components/CartIcon';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -146,7 +145,6 @@ export default function SiteHeader() {
               <CartIcon />
               <NotificationsBell />
               <ProfileMenu />
-              <AuthButton />
             </div>
 
             {/* Empty space for Grid Col 1 */}
@@ -168,9 +166,6 @@ export default function SiteHeader() {
               </Link>
               <Link href="/category/consultation" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
                 {t('consultations', 'Consultations')}
-              </Link>
-              <Link href="/orders" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
-                {t('orders', 'Orders')}
               </Link>
             </nav>
           </div>
@@ -200,7 +195,9 @@ export default function SiteHeader() {
               </Link>
               <div className="flex items-center justify-end gap-2 shrink-0">
                 <ThemeToggle />
-                <AuthButton />
+                <CartIcon />
+                <NotificationsBell />
+                <ProfileMenu />
               </div>
             </div>
             
@@ -244,9 +241,6 @@ export default function SiteHeader() {
               </Link>
               <Link href="/category/consultation" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
                 {t('consultations', 'Consultations')}
-              </Link>
-              <Link href="/orders" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
-                {t('orders', 'Orders')}
               </Link>
             </nav>
           </div>

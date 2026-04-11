@@ -125,7 +125,7 @@ export default async function FeaturedServicesSection() {
                 </div>
 
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <div className="flex items-center space-x-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 sm:px-3 py-1 rounded-full">
                       <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
                       <span className="text-xs sm:text-sm font-medium text-yellow-700 dark:text-yellow-200">{Number(service.rating ?? 0).toFixed(1)}</span>

@@ -427,7 +427,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       {/* Breadcrumb */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400 overflow-x-auto whitespace-nowrap pb-2 -mb-2">
             <button
               onClick={() => window.history.back()}
               className="flex items-center text-gray-600 dark:text-gray-300 hover:text-emerald-600 transition-colors mr-2"

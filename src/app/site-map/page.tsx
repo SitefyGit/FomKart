@@ -17,10 +17,10 @@ export default function SitemapPage() {
     {
       title: 'Creators',
       links: [
-        { name: 'Start Selling', href: '/start-selling' },
-        { name: 'Creator Dashboard', href: '/creator/onboarding' },
-        { name: 'Login', href: '/login' },
-        { name: 'Sign Up', href: '/signup' },
+        { name: 'Start Selling', href: '/auth/creator-signup' },
+        { name: 'Creator Dashboard', href: '/orders?tab=selling' },
+        { name: 'Login', href: '/auth/login' },
+        { name: 'Sign Up', href: '/auth/signup' },
       ]
     },
     {

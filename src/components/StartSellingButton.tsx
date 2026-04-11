@@ -48,7 +48,7 @@ export default function StartSellingButton({ isCTA = false }: { isCTA?: boolean 
 
   return (
     <Link
-      href="/auth/login"
+      href="/auth/creator-signup"
       prefetch
       className={buttonClasses}
     >

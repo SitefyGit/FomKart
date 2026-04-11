@@ -104,12 +104,12 @@ export default function Footer() {
             <h3 className="font-semibold text-gray-900 dark:text-white mb-6">{t('forCreators', 'For Creators')}</h3>
             <ul className="space-y-4">
               <li>
-                <Link href="/start-selling" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                <Link href="/auth/creator-signup" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
                   {t('startSelling', 'Start Selling')}
                 </Link>
               </li>
               <li>
-                <Link href="/creator/onboarding" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                <Link href="/orders?tab=selling" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
                   {t('creatorDashboard', 'Creator Dashboard')}
                 </Link>
               </li>
@@ -194,7 +194,7 @@ export default function Footer() {
                 {languageOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setLanguageOpen(false)} />
-                    <div className="absolute bottom-8 right-0 z-50 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden">
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-0 z-50 w-[85vw] max-w-[280px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden">
                       <div className="p-3 border-b border-gray-100 dark:border-gray-700">
                         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                           {t('selectLanguage', 'Select Language')}
@@ -240,7 +240,7 @@ export default function Footer() {
                   {/* Backdrop */}
                   <div className="fixed inset-0 z-40" onClick={() => setCurrencyOpen(false)} />
                   {/* Dropdown */}
-                  <div className="absolute bottom-8 right-0 z-50 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden">
+                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-0 z-50 w-[85vw] max-w-[280px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden">
                     <div className="p-3 border-b border-gray-100 dark:border-gray-700">
                       <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                         {t('selectCurrency', 'Select Currency')}

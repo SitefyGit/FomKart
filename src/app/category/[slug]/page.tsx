@@ -507,7 +507,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       {/* Breadcrumb */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400 overflow-x-auto whitespace-nowrap pb-2 -mb-2">
             <Link href="/" className="hover:text-emerald-600 dark:hover:text-emerald-400">FomKart</Link>
             <span className="mx-2">/</span>
             <TranslatableText text={category.name} as="span" wrapperAs="span" className="text-gray-900 dark:text-white truncate" />
