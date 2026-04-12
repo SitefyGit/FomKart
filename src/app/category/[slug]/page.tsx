@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Search, 
   Star, 
@@ -781,10 +782,15 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             <Link key={product.id} href={`/product/${product.id}`} className="group" prefetch>
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden border border-gray-100 dark:border-gray-700">
                 {/* Product Image */}
-                <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-4xl sm:text-6xl relative">
+                <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-4xl sm:text-6xl relative overflow-hidden">
                   {product.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover" />
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    />
                   ) : (
                     <ComputerDesktopIcon className="w-10 h-10 text-emerald-600" />
                   )}
@@ -803,10 +809,9 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                 <div className="p-3 sm:p-4">
                   {/* Creator Info */}
                   <div className="flex items-center space-x-2 mb-3">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center text-sm flex-shrink-0">
+                    <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center text-sm flex-shrink-0">
                       {product.avatar ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={product.avatar} alt={product.creatorName} className="w-full h-full object-cover" />
+                        <Image src={product.avatar} alt={product.creatorName} fill className="object-cover" sizes="32px" />
                       ) : (
                         <span className="font-bold text-gray-600 dark:text-gray-400">{product.creatorName.slice(0,1)}</span>
                       )}

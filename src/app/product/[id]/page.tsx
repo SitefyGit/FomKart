@@ -145,12 +145,28 @@ export default function ProductPage({ params }: ProductPageProps) {
           .single();
 
         if (prod && !prodErr) {
-          // Fetch packages
-            let { data: pkgs } = await supabase
+          // Fetch packages, reviews, and seller ratings concurrently for better performance
+          const [pkgsRes, reviewsRes, sellerRatingsRes] = await Promise.all([
+            supabase
               .from('product_packages')
               .select('*')
               .eq('product_id', prod.id)
-              .order('sort_order', { ascending: true });
+              .order('sort_order', { ascending: true }),
+            supabase
+              .from('reviews')
+              .select(`id, rating, comment, created_at, reviewer:reviewer_id(id, full_name, username, avatar_url, is_verified)`)
+              .eq('product_id', prod.id)
+              .eq('is_public', true)
+              .order('created_at', { ascending: false }),
+            prod.creator_id ? supabase
+              .from('reviews')
+              .select('seller_rating')
+              .eq('seller_id', prod.creator_id)
+              .eq('is_public', true)
+              .not('seller_rating', 'is', null) : Promise.resolve({ data: null, error: null })
+          ]);
+
+          let pkgs = pkgsRes.data;
 
           // If no packages exist, auto-create a sensible default so buy flow works
           if (!pkgs || pkgs.length === 0) {
@@ -203,12 +219,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               if (!value) return undefined;
               return Array.isArray(value) ? value[0] : value;
             };
-            const { data: reviewsData } = await supabase
-              .from('reviews')
-              .select(`id, rating, comment, created_at, reviewer:reviewer_id(id, full_name, username, avatar_url, is_verified)`)
-              .eq('product_id', prod.id)
-              .eq('is_public', true)
-              .order('created_at', { ascending: false });
+            const reviewsData = reviewsRes.data;
             fetchedReviews = (reviewsData || []).map((row: ReviewRow) => {
               const reviewer = unwrap(row.reviewer);
               const commentText = (row.comment || '').trim();
@@ -234,12 +245,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
             // Calculate live creator stats
             if (prod.creator_id) {
-              const { data: sellerRatings } = await supabase
-                .from('reviews')
-                .select('seller_rating')
-                .eq('seller_id', prod.creator_id)
-                .eq('is_public', true)
-                .not('seller_rating', 'is', null);
+              const sellerRatings = sellerRatingsRes.data;
 
               if (sellerRatings && sellerRatings.length > 0) {
                  const validRatings = sellerRatings.map(r => Number(r.seller_rating)).filter(r => r > 0);
