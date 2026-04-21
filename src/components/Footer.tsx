@@ -170,11 +170,15 @@ export default function Footer() {
               </button>
             )}
             
-            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
               <Link href="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('privacyPolicy', 'Privacy Policy')}</Link>
               <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('termsOfService', 'Terms of Service')}</Link>
               <Link href="/cookies" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('cookieSettings', 'Cookie Settings')}</Link>
               <Link href="/site-map" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('sitemap', 'Sitemap')}</Link>
+              <a href="mailto:parvesh@sitefy.co" className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors border border-emerald-200 dark:border-emerald-800">
+                <Mail className="w-4 h-4" />
+                {t('feedbackToFounder', 'Give Feedback to Founder')}
+              </a>
             </div>
 
             <div className="flex items-center gap-5 text-gray-400 relative">
