@@ -1436,7 +1436,7 @@ export default function CreatorPage() {
                 <TranslatableText text="Items" as="span" wrapperAs="span" className="inline" />
               </button>
               <Link href={`/creator/${creator.username}/bio`} className="px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-b-2 border-transparent hover:border-gray-300 transition-colors">
-                <TranslatableText text="About" as="span" wrapperAs="span" className="inline" />
+                <TranslatableText text="Bio" as="span" wrapperAs="span" className="inline" />
               </Link>
               <button 
                 onClick={() => {

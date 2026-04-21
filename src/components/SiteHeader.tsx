@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Globe, ChevronDown, Search } from 'lucide-react';
 import RouteProgress from '@/app/RouteProgress';
 import NotificationsBell from '@/components/NotificationsBell';
@@ -17,6 +17,7 @@ export default function SiteHeader() {
   const [languageOpen, setLanguageOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const pathname = usePathname();
   const currentLanguageObj = languages.find((l) => l.code === language) ?? languages[0];
 
   const handleSearch = () => {
@@ -34,9 +35,11 @@ export default function SiteHeader() {
     router.push(`/market/${slug}`);
   };
 
+  const isBioPage = pathname?.match(/^\/creator\/[^/]+\/bio$/);
+
   return (
     <>
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <header className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 ${isBioPage ? 'hidden md:block' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           {/* Desktop Layout using Grid for perfect alignment */}
           <div className="hidden md:grid grid-cols-[auto_1fr_auto] gap-x-6 items-center">

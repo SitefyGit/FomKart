@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { 
   Twitter, 
   Instagram, 
@@ -20,10 +21,14 @@ export default function Footer() {
   const { language, languages, setLanguage, t, showOriginalListings, setShowOriginalListings } = useLanguage()
   const [currencyOpen, setCurrencyOpen] = useState(false)
   const [languageOpen, setLanguageOpen] = useState(false)
+  const pathname = usePathname()
   const currentCurrencyObj = currencies.find(c => c.code === currency) ?? currencies[0]
   const currentLanguageObj = languages.find(l => l.code === language) ?? languages[0]
+
+  const isBioPage = pathname?.match(/^\/creator\/[^/]+\/bio$/)
+
   return (
-    <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8">
+    <footer className={`bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8 ${isBioPage ? 'hidden md:block' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand Column */}
