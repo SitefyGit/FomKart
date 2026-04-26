@@ -109,13 +109,13 @@ export default function CreatorSignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <Link
             href="/"
-            className="inline-flex items-center text-emerald-600 hover:text-emerald-700 mb-6"
+            className="inline-flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mb-6"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -124,22 +124,22 @@ export default function CreatorSignUpPage() {
             <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center mr-3">
               <Briefcase className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">Join as Creator</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Join as Creator</h2>
           </div>
-          <p className="mt-2 text-gray-600">Start selling your products and services</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Start selling your products and services</p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           </div>
         )}
 
         {/* Creator Benefits */}
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-          <h3 className="font-semibold text-emerald-800 mb-2">Creator Benefits:</h3>
-          <ul className="text-sm text-emerald-700 space-y-1">
+        <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+          <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-2">Creator Benefits:</h3>
+          <ul className="text-sm text-emerald-700 dark:text-emerald-400 space-y-1">
             <li>• Create your own storefront</li>
             <li>• Sell digital products & services</li>
             <li>• Build your subscriber list</li>
@@ -328,20 +328,20 @@ export default function CreatorSignUpPage() {
 
         {/* Sign In Links */}
         <div className="text-center space-y-2">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Already have a creator account?{' '}
             <Link
               href="/auth/login"
-              className="text-emerald-600 hover:text-emerald-700 font-medium"
+              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
             >
               Sign in here
             </Link>
           </p>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Want to buy instead?{' '}
             <Link
               href="/auth/signup"
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
             >
               Create buyer account
             </Link>
@@ -349,17 +349,17 @@ export default function CreatorSignUpPage() {
         </div>
 
         {/* Terms Notice */}
-        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <p className="text-xs text-gray-600 text-center">
+        <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
             By creating a creator account, you agree to our{' '}
-            <Link href="/terms" className="text-emerald-600 hover:text-emerald-700">
+            <Link href="/terms" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300">
               Creator Terms
             </Link>,{' '}
-            <Link href="/terms" className="text-emerald-600 hover:text-emerald-700">
+            <Link href="/terms" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="/privacy" className="text-emerald-600 hover:text-emerald-700">
+            <Link href="/privacy" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300">
               Privacy Policy
             </Link>
           </p>

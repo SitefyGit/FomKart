@@ -54,7 +54,7 @@ export default function SignUpPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
-          <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Registration Closed</h2>
@@ -160,25 +160,25 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <Link
             href="/"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6"
+            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-6"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
-          <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
-          <p className="mt-2 text-gray-600">Join FomKart and start your journey</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Create Account</h2>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Join FomKart and start your journey</p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           </div>
         )}
 
@@ -186,7 +186,7 @@ export default function SignUpPage() {
         <form className="space-y-6" onSubmit={handleSubmit}>
           {/* Full Name */}
           <div>
-            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Full Name
             </label>
             <div className="relative">
@@ -200,7 +200,7 @@ export default function SignUpPage() {
                 required
                 value={formData.fullName}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400"
                 placeholder="Enter your full name"
               />
             </div>
@@ -208,7 +208,7 @@ export default function SignUpPage() {
 
           {/* Username */}
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Username
             </label>
             <div className="relative">
@@ -222,7 +222,7 @@ export default function SignUpPage() {
                 required
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400"
                 placeholder="Choose a username"
               />
             </div>
@@ -230,7 +230,7 @@ export default function SignUpPage() {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Email Address
             </label>
             <div className="relative">
@@ -244,7 +244,7 @@ export default function SignUpPage() {
                 required
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400"
                 placeholder="Enter your email"
               />
             </div>
@@ -252,7 +252,7 @@ export default function SignUpPage() {
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Password
             </label>
             <div className="relative">
@@ -266,7 +266,7 @@ export default function SignUpPage() {
                 required
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400"
                 placeholder="Create a password"
               />
               <button
@@ -275,9 +275,9 @@ export default function SignUpPage() {
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                 ) : (
-                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                 )}
               </button>
             </div>
@@ -285,7 +285,7 @@ export default function SignUpPage() {
 
           {/* Confirm Password */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Confirm Password
             </label>
             <div className="relative">
@@ -299,7 +299,7 @@ export default function SignUpPage() {
                 required
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400"
                 placeholder="Confirm your password"
               />
               <button
@@ -308,9 +308,9 @@ export default function SignUpPage() {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 {showConfirmPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                 ) : (
-                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                 )}
               </button>
             </div>
@@ -328,11 +328,11 @@ export default function SignUpPage() {
 
         {/* Sign In Link */}
         <div className="text-center">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Already have an account?{' '}
             <Link
               href="/auth/login"
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
             >
               Sign in here
             </Link>
@@ -340,14 +340,14 @@ export default function SignUpPage() {
         </div>
 
         {/* Terms Notice */}
-        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <p className="text-xs text-gray-600 text-center">
+        <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
             By creating an account, you agree to our{' '}
-            <Link href="/terms" className="text-blue-600 hover:text-blue-700">
+            <Link href="/terms" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="/privacy" className="text-blue-600 hover:text-blue-700">
+            <Link href="/privacy" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
               Privacy Policy
             </Link>
           </p>
