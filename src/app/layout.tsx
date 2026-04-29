@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     siteName: "fomkart",
     images: [
       {
-        url: "/fomkart.png",
+        url: "/tab_logo.png",
         width: 1200,
         height: 630,
         alt: "fomkart Logo"
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "fomkart - Sell and Buy Anything Digital Worldwide",
     description: "Sell and Buy Anything Digital Worldwide",
-    images: ["/fomkart.png"],
+    images: ["/tab_logo.png"],
   }
 };
 
