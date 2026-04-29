@@ -397,7 +397,7 @@ export default function BuyerProfilePage() {
                     <Store className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Start Selling on FomKart</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Start Selling on fomkart</h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       Turn your skills into income! Create your own storefront, list your services or products, and reach thousands of potential buyers.
                     </p>
@@ -436,7 +436,7 @@ export default function BuyerProfilePage() {
                   <div className="flex-1">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Seller Dashboard</h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      You&apos;re a verified seller on FomKart. Manage your products, view analytics, and grow your business.
+                      You&apos;re a verified seller on fomkart. Manage your products, view analytics, and grow your business.
                     </p>
                     <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
                       <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">

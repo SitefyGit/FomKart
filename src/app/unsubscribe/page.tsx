@@ -71,7 +71,7 @@ export default function UnsubscribePage() {
             className="inline-flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-6"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to FomKart</span>
+            <span>Back to fomkart</span>
           </Link>
           
           <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full mb-4">
@@ -96,7 +96,7 @@ export default function UnsubscribePage() {
                 href="/"
                 className="inline-flex items-center space-x-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
               >
-                <span>Return to FomKart</span>
+                <span>Return to fomkart</span>
               </Link>
             </div>
           ) : (

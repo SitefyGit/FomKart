@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const tagSlug = resolvedParams.tag
   const tagName = tagSlugToName(tagSlug)
   
-  const title = `${tagName} Services | Find ${tagName} Freelancers | FomKart`
-  const description = `Hire top ${tagName.toLowerCase()} freelancers on FomKart. Browse verified ${tagName.toLowerCase()} services with ratings, reviews & secure payments. Starting from $5.`
+  const title = `${tagName} Services | Find ${tagName} Freelancers | fomkart`
+  const description = `Hire top ${tagName.toLowerCase()} freelancers on fomkart. Browse verified ${tagName.toLowerCase()} services with ratings, reviews & secure payments. Starting from $5.`
   
   return {
     title,
@@ -32,13 +32,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `hire ${tagName.toLowerCase()}`,
       `${tagName.toLowerCase()} expert`,
       'freelance services',
-      'FomKart',
+      'fomkart',
     ],
     openGraph: {
       title,
       description,
       type: 'website',
-      siteName: 'FomKart',
+      siteName: 'fomkart',
       url: `https://fomkart.com/market/${tagSlug}`,
     },
     twitter: {

@@ -44,7 +44,7 @@ export function GrowthHackFooter({
       onReport()
     } else {
       // Default report functionality
-  alert('Report Content\n\nHelp us keep FomKart safe by reporting inappropriate content or behavior.')
+  alert('Report Content\n\nHelp us keep fomkart safe by reporting inappropriate content or behavior.')
     }
   }
 
@@ -97,7 +97,7 @@ export function GrowthHackFooter({
           
           <div className="text-center md:text-right">
             <div className="text-sm text-gray-400">
-              © {new Date().getFullYear()} FomKart. All rights reserved.
+              © {new Date().getFullYear()} fomkart. All rights reserved.
             </div>
             <div className="text-xs text-gray-500 mt-1">
               Empowering creators worldwide

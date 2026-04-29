@@ -1,4 +1,4 @@
-# FomKart Supabase Setup Guide
+# fomkart Supabase Setup Guide
 
 ## 🎯 Quick Setup Checklist
 
@@ -78,7 +78,7 @@ Visit these URLs to test:
 
 ## 🔧 Database Schema Overview
 
-Your FomKart database includes:
+Your fomkart database includes:
 
 ### Core E-commerce Tables
 - **users** - User profiles and creator information
@@ -210,7 +210,7 @@ supabase.from('categories').select('count').then(console.log);
 
 ## 🎉 You're All Set!
 
-Your FomKart platform now has:
+Your fomkart platform now has:
 - ✅ Complete e-commerce database
 - ✅ User authentication system
 - ✅ Creator profile functionality

@@ -17,7 +17,8 @@ import {
   PlusIcon, TrashIcon, XMarkIcon, PhotoIcon, ExclamationTriangleIcon,
   VideoCameraIcon, DocumentTextIcon 
 } from '@heroicons/react/24/outline';
-import { Star, ExternalLink, ShoppingBag, MessageCircle, ChevronRight } from 'lucide-react';
+import { Star, ExternalLink, ShoppingBag, MessageCircle, ChevronRight, GripVertical } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import ShareIcon from '@mui/icons-material/Share';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -46,6 +47,10 @@ interface Creator {
   is_verified?: boolean;
   totalProducts: number;
 }
+
+type BioItem = 
+  | { id: string; type: 'product'; data: Product }
+  | { id: string; type: 'post'; data: CreatorPost };
 
 type VideoMeta = { provider: 'youtube' | 'vimeo'; id: string };
 
@@ -195,8 +200,7 @@ export default function CreatorBioPage() {
   const router = useRouter();
   const { formatPrice } = useCurrency();
   const [creator, setCreator] = useState<Creator | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [posts, setPosts] = useState<CreatorPost[]>([]);
+  const [items, setItems] = useState<BioItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<SupabaseAuthUser | null>(null);
 
@@ -237,8 +241,10 @@ export default function CreatorBioPage() {
       const data = await loadCreatorBio(username);
       if (data) {
         setCreator(data.creator);
-        setProducts(data.products);
-        setPosts(data.posts);
+        setItems([
+          ...data.products.map(p => ({ id: `product-${p.id}`, type: 'product' as const, data: p })),
+          ...data.posts.map(p => ({ id: `post-${p.id}`, type: 'post' as const, data: p }))
+        ]);
       }
       setLoading(false);
     })();
@@ -338,7 +344,7 @@ export default function CreatorBioPage() {
 
       const savedPost = await createCreatorPost(newPost);
       if (savedPost) {
-        setPosts(prev => [savedPost, ...prev]);
+        setItems(prev => [{ id: `post-${savedPost.id}`, type: 'post', data: savedPost }, ...prev]);
         pushToast({ type: 'success', message: 'Post created successfully' });
         resetPostForm();
       } else {
@@ -358,13 +364,25 @@ export default function CreatorBioPage() {
     setDeleteConfirmation({ isOpen: true, postId });
   };
 
+  // --- Drag and Drop ---
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
+
+    const newItems = Array.from(items);
+    const [reorderedItem] = newItems.splice(result.source.index, 1);
+    newItems.splice(result.destination.index, 0, reorderedItem);
+
+    setItems(newItems);
+  };
+
   const executeDelete = async () => {
     if (!deleteConfirmation.postId || !creator) return;
     
     try {
       const success = await deleteCreatorPost(creator.id, deleteConfirmation.postId);
       if (success) {
-        setPosts(prev => prev.filter(p => p.id !== deleteConfirmation.postId));
+        setItems(prev => prev.filter(p => !(p.type === 'post' && p.data.id === deleteConfirmation.postId)));
         pushToast({ type: 'success', message: 'Post deleted' });
       } else {
         pushToast({ type: 'error', message: 'Failed to delete post' });
@@ -546,58 +564,9 @@ export default function CreatorBioPage() {
           </div>
         </Link>
         
-        {/* Featured Products */}
-        {products.length > 0 && (
-          <div className="mb-6">
-             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /> <TranslatableText text="Featured" as="span" wrapperAs="span" className="inline" />
-             </h2>
-             <div className="space-y-3">
-              {products.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/product/${product.id}`}
-                  className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-600 transition-all group"
-                >
-                  <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-600 shrink-0">
-                    {product.images && product.images[0] ? (
-                      <Image src={product.images[0]} alt={product.title} fill className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs"><TranslatableText text="No image" as="span" wrapperAs="span" className="inline" /></div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <TranslatableText
-                      text={product.title}
-                      as="h3"
-                      className="font-medium text-gray-900 dark:text-white truncate group-hover:text-emerald-600 transition-colors"
-                    />
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                       <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatPrice(product.base_price || 0)}</span>
-                       <span className="text-xs">•</span>
-                       <span className="flex items-center gap-0.5 text-xs"><Star className="w-3 h-3 text-yellow-500" /> {product.rating?.toFixed(1) || 'New'}</span>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-600" />
-                </Link>
-              ))}
-            </div>
-            {creator.totalProducts > products.length && (
-                <div className="mt-3 text-center">
-                    <Link href={`/creator/${creator.username}`} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
-                        <TranslatableText text={`View all ${creator.totalProducts} products`} as="span" wrapperAs="span" className="inline" />
-                    </Link>
-                </div>
-            )}
-          </div>
-        )}
-
-        {/* Links & Updates Section */}
-        <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <LinkIcon className="w-4 h-4" /> <TranslatableText text="Links" as="span" wrapperAs="span" className="inline" />
-                </h2>
+        {/* Unified Items Section */}
+        <div className="mb-8 relative">
+            <div className="flex items-center justify-end mb-4">
                 {isOwner && (
                     <button 
                        onClick={() => setAddLinkOpen(true)} 
@@ -608,89 +577,183 @@ export default function CreatorBioPage() {
                 )}
             </div>
 
-            {posts.length === 0 && (
+            {items.length === 0 && (
                 <div className="p-8 text-center bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 text-gray-500">
-                    <p><TranslatableText text="No links or updates yet." as="span" wrapperAs="span" className="inline" /></p>
+                    <p><TranslatableText text="No items yet." as="span" wrapperAs="span" className="inline" /></p>
                 </div>
             )}
 
-            <div className="space-y-4">
-              {posts.map((post) => {
-                const isVideo = post.post_type === 'video';
-                const isImage = post.post_type === 'image';
-                const hasLink = !!post.link_url;
-                const caption = (post.caption || '').trim();
-                const title = caption.split('\n')[0].slice(0, 60) || (isVideo ? 'Watch video' : isImage ? 'View image' : 'View content');
-                const videoMeta = isVideo && post.video_url ? extractVideoMeta(post.video_url) : null;
-
-                return (
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="items-list">
+                {(provided) => (
                   <div
-                    key={post.id}
-                    className="group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-emerald-300 dark:hover:border-emerald-600 transition-all overflow-hidden"
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="space-y-4"
                   >
-                    {isOwner && (
-                         <button 
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeletePost(post.id); }}
-                            className="absolute top-2 right-2 p-1.5 bg-white shadow-sm rounded-full text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity z-20 tooltip"
-                            title="Delete Link"
-                         >
-                            <TrashIcon className="w-4 h-4" />
-                         </button>
-                    )}
-
-                    {/* Media Type Content */}
-                    {isVideo && videoMeta && (
-                      <div className="aspect-video bg-black rounded-t-xl overflow-hidden">
-                        <iframe
-                          src={getEmbedUrl(videoMeta)}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    )}
-                    {isImage && post.media_url && (
-                       <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 rounded-t-xl overflow-hidden">
-                        <Image src={post.media_url} alt={title} fill className="object-cover" />
-                      </div>
-                    )}
-
-                    {/* Link or Text Content */}
-                    {hasLink ? (
-                        <a
-                           href={post.link_url!}
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           className="block p-4"
-                        >
-                           <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                  {/* Icon based on content */}
-                                  <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
-                                      {isVideo ? <PlayCircleIcon className="w-5 h-5 text-gray-600" /> : 
-                                       isImage ? <PhotoIcon className="w-5 h-5 text-gray-600" /> : 
-                                       <LinkIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />} 
+                    {items.map((item, index) => {
+                      if (item.type === 'product') {
+                        const product = item.data;
+                        return (
+                          <Draggable key={item.id} draggableId={item.id} index={index} isDragDisabled={!isOwner}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`group relative bg-white dark:bg-gray-800 rounded-xl border hover:shadow-lg transition-all overflow-hidden ${
+                                  snapshot.isDragging 
+                                    ? 'border-emerald-500 shadow-xl ring-2 ring-emerald-500/50 z-50' 
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600'
+                                }`}
+                              >
+                                {isOwner && (
+                                  <div 
+                                      {...provided.dragHandleProps}
+                                      className="absolute top-1/2 left-2 -translate-y-1/2 p-1.5 bg-white/90 backdrop-blur-sm shadow-sm rounded-full cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-900 transition-all z-20"
+                                      title="Drag to reorder"
+                                  >
+                                      <GripVertical className="w-4 h-4" />
                                   </div>
-                                  <div>
-                                      <p className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">{title}</p>
-                                      {caption.length > 0 && caption !== title && (
-                                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{caption}</p>
+                                )}
+                                <Link
+                                  href={`/product/${product.id}`}
+                                  className={`flex items-center gap-4 p-3 ${isOwner ? 'pl-12' : ''} bg-gray-50 dark:bg-gray-700/50 group-hover:bg-white dark:group-hover:bg-gray-800 transition-colors block`}
+                                >
+                                  <div className="flex items-center gap-4 w-full">
+                                    <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-600 shrink-0">
+                                      {product.images && product.images[0] ? (
+                                        <Image src={product.images[0]} alt={product.title} fill className="object-cover" />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs"><TranslatableText text="No image" as="span" wrapperAs="span" className="inline" /></div>
                                       )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <TranslatableText
+                                        text={product.title}
+                                        as="h3"
+                                        className="font-medium text-gray-900 dark:text-white truncate group-hover:text-emerald-600 transition-colors"
+                                      />
+                                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatPrice(product.base_price || 0)}</span>
+                                        <span className="text-xs">•</span>
+                                        <span className="flex items-center gap-0.5 text-xs"><Star className="w-3 h-3 text-yellow-500" /> {product.rating?.toFixed(1) || 'New'}</span>
+                                      </div>
+                                    </div>
+                                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 shrink-0" />
                                   </div>
+                                </Link>
                               </div>
-                              <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-emerald-600" />
-                           </div>
-                        </a>
-                    ) : (
-                        <div className="p-4">
-                           <p className="font-semibold text-gray-900 dark:text-white">{title}</p>
-                           {caption && caption !== title && <p className="text-sm text-gray-500 mt-1">{caption}</p>}
-                        </div>
-                    )}
+                            )}
+                          </Draggable>
+                        );
+                      } else {
+                        const post = item.data;
+                        const isVideo = post.post_type === 'video';
+                        const isImage = post.post_type === 'image';
+                        const hasLink = !!post.link_url;
+                        const caption = (post.caption || '').trim();
+                        const title = caption.split('\n')[0].slice(0, 60) || (isVideo ? 'Watch video' : isImage ? 'View image' : 'View content');
+                        const videoMeta = isVideo && post.video_url ? extractVideoMeta(post.video_url) : null;
+
+                        return (
+                          <Draggable key={item.id} draggableId={item.id} index={index} isDragDisabled={!isOwner}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`group relative bg-white dark:bg-gray-800 rounded-xl border hover:shadow-lg transition-all overflow-hidden ${
+                                  snapshot.isDragging 
+                                    ? 'border-emerald-500 shadow-xl ring-2 ring-emerald-500/50 z-50' 
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600'
+                                }`}
+                              >
+                                {isOwner && (
+                                  <>
+                                    <div 
+                                        {...provided.dragHandleProps}
+                                        className="absolute top-2 left-2 p-1.5 bg-white/90 backdrop-blur-sm shadow-sm rounded-full cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-900 transition-all z-20"
+                                        title="Drag to reorder"
+                                    >
+                                        <GripVertical className="w-4 h-4" />
+                                    </div>
+                                    <button 
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeletePost(post.id); }}
+                                        className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur-sm shadow-sm rounded-full text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all z-20 tooltip"
+                                        title="Delete Link"
+                                    >
+                                        <TrashIcon className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* Media Type Content */}
+                                {isVideo && videoMeta && (
+                                  <div className="aspect-video bg-black rounded-t-xl overflow-hidden">
+                                    <iframe
+                                      src={getEmbedUrl(videoMeta)}
+                                      className="w-full h-full"
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                      allowFullScreen
+                                    />
+                                  </div>
+                                )}
+                                {isImage && post.media_url && (
+                                   <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 rounded-t-xl overflow-hidden">
+                                    <Image src={post.media_url} alt={title} fill className="object-cover" />
+                                  </div>
+                                )}
+
+                                {/* Link or Text Content */}
+                                {hasLink ? (
+                                    <a
+                                       href={post.link_url!}
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       className={`block p-4 ${isOwner && !(isVideo || isImage) ? 'pl-12' : ''}`}
+                                    >
+                                       <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-3">
+                                              {/* Icon based on content */}
+                                              <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                                                  {isVideo ? <PlayCircleIcon className="w-5 h-5 text-gray-600" /> : 
+                                                   isImage ? <PhotoIcon className="w-5 h-5 text-gray-600" /> : 
+                                                   <LinkIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />} 
+                                              </div>
+                                              <div>
+                                                  <p className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">{title}</p>
+                                                  {caption.length > 0 && caption !== title && (
+                                                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{caption}</p>
+                                                  )}
+                                              </div>
+                                          </div>
+                                          <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-emerald-600" />
+                                       </div>
+                                    </a>
+                                ) : (
+                                    <div className={`p-4 ${isOwner && !(isVideo || isImage) ? 'pl-12' : ''}`}>
+                                       <p className="font-semibold text-gray-900 dark:text-white">{title}</p>
+                                       {caption && caption !== title && <p className="text-sm text-gray-500 mt-1">{caption}</p>}
+                                    </div>
+                                )}
+                              </div>
+                            )}
+                          </Draggable>
+                        );
+                      }
+                    })}
+                    {provided.placeholder}
                   </div>
-                );
-              })}
-            </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+            
+            {creator.totalProducts > items.filter(i => i.type === 'product').length && (
+                <div className="mt-6 text-center">
+                    <Link href={`/creator/${creator.username}`} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
+                        <TranslatableText text={`View all ${creator.totalProducts} products`} as="span" wrapperAs="span" className="inline" />
+                    </Link>
+                </div>
+            )}
         </div>
 
         {/* Subscribe & Footer */}
@@ -715,7 +778,7 @@ export default function CreatorBioPage() {
         )}
         
         <div className="mt-6 text-center text-xs text-gray-400">
-          <Link href="/" className="hover:text-emerald-600 transition-colors">Powered by FomKart</Link>
+          <Link href="/" className="hover:text-emerald-600 transition-colors">Powered by fomkart</Link>
         </div>
 
       </div>
@@ -725,7 +788,7 @@ export default function CreatorBioPage() {
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
         username={creator.username}
-        title={`Check out ${creator.full_name} on FomKart`}
+        title={`Check out ${creator.full_name} on fomkart`}
       />
       
       {/* Message Modal */}

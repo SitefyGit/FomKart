@@ -228,7 +228,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <Home className="w-5 h-5" />
-            Back to FomKart
+            Back to fomkart
           </Link>
         </div>
       </aside>

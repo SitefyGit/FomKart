@@ -1,10 +1,10 @@
-# FomKart: The Future of Creator Commerce
+# fomkart: The Future of Creator Commerce
 *Investor Presentation Deck - Bangalore 2025*
 
 ---
 
 ## 1. Executive Summary
-**FomKart** is a next-generation e-commerce platform specifically engineered for the **Creator Economy**. It empowers digital creators, influencers, and service providers to monetize their audience directly through a unified, high-performance storefront. Unlike fragmented tools (Linktree for links, Gumroad for products, Mailchimp for emails), FomKart consolidates identity, commerce, and community into a single, seamless experience.
+**fomkart** is a next-generation e-commerce platform specifically engineered for the **Creator Economy**. It empowers digital creators, influencers, and service providers to monetize their audience directly through a unified, high-performance storefront. Unlike fragmented tools (Linktree for links, Gumroad for products, Mailchimp for emails), fomkart consolidates identity, commerce, and community into a single, seamless experience.
 
 **Status:** MVP Complete | **Tech Stack:** Next.js 15 & Supabase | **Market:** $250B+ Creator Economy
 
@@ -19,8 +19,8 @@ Creators today are forced to stitch together multiple disconnected tools to run 
 
 ---
 
-## 3. The Solution: FomKart
-FomKart provides a **"Business-in-a-Box"** for creators. It is a mobile-first platform where a creator can set up a stunning profile, sell digital products, and capture leads in under 5 minutes.
+## 3. The Solution: fomkart
+fomkart provides a **"Business-in-a-Box"** for creators. It is a mobile-first platform where a creator can set up a stunning profile, sell digital products, and capture leads in under 5 minutes.
 
 ### Key Value Propositions:
 *   **Zero-Friction Commerce:** Checkout happens directly within the creator's ecosystem.
@@ -67,7 +67,7 @@ Built on the bleeding edge of web technology to ensure speed, security, and scal
 ---
 
 ## 6. Business Model
-FomKart operates on a scalable revenue model aligned with creator success:
+fomkart operates on a scalable revenue model aligned with creator success:
 1.  **Transaction Fees:** Small % take rate on every sale processed through the platform.
 2.  **SaaS Subscription:** (Future) Premium tiers for advanced analytics, custom domains, and lower transaction fees.
 
@@ -94,4 +94,4 @@ FomKart operates on a scalable revenue model aligned with creator success:
 *   **Right Tech:** Built on a future-proof stack that is cheap to scale and easy to maintain.
 
 ---
-*Prepared for Investor Review - FomKart Team*
+*Prepared for Investor Review - fomkart Team*

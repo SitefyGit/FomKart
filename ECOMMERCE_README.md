@@ -1,4 +1,4 @@
-# FomKart E-commerce Platform
+# fomkart E-commerce Platform
 
 A comprehensive e-commerce platform built with Next.js 15, Supabase, and Stripe for buying and selling digital products and services.
 

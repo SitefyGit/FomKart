@@ -1,6 +1,6 @@
-# FomKart Creator Page Features
+# fomkart Creator Page Features
 
-This document outlines all the features implemented for the FomKart creator page system.
+This document outlines all the features implemented for the fomkart creator page system.
 
 ## 🎯 Features Implemented
 

@@ -1,6 +1,6 @@
 # Lead Capture Form System - Complete Implementation
 
-This document explains the comprehensive lead capture form system implemented for FomKart, designed to help creators build their subscriber lists and send customized newsletters.
+This document explains the comprehensive lead capture form system implemented for fomkart, designed to help creators build their subscriber lists and send customized newsletters.
 
 ## 🎯 Features Implemented
 

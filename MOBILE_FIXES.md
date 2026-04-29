@@ -1,4 +1,4 @@
-# Mobile Layout Fixes - FomKart Homepage
+# Mobile Layout Fixes - fomkart Homepage
 
 ## Issues Fixed:
 

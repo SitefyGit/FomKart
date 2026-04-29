@@ -6,10 +6,10 @@ import MarketSearch from '@/components/MarketSearch'
 import { TranslatableText } from '@/components/TranslatableText'
 
 export const metadata: Metadata = {
-  title: 'Explore Services | FomKart Marketplace',
-  description: 'Discover thousands of professional services on FomKart. Find freelancers for affiliate marketing, web design, SEO, digital products, and more.',
+  title: 'Explore Services | fomkart Marketplace',
+  description: 'Discover thousands of professional services on fomkart. Find freelancers for affiliate marketing, web design, SEO, digital products, and more.',
   openGraph: {
-    title: 'Explore Services | FomKart Marketplace',
+    title: 'Explore Services | fomkart Marketplace',
     description: 'Discover thousands of professional services. Find the perfect freelancer for your project.',
     type: 'website',
   },
@@ -426,7 +426,7 @@ export default async function MarketPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900 dark:text-white"><TranslatableText text="Ready to Get Started?" as="span" wrapperAs="span" className="inline" /></h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
-            <TranslatableText text="Join thousands of satisfied customers who found their perfect service on FomKart" as="span" wrapperAs="span" className="inline" />
+            <TranslatableText text="Join thousands of satisfied customers who found their perfect service on fomkart" as="span" wrapperAs="span" className="inline" />
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link

@@ -1,4 +1,4 @@
--- FomKart Complete Database Setup
+-- fomkart Complete Database Setup
 -- Project ID: upmbvugogybdutqoqern
 -- Run this SQL in your Supabase SQL Editor
 
@@ -467,11 +467,11 @@ CREATE INDEX IF NOT EXISTS idx_carts_user_id ON public.carts(user_id);
 -- SETUP COMPLETE!
 -- ============================================================================
 
--- Your FomKart database is now ready!
+-- Your fomkart database is now ready!
 -- Next steps:
 -- 1. Update your .env.local file with Supabase credentials
 -- 2. Test the connection from your Next.js app
 -- 3. Create your first user through the auth system
 -- 4. Start adding products and testing the e-commerce flow
 
-SELECT 'FomKart database setup completed successfully!' as message;
+SELECT 'fomkart database setup completed successfully!' as message;

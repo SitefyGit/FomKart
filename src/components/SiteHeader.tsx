@@ -47,7 +47,7 @@ export default function SiteHeader() {
             <Link href="/" prefetch className="flex items-center shrink-0">
               <Image
                 src="/fomkart_green_text.png"
-                alt="FomKart"
+                alt="fomkart"
                 width={90}
                 height={24}
                 className="h-6 w-auto dark:hidden"
@@ -56,7 +56,7 @@ export default function SiteHeader() {
               />
               <Image
                 src="/fomkart_white_text.png"
-                alt="FomKart"
+                alt="fomkart"
                 width={90}
                 height={24}
                 className="h-6 w-auto hidden dark:block"
@@ -179,7 +179,7 @@ export default function SiteHeader() {
               <Link href="/" prefetch className="flex items-center shrink-0">
                 <Image
                   src="/fomkart_green_text.png"
-                  alt="FomKart"
+                  alt="fomkart"
                   width={90}
                   height={24}
                   className="h-6 w-auto dark:hidden"
@@ -188,7 +188,7 @@ export default function SiteHeader() {
                 />
                 <Image
                   src="/fomkart_white_text.png"
-                  alt="FomKart"
+                  alt="fomkart"
                   width={90}
                   height={24}
                   className="h-6 w-auto hidden dark:block"
@@ -216,7 +216,7 @@ export default function SiteHeader() {
                   type="text"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Search over FomKart..."
+                  placeholder="Search over fomkart..."
                   className="w-full bg-transparent pl-4 pr-12 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 outline-none"
                 />
                 <button

@@ -310,7 +310,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb */}
           <nav className="flex flex-wrap items-center gap-y-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
-            <Link href="/" className="hover:text-emerald-600">FomKart</Link>
+            <Link href="/" className="hover:text-emerald-600">fomkart</Link>
             <span className="mx-2">/</span>
             <Link href="/market" className="hover:text-emerald-600">{t('marketplace', 'Market')}</Link>
             <span className="mx-2">/</span>
@@ -335,7 +335,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
           {/* SEO Description */}
           <p className="text-gray-700 dark:text-gray-300 max-w-3xl">
             <TranslatableText
-              text={`Find the best ${tagName.toLowerCase()} offerings on FomKart. Browse top-rated creators offering professional ${tagName.toLowerCase()} products and services with fast delivery and satisfaction guaranteed.`}
+              text={`Find the best ${tagName.toLowerCase()} offerings on fomkart. Browse top-rated creators offering professional ${tagName.toLowerCase()} products and services with fast delivery and satisfaction guaranteed.`}
               as="span"
               wrapperAs="span"
               className="inline"
@@ -430,24 +430,26 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
       <section className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder={`Search ${tagName.toLowerCase()} ${getTypeLabel(productTypeFilter)}...`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
-            </div>
+            {/* Left side: Search & Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center w-full lg:w-auto overflow-hidden">
+              {/* Search */}
+              <div className="relative w-full sm:w-80 shrink-0">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={`Search ${tagName.toLowerCase()} ${getTypeLabel(productTypeFilter)}...`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
 
-            {/* Filter Controls */}
-            <div className="flex flex-wrap gap-2 items-center">
-              {/* Budget Filter */}
-              <select
-                value={budgetRange || ''}
-                onChange={(e) => setBudgetRange(e.target.value || null)}
+              {/* Filter Controls (Horizontal Scrollable) */}
+              <div className="flex gap-2 items-center w-full sm:w-auto overflow-x-auto scrollbar-hide pb-1 sm:pb-0 shrink-0">
+                {/* Budget Filter */}
+                <select
+                  value={budgetRange || ''}
+                  onChange={(e) => setBudgetRange(e.target.value || null)}
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
                 <option value="">{t('budget', 'Budget')}</option>
@@ -461,7 +463,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
               <select
                 value={deliveryFilter || ''}
                 onChange={(e) => setDeliveryFilter(e.target.value || null)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm shrink-0"
               >
                 <option value="">{t('deliveryTime', 'Delivery Time')}</option>
                 <option value="1">{t('upTo24Hours', 'Up to 24 hours')}</option>
@@ -470,11 +472,28 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 <option value="14">{t('upTo14Days', 'Up to 14 days')}</option>
               </select>
 
-              {/* Sort */}
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="px-3 py-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                  {t('clear', 'Clear')}
+                </button>
+              )}
+              </div>
+            </div>
+
+            {/* Right side: Count & Sort */}
+            <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full lg:w-auto shrink-0 border-t border-gray-100 dark:border-gray-700 lg:border-t-0 pt-4 lg:pt-0">
+               <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap hidden sm:inline-block">
+                 <TranslatableText text={`${totalCount} ${getTypeLabel(productTypeFilter)} available`} as="span" wrapperAs="span" className="inline" />
+               </span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                className="w-full sm:w-auto px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm shrink-0"
               >
                 <option value="popular">{t('mostPopular', 'Most Popular')}</option>
                 <option value="rating">{t('bestRating', 'Best Rating')}</option>
@@ -482,17 +501,6 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                 <option value="price_high">{t('priceHighToLow', 'Price: High to Low')}</option>
                 <option value="newest">{t('newest', 'Newest')}</option>
               </select>
-
-              {/* Clear Filters */}
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="px-3 py-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
-                >
-                  <X className="w-4 h-4" />
-                  {t('clear', 'Clear')}
-                </button>
-              )}
             </div>
           </div>
         </div>

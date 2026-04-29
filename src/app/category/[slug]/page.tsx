@@ -509,7 +509,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400 overflow-x-auto whitespace-nowrap pb-2 -mb-2">
-            <Link href="/" className="hover:text-emerald-600 dark:hover:text-emerald-400">FomKart</Link>
+            <Link href="/" className="hover:text-emerald-600 dark:hover:text-emerald-400">fomkart</Link>
             <span className="mx-2">/</span>
             <TranslatableText text={category.name} as="span" wrapperAs="span" className="text-gray-900 dark:text-white truncate" />
           </nav>
@@ -558,9 +558,9 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Filter Bar */}
         <div ref={filterBarRef} className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm space-y-4 sm:space-y-0">
-          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row w-full sm:w-auto items-start sm:items-center gap-3 sm:gap-4">
             {/* In-page Search */}
-            <div className="relative w-full sm:w-80">
+            <div className="relative w-full sm:w-80 shrink-0">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <input
                 type="text"
@@ -571,19 +571,21 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
               />
             </div>
             
-            {/* All Filters Button */}
-            <button 
-              onClick={() => setShowAllFilters(!showAllFilters)}
-              className={`flex items-center space-x-2 px-3 sm:px-4 py-2 border rounded-lg text-sm transition-colors ${
-                showAllFilters ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              <Filter className="h-4 w-4" />
-              <TranslatableText text="All Filters" as="span" wrapperAs="span" className="inline" />
-            </button>
-            
-            {/* Budget Dropdown */}
-            <div className="relative">
+            {/* Horizontal scrollable buttons for mobile */}
+            <div className="flex gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-hide shrink-0 items-center">
+              {/* All Filters Button */}
+              <button 
+                onClick={() => setShowAllFilters(!showAllFilters)}
+                className={`flex items-center whitespace-nowrap space-x-2 px-3 sm:px-4 py-2 border rounded-lg text-sm transition-colors ${
+                  showAllFilters ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                <Filter className="h-4 w-4" />
+                <TranslatableText text="All Filters" as="span" wrapperAs="span" className="inline" />
+              </button>
+              
+              {/* Budget Dropdown */}
+              <div className="relative shrink-0 text-gray-700 dark:text-gray-300">
               <button 
                 onClick={() => {
                   setShowBudgetDropdown(!showBudgetDropdown)
@@ -610,7 +612,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             </div>
             
             {/* Delivery Time Dropdown */}
-            <div className="relative">
+            <div className="relative shrink-0 text-gray-700 dark:text-gray-300">
               <button 
                 onClick={() => {
                   setShowDeliveryDropdown(!showDeliveryDropdown)
@@ -636,7 +638,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             </div>
             
             {/* Seller Level Dropdown */}
-            <div className="relative">
+            <div className="relative shrink-0 text-gray-700 dark:text-gray-300">
               <button 
                 onClick={() => {
                   setShowLevelDropdown(!showLevelDropdown)
@@ -659,9 +661,10 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
               )}
             </div>
           </div>
+          </div>
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex flex-col sm:flex-row items-center justify-between w-full sm:w-auto mt-4 sm:mt-0 gap-4 sm:gap-4 shrink-0">
+            <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
               <TranslatableText text={`${displayedProducts.length} services available`} as="span" wrapperAs="span" className="inline" />
             </span>
             <select 

@@ -19,7 +19,8 @@ import {
   MessageCircle,
   ArrowRight,
   Globe,
-  ArrowLeft
+  ArrowLeft,
+  Home
 } from 'lucide-react';
 import { ShareModal } from '@/components/ShareModal';
 
@@ -42,6 +43,11 @@ interface Product {
   type: 'service' | 'product';
   creator_id: string;
   category_id: string;
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
   tags: string[];
   featured: boolean;
   created_at: string;
@@ -140,7 +146,7 @@ export default function ProductPage({ params }: ProductPageProps) {
         // Attempt to load real product
         const { data: prod, error: prodErr } = await supabase
           .from('products')
-          .select(`*, creator:creator_id(id, full_name, username, avatar_url, bio, is_verified, rating, total_reviews)`)
+          .select(`*, creator:creator_id(id, full_name, username, avatar_url, bio, is_verified, rating, total_reviews), category:category_id(id, name, slug)`)
           .eq('id', resolvedParams.id)
           .single();
 
@@ -279,6 +285,11 @@ export default function ProductPage({ params }: ProductPageProps) {
             type: prod.type === 'service' ? 'service' : 'product',
             creator_id: prod.creator_id,
             category_id: prod.category_id,
+            category: prod.category ? {
+              id: prod.category.id,
+              name: prod.category.name,
+              slug: prod.category.slug
+            } : undefined,
             tags: prod.tags || [],
             featured: !!prod.is_featured,
             created_at: prod.created_at,
@@ -327,6 +338,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             type: 'service',
             creator_id: 'creator1',
             category_id: 'design',
+            category: { id: 'design', name: 'Design', slug: 'design' },
             tags: ['logo design','branding'],
             featured: true,
             created_at: new Date().toISOString(),
@@ -434,76 +446,79 @@ export default function ProductPage({ params }: ProductPageProps) {
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400 overflow-x-auto whitespace-nowrap pb-2 -mb-2">
-            <button
-              onClick={() => window.history.back()}
-              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-emerald-600 transition-colors mr-2"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-            </button>
-            <Link href="/" className="hover:text-emerald-600">FomKart</Link>
-            <span className="mx-2">/</span>
-            <Link href="/category/digital-products" className="hover:text-emerald-600"><TranslatableText text="Products" as="span" wrapperAs="span" className="inline" /></Link>
-            <span className="mx-2">/</span>
+            <Link href="/" className="hover:text-emerald-600 flex items-center">
+              <Home className="w-4 h-4" />
+            </Link>
+            {(product.category || product.category_id) && (
+              <>
+                <span className="mx-2 text-gray-300 dark:text-gray-600">/</span>
+                 <Link href={`/category/${product.category?.slug || product.category_id}`} className="hover:text-emerald-600 capitalize">
+                  <TranslatableText text={product.category ? product.category.name : product.category_id.replace(/-/g, ' ')} as="span" wrapperAs="span" className="inline" />
+                </Link>
+              </>
+            )}
+            <span className="mx-2 text-gray-300 dark:text-gray-600">/</span>
             <TranslatableText text={product.title} as="span" wrapperAs="span" className="text-gray-900 dark:text-white truncate" />
           </nav>
         </div>
       </div>
 
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Media and Description */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Image Gallery */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-              <ProductMediaGallery
-                images={product.images}
-                youtubeVideoId={product.youtubeVideoId}
-                title={product.title}
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+          
+          {/* 1. Title & Actions (Top on mobile, below images on desktop) */}
+          <div className="order-1 lg:order-2 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 lg:p-6 w-full">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <TranslatableText
+                text={product.title}
+                as="h1"
+                className="text-2xl font-bold text-gray-900 dark:text-white leading-tight flex-1"
               />
-              
-              {/* Live Demo Button */}
-              {product.demoUrl && (
-                <div className="mt-4 flex justify-end">
-                  <a
-                    href={product.demoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                  >
-                    <Globe className="w-4 h-4 mr-2" />
-                    <TranslatableText text="Live Demo" as="span" wrapperAs="span" className="inline" />
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Product Description */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              {/* Title & quick actions */}
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-                <TranslatableText
-                  text={product.title}
-                  as="h1"
-                  className="text-2xl font-bold text-gray-900 dark:text-white leading-tight flex-1"
-                />
-                <div className="flex items-center gap-2 self-start">
+              <div className="flex items-center gap-2 self-start">
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <TranslatableText text="Share" as="span" wrapperAs="span" className="inline" />
+                </button>
+                {currentUserId && product.creator_id === currentUserId && (
                   <button
-                    onClick={() => setShowShareModal(true)}
+                    onClick={() => router.push(`/product/${product.id}/edit`)}
                     className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
-                    <Share2 className="w-4 h-4" />
-                    <TranslatableText text="Share" as="span" wrapperAs="span" className="inline" />
+                    <TranslatableText text="Edit" as="span" wrapperAs="span" className="inline" />
                   </button>
-                  {currentUserId && product.creator_id === currentUserId && (
-                    <button
-                      onClick={() => router.push(`/product/${product.id}/edit`)}
-                      className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <TranslatableText text="Edit" as="span" wrapperAs="span" className="inline" />
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
+            </div>
+          </div>
+
+          {/* 2. Media Gallery (Second on mobile, top on desktop left) */}
+          <div className="order-2 lg:order-1 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 w-full">
+            <ProductMediaGallery
+              images={product.images}
+              youtubeVideoId={product.youtubeVideoId}
+              title={product.title}
+            />
+            {/* Live Demo Button */}
+            {product.demoUrl && (
+              <div className="mt-4 flex justify-end">
+                <a
+                  href={product.demoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  <Globe className="w-4 h-4 mr-2" />
+                  <TranslatableText text="Live Demo" as="span" wrapperAs="span" className="inline" />
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* 4. Product Description / About (Fourth on mobile, Third on desktop left) */}
+          <div className="order-4 lg:order-3 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 w-full">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4"><TranslatableText text="About This Service" as="span" wrapperAs="span" className="inline" /></h2>
               <TranslatableText
                 text={product.description}
@@ -538,51 +553,56 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3"><TranslatableText text="Related tags" as="span" wrapperAs="span" className="inline" /></h3>
                   <div className="flex flex-wrap gap-2">
-                    {product.tags.map((tag, index) => (
-                      <Link
-                        key={index}
-                        href={`/market/${tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`}
-                        className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-700 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-full text-sm font-medium transition-all border border-gray-200 dark:border-gray-600 hover:border-emerald-300"
-                      >
-                        {tag}
-                      </Link>
-                    ))}
+                    {product.tags.map((tag, index) => {
+                      const tagSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                      const isCategory = tagSlug === product.category_id;
+                      const href = isCategory ? `/category/${tagSlug}` : `/market/${tagSlug}`;
+                      return (
+                        <Link
+                          key={index}
+                          href={href}
+                          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-700 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 rounded-full text-sm font-medium transition-all border border-gray-200 dark:border-gray-600 hover:border-emerald-300"
+                        >
+                          {tag}
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-4 gap-2 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{product.totalSales}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Sales" as="span" wrapperAs="span" className="inline" /></div>
+                  <div className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">{product.totalSales}</div>
+                  <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Sales" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center mb-1">
-                    <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-lg font-bold text-gray-900 dark:text-white ml-1">{Number(product.avgRating ?? 0).toFixed(1)}</span>
+                <div className="text-center flex flex-col items-center justify-between">
+                  <div className="flex items-center justify-center flex-1">
+                    <Star className="w-4 h-4 md:w-5 md:h-5 fill-yellow-400 text-yellow-400" />
+                    <span className="text-base md:text-lg font-bold text-gray-900 dark:text-white ml-1 leading-none">{Number(product.avgRating ?? 0).toFixed(1)}</span>
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Rating" as="span" wrapperAs="span" className="inline" /></div>
+                  <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1"><TranslatableText text="Rating" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {selectedPackage ? `${selectedPackage.delivery_time}` : '—'}
+                  <div className="text-base md:text-2xl font-bold text-gray-900 dark:text-white">
+                    {selectedPackage ? `${selectedPackage.delivery_time}`.replace(' days', '') : '—'}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Delivery" as="span" wrapperAs="span" className="inline" /></div>
+                  <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Days Delivery" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
                     {selectedPackage?.revisions || 'Unlimited'}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Revisions" as="span" wrapperAs="span" className="inline" /></div>
+                  <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Revisions" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
               </div>
             </div>
 
-            {/* Reviews Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6"><TranslatableText text={`Reviews (${product.reviewCount ?? reviews.length})`} as="span" wrapperAs="span" className="inline" /></h2>
-              <div className="space-y-6">
+          {/* 5. Reviews Section (Fifth on mobile, Fourth on desktop left) */}
+          <div className="order-5 lg:order-4 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 w-full">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6"><TranslatableText text={`Reviews (${product.reviewCount ?? reviews.length})`} as="span" wrapperAs="span" className="inline" /></h2>
+            <div className="space-y-6">
                 {reviews.length === 0 ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="No reviews yet." as="span" wrapperAs="span" className="inline" /></p>
                 ) : reviews.map((review) => (
@@ -622,58 +642,9 @@ export default function ProductPage({ params }: ProductPageProps) {
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* Right Column - Creator Info and Packages */}
-          <div className="space-y-6">
-            {/* Creator Info */}
-            {product.creator && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-                <Link
-                  href={`/creator/${product.creator.username}`}
-                  className="flex items-center space-x-4 mb-4 group"
-                >
-                  <Image
-                    src={product.creator.avatar_url || 'https://picsum.photos/60/60?random=98'}
-                    alt={product.creator.full_name}
-                    width={60}
-                    height={60}
-                    className="rounded-full transition-transform duration-200 group-hover:scale-105"
-                  />
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">{product.creator.full_name}</span>
-                      {product.creator.verified && (
-                        <Check className="w-5 h-5 text-green-600" />
-                      )}
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">@{product.creator.username}</span>
-                    <div className="flex items-center space-x-1 mt-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium dark:text-gray-200">{Number(product.creator.rating ?? 0).toFixed(1)}</span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">({product.creator.total_reviews ?? 0} reviews)</span>
-                    </div>
-                  </div>
-                </Link>
-                <TranslatableText
-                  text={product.creator.bio}
-                  className="text-gray-700 dark:text-gray-300 text-sm mb-4"
-                  showListingControls
-                />
-                <button
-                  onClick={() => {
-                    if (product?.creator?.username) {
-                      router.push(`/creator/${product.creator.username}?contact=1`);
-                    }
-                  }}
-                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  <TranslatableText text="Contact Creator" as="span" wrapperAs="span" className="inline" />
-                </button>
-              </div>
-            )}
-
+          {/* 3. Right Column (Third on mobile, anchored right on desktop) */}
+          <div className="order-3 lg:col-start-3 lg:row-start-1 lg:row-span-5 space-y-6 w-full">
             {/* Package Selection */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
               <div className="border-b border-gray-200 dark:border-gray-700">
@@ -754,6 +725,54 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
               )}
             </div>
+
+            {/* Creator Info */}
+            {product.creator && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                <Link
+                  href={`/creator/${product.creator.username}`}
+                  className="flex items-center space-x-4 mb-4 group"
+                >
+                  <Image
+                    src={product.creator.avatar_url || 'https://picsum.photos/60/60?random=98'}
+                    alt={product.creator.full_name}
+                    width={60}
+                    height={60}
+                    className="rounded-full transition-transform duration-200 group-hover:scale-105"
+                  />
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">{product.creator.full_name}</span>
+                      {product.creator.verified && (
+                        <Check className="w-5 h-5 text-green-600" />
+                      )}
+                    </div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">@{product.creator.username}</span>
+                    <div className="flex items-center space-x-1 mt-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium dark:text-gray-200">{Number(product.creator.rating ?? 0).toFixed(1)}</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">({product.creator.total_reviews ?? 0} reviews)</span>
+                    </div>
+                  </div>
+                </Link>
+                <TranslatableText
+                  text={product.creator.bio}
+                  className="text-gray-700 dark:text-gray-300 text-sm mb-4"
+                  showListingControls
+                />
+                <button
+                  onClick={() => {
+                    if (product?.creator?.username) {
+                      router.push(`/creator/${product.creator.username}?contact=1`);
+                    }
+                  }}
+                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  <TranslatableText text="Contact Creator" as="span" wrapperAs="span" className="inline" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

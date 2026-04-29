@@ -25,8 +25,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FomKart - Professional Services Platform",
-  description: "Connect with talented creators providing digital products, courses, and custom services",
+  title: "fomkart - Sell and Buy Anything Digital Worldwide",
+  description: "Sell and Buy Anything Digital Worldwide",
+  openGraph: {
+    title: "fomkart - Sell and Buy Anything Digital Worldwide",
+    description: "Sell and Buy Anything Digital Worldwide",
+    siteName: "fomkart",
+    images: [
+      {
+        url: "/fomkart.png",
+        width: 1200,
+        height: 630,
+        alt: "fomkart Logo"
+      }
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "fomkart - Sell and Buy Anything Digital Worldwide",
+    description: "Sell and Buy Anything Digital Worldwide",
+    images: ["/fomkart.png"],
+  }
 };
 
 export const viewport = {

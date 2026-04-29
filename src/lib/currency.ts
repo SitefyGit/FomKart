@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// FomKart Currency utilities
+// fomkart Currency utilities
 // Prices are always stored as USD in the database.
 // Everything here is about DISPLAY conversion only (buyer & seller view).
 // ─────────────────────────────────────────────────────────────────────────────

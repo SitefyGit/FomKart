@@ -65,7 +65,7 @@ export default function QuickActions({
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
         username={creator.username}
-        title={`Check out ${creator.full_name} on FomKart`}
+        title={`Check out ${creator.full_name} on fomkart`}
       />
     </>
   );

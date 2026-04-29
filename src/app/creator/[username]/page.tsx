@@ -1401,7 +1401,7 @@ export default function CreatorPage() {
                 </span>
                 <span className="text-gray-300 dark:text-gray-600">|</span>
                 <span className="text-gray-600 dark:text-gray-400">
-                  <span className="font-semibold text-gray-900 dark:text-white">{yearsOnPlatform}</span> years on FomKart
+                  <span className="font-semibold text-gray-900 dark:text-white">{yearsOnPlatform}</span> years on fomkart
                 </span>
               </div>
             </div>

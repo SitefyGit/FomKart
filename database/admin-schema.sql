@@ -1,4 +1,4 @@
--- Admin Dashboard Schema for FomKart
+-- Admin Dashboard Schema for fomkart
 -- This adds admin functionality including role-based access control
 
 -- Admin roles enum type
@@ -271,7 +271,7 @@ CREATE POLICY "Admins can manage announcements" ON public.announcements
 
 -- Insert default site settings
 INSERT INTO public.site_settings (key, value, description, category) VALUES
-    ('site_name', '"FomKart"', 'Name of the marketplace', 'general'),
+    ('site_name', '"fomkart"', 'Name of the marketplace', 'general'),
     ('site_tagline', '"Your Creative Marketplace"', 'Site tagline/slogan', 'general'),
     ('platform_fee', '10', 'Platform fee percentage on each sale', 'payments'),
     ('min_withdrawal', '50', 'Minimum withdrawal amount', 'payments'),

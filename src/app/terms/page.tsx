@@ -11,7 +11,7 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">1. Acceptance of Terms</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            By accessing and using FomKart ("the Platform"), you agree to comply with and be bound by these Terms of Service. 
+            By accessing and using fomkart ("the Platform"), you agree to comply with and be bound by these Terms of Service. 
             If you do not agree to these terms, please do not use our services.
           </p>
         </section>
@@ -19,7 +19,7 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">2. Creator Accounts</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            To sell products or services on FomKart, you must register for a creator account. You agree to:
+            To sell products or services on fomkart, you must register for a creator account. You agree to:
           </p>
           <ul className="list-disc pl-6 space-y-2 text-gray-600 dark:text-gray-300">
             <li>Provide accurate and complete information</li>
@@ -32,7 +32,7 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">3. Selling and Payments</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Creators set their own prices for products and services. FomKart charges a platform fee on each successful transaction. 
+            Creators set their own prices for products and services. fomkart charges a platform fee on each successful transaction. 
             Payouts are processed according to our payout schedule, subject to a security hold period.
           </p>
         </section>
@@ -53,7 +53,7 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">5. Limitation of Liability</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            FomKart shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, 
+            fomkart shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, 
             loss of profits, data, use, goodwill, or other intangible losses.
           </p>
         </section>

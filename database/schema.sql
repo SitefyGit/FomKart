@@ -1,4 +1,4 @@
--- FomKart Database Schema
+-- fomkart Database Schema
 -- This schema supports products, services, orders, and delivery tracking
 
 -- Enable UUID extension

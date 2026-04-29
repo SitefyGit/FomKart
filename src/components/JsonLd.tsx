@@ -46,7 +46,7 @@ export function generateServiceCategorySchema({
     },
     provider: {
       '@type': 'Organization',
-      name: 'FomKart',
+      name: 'fomkart',
       url: 'https://fomkart.com',
     },
   }
@@ -112,7 +112,7 @@ export function generateWebsiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'FomKart',
+    name: 'fomkart',
     url: 'https://fomkart.com',
     potentialAction: {
       '@type': 'SearchAction',
@@ -130,7 +130,7 @@ export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'FomKart',
+    name: 'fomkart',
     url: 'https://fomkart.com',
     logo: 'https://fomkart.com/logo.png',
     sameAs: [

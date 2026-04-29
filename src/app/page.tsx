@@ -265,12 +265,12 @@ export default async function HomePage() {
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Get exclusive insights, featured creator spotlights, and the latest trends in digital services. 
-              Join 10,000+ professionals who trust FomKart for industry updates.
+              Join 10,000+ professionals who trust fomkart for industry updates.
             </p>
           </div>
           
           <HomeLeadCapture
-            title="Join the FomKart Community"
+            title="Join the fomkart Community"
             subtitle="Weekly insights � Exclusive deals � Creator spotlights � Industry trends"
             placeholder="Enter your email address"
             buttonText="Join the Community"
@@ -287,7 +287,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-12 sm:pt-16 -mt-12 sm:-mt-16">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to get started?</h2>
           <p className="text-base sm:text-lg mb-6 sm:mb-8 opacity-90 px-4">
-            Join thousands of creators and businesses already using FomKart
+            Join thousands of creators and businesses already using fomkart
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 px-4">
             <Link

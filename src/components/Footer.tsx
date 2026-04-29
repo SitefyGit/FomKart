@@ -37,7 +37,7 @@ export default function Footer() {
               {/* Light mode logo (green text) */}
               <Image 
                 src="/fomkart_green_text.png" 
-                alt="FomKart" 
+                alt="fomkart" 
                 width={120} 
                 height={32} 
                 className="h-8 w-auto dark:hidden"
@@ -46,7 +46,7 @@ export default function Footer() {
               {/* Dark mode logo (white text) */}
               <Image 
                 src="/fomkart_white_text.png" 
-                alt="FomKart" 
+                alt="fomkart" 
                 width={120} 
                 height={32} 
                 className="h-8 w-auto hidden dark:block"
@@ -72,87 +72,90 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">{t('marketplace', 'Marketplace')}</h3>
-            <ul className="space-y-4">
-              <li>
-                <Link href="/market" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  {t('allProducts', 'All Products')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/category/digital-products" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  {t('digitalProducts', 'Digital Products')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/category/courses" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  {t('onlineCourses', 'Online Courses')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/category/services" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  {t('services', 'Services')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/category/consultation" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  {t('consultations', 'Consultations')}
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Right Column: Links and Newsletter */}
+          <div className="col-span-1 md:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-8">
+            {/* Quick Links */}
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">{t('marketplace', 'Marketplace')}</h3>
+              <ul className="space-y-4">
+                <li>
+                  <Link href="/market" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                    {t('allProducts', 'All Products')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/category/digital-products" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                    {t('digitalProducts', 'Digital Products')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/category/courses" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                    {t('onlineCourses', 'Online Courses')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/category/services" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                    {t('services', 'Services')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/category/consultation" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                    {t('consultations', 'Consultations')}
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Creator Resources */}
-          <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">{t('forCreators', 'For Creators')}</h3>
-            <ul className="space-y-4">
-              <li>
-                <Link href="/auth/creator-signup" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  {t('startSelling', 'Start Selling')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/orders?tab=selling" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  {t('creatorDashboard', 'Creator Dashboard')}
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                  {t('successStories', 'Success Stories')}
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
-                   {t('creatorCommunity', 'Creator Community')}
-                </Link>
-              </li>
-            </ul>
-          </div>
+            {/* Creator Resources */}
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">{t('forCreators', 'For Creators')}</h3>
+              <ul className="space-y-4">
+                <li>
+                  <Link href="/auth/creator-signup" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                    {t('startSelling', 'Start Selling')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/orders?tab=selling" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                    {t('creatorDashboard', 'Creator Dashboard')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                    {t('successStories', 'Success Stories')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-sm flex items-center gap-2 transition-colors">
+                     {t('creatorCommunity', 'Creator Community')}
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Contact & Newsletter */}
-          <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">{t('stayUpdated', 'Stay Updated')}</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {t('newsletterDescription', 'Subscribe to our newsletter for the latest updates and creator tips.')}
-            </p>
-            <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-              <div className="relative">
-                <input 
-                  type="email" 
-                  placeholder={t('enterYourEmail', 'Enter your email')} 
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm text-gray-900 dark:text-white placeholder-gray-500"
-                />
-                <Mail className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-              </div>
-              <button 
-                type="button" 
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
-              >
-                {t('subscribe', 'Subscribe')}
-              </button>
-            </form>
+            {/* Contact & Newsletter */}
+            <div className="col-span-2 md:col-span-1 mt-4 md:mt-0">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">{t('stayUpdated', 'Stay Updated')}</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                {t('newsletterDescription', 'Subscribe to our newsletter for the latest updates and creator tips.')}
+              </p>
+              <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+                <div className="relative">
+                  <input 
+                    type="email" 
+                    placeholder={t('enterYourEmail', 'Enter your email')} 
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm text-gray-900 dark:text-white placeholder-gray-500"
+                  />
+                  <Mail className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                </div>
+                <button 
+                  type="button" 
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
+                >
+                  {t('subscribe', 'Subscribe')}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
 
@@ -160,7 +163,7 @@ export default function Footer() {
         <div className="border-t border-gray-200 dark:border-gray-800 pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-gray-500 dark:text-gray-500 text-sm">
-              © {new Date().getFullYear()} FomKart. {t('allRightsReserved', 'All rights reserved.')}
+              © {new Date().getFullYear()} fomkart. {t('allRightsReserved', 'All rights reserved.')}
             </div>
 
             {language !== 'en' && (

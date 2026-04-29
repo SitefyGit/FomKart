@@ -1,4 +1,4 @@
-# FomKart Troubleshooting Guide
+# fomkart Troubleshooting Guide
 
 ## Current Issues and Solutions
 

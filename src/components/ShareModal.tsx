@@ -1,7 +1,8 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { ExternalLink, Copy, Mail, Facebook, Linkedin, MessageCircle, Flag } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -12,6 +13,21 @@ interface ShareModalProps {
 }
 
 export function ShareModal({ isOpen, onClose, username, url, title }: ShareModalProps) {
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    if (!isOpen) return; // Only fetch user if the modal is opened
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const shareLink = url || (username ? `https://fomkart.com/creator/${username}` : (typeof window !== 'undefined' ? window.location.href : ''))
@@ -27,7 +43,7 @@ export function ShareModal({ isOpen, onClose, username, url, title }: ShareModal
   }
 
   const encodedLink = encodeURIComponent(shareLink)
-  const encodedTitle = encodeURIComponent(title || `Check this on FomKart`)
+  const encodedTitle = encodeURIComponent(title || `fomkart - Sell and Buy Anything Digital Worldwide`)
 
   const shareActions = [
     {
@@ -97,7 +113,7 @@ export function ShareModal({ isOpen, onClose, username, url, title }: ShareModal
           ))}
 
           <a
-            href={`mailto:support@fomkart.com?subject=${encodeURIComponent('Report page on FomKart')}&body=${encodeURIComponent(`I would like to report this page: ${shareLink}`)}`}
+            href={`mailto:support@fomkart.com?subject=${encodeURIComponent('Report page on fomkart')}&body=${encodeURIComponent(`I would like to report this page: ${shareLink}`)}`}
             className="w-full flex items-center space-x-3 p-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-red-600 dark:text-red-400 mt-2"
           >
             <Flag className="h-5 w-5" />
@@ -105,21 +121,23 @@ export function ShareModal({ isOpen, onClose, username, url, title }: ShareModal
           </a>
         </div>
 
-        <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center text-white text-sm">F</div>
-            <span className="font-medium text-gray-900 dark:text-white">Create your own creator profile on FomKart!</span>
+        {!user && (
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center text-white text-sm">F</div>
+              <span className="font-medium text-gray-900 dark:text-white">Create your own creator profile on fomkart!</span>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Join thousands of creators today.</p>
+            <div className="flex space-x-3">
+              <a href="/auth/creator-signup" className="flex-1 text-center bg-emerald-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-emerald-700 transition-colors">
+                Sign up
+              </a>
+              <a href="/creator-login" className="flex-1 text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                Learn more
+              </a>
+            </div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Join thousands of creators today.</p>
-          <div className="flex space-x-3">
-            <a href="/auth/creator-signup" className="flex-1 text-center bg-emerald-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-emerald-700 transition-colors">
-              Sign up
-            </a>
-            <a href="/creator-login" className="flex-1 text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              Learn more
-            </a>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
