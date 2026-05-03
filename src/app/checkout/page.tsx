@@ -131,7 +131,7 @@ function CheckoutContent() {
       const { data: { user }, error } = await supabase.auth.getUser()
       
       if (error || !user) {
-        router.push('/auth/login')
+        router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
         return
       }
 
@@ -158,7 +158,7 @@ function CheckoutContent() {
 
         if (createError) {
           console.error('Error creating user profile:', createError)
-          router.push('/auth/login')
+          router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
           return
         }
         setCurrentUser(newProfile)
@@ -179,7 +179,7 @@ function CheckoutContent() {
       })
     } catch (error) {
       console.error('Error checking auth:', error)
-      router.push('/auth/login')
+      router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
     }
   }, [router])
 

@@ -374,7 +374,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       if (!user) {
         setCartFeedback('Please log in to add items to cart');
         setTimeout(() => setCartFeedback(null), 2000);
-        router.push('/auth/login');
+        router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
         return;
       }
 

@@ -79,7 +79,7 @@ export default function CartPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        router.push('/auth/login')
+        router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
         return
       }
 
@@ -94,7 +94,7 @@ export default function CartPage() {
       }
     } catch (error) {
       console.error('Error checking auth:', error)
-      router.push('/auth/login')
+      router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
     }
   }, [router])
 
