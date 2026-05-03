@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, AlertCircle } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
-export default function SignUpPage() {
+function SignUpContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [registrationDisabled, setRegistrationDisabled] = useState(false)
@@ -20,10 +21,17 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect') || '/'
 
   useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        window.location.href = redirectUrl
+      }
+    })
     checkRegistrationStatus()
-  }, [])
+  }, [redirectUrl])
 
   const checkRegistrationStatus = async () => {
     try {
@@ -141,9 +149,14 @@ export default function SignUpPage() {
 
         setLoading(false)
         
-        // Show success message or redirect to confirmation page
-        alert('Account created successfully! Please check your email to confirm your account.')
-        router.push('/auth/login')
+        if (data.session) {
+          // Immediately signed in
+          window.location.href = redirectUrl
+        } else {
+          // Show success message or redirect to confirmation page
+          alert('Account created successfully! Please check your email to confirm your account.')
+          router.push(`/auth/login?redirect=${encodeURIComponent(redirectUrl)}`)
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Sign up failed'
@@ -165,11 +178,11 @@ export default function SignUpPage() {
         {/* Header */}
         <div className="text-center">
           <Link
-            href="/"
+            href={redirectUrl}
             className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-6"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+            Back
           </Link>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Create Account</h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Join fomkart and start your journey</p>
@@ -331,7 +344,7 @@ export default function SignUpPage() {
           <p className="text-gray-600 dark:text-gray-400">
             Already have an account?{' '}
             <Link
-              href="/auth/login"
+              href={redirectUrl !== '/' ? `/auth/login?redirect=${encodeURIComponent(redirectUrl)}` : "/auth/login"}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
             >
               Sign in here
@@ -354,5 +367,13 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <SignUpContent />
+    </Suspense>
   )
 }

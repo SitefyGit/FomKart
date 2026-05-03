@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
-export default function LoginPage() {
+function LoginContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -14,6 +15,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect') || '/'
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        window.location.href = redirectUrl
+      }
+    })
+  }, [redirectUrl])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,8 +32,6 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const { supabase } = await import('@/lib/supabase')
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
@@ -62,11 +71,7 @@ export default function LoginPage() {
           console.warn('User profile query returned no data without error')
         }
 
-        setLoading(false)
-        
-        // Redirect back to where they came from or to home
-        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/'
-        router.push(redirectUrl)
+        window.location.href = redirectUrl
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed'
@@ -86,13 +91,13 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-8">
         {/* Back Button */}
-        <button
-          onClick={() => router.back()}
+        <Link
+          href={redirectUrl}
           className="mb-6 flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
-        </button>
+        </Link>
 
         {/* Header */}
         <div className="text-center mb-8">
@@ -185,13 +190,13 @@ export default function LoginPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Link
-              href="/auth/signup"
+              href={redirectUrl !== '/' ? `/auth/signup?redirect=${encodeURIComponent(redirectUrl)}` : "/auth/signup"}
               className="text-center px-4 py-2 border-2 border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 font-medium rounded-lg transition-colors"
             >
               Sign up as Buyer
             </Link>
             <Link
-              href="/auth/creator-signup"
+              href={redirectUrl !== '/' ? `/auth/creator-signup?redirect=${encodeURIComponent(redirectUrl)}` : "/auth/creator-signup"}
               className="text-center px-4 py-2 border-2 border-emerald-600 dark:border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 font-medium rounded-lg transition-colors"
             >
               Sign up as Creator
@@ -208,5 +213,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   )
 }

@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Lock, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-export default function UpdatePasswordPage() {
+function UpdatePasswordContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -154,5 +154,13 @@ export default function UpdatePasswordPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function UpdatePasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-4">Loading...</div>}>
+      <UpdatePasswordContent />
+    </Suspense>
   )
 }

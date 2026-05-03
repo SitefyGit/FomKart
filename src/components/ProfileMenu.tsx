@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { ChevronDown } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -10,6 +11,10 @@ export default function ProfileMenu() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const rootRef = useRef<HTMLDivElement | null>(null)
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const currentPath = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '')
 
   // Function to fetch user profile
   const fetchUserProfile = async (authUser: any) => {
@@ -55,9 +60,10 @@ export default function ProfileMenu() {
   }
 
   if (!user) {
+    const redirectParam = currentPath !== '/' ? `?redirect=${encodeURIComponent(currentPath)}` : ''
     return (
       <div>
-        <Link href="/auth/login" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm">Sign in</Link>
+        <Link href={`/auth/login${redirectParam}`} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm">Sign in</Link>
       </div>
     )
   }
