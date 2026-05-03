@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { ChevronDown } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-export default function ProfileMenu() {
+function ProfileMenuContent() {
   const [open, setOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -157,5 +157,13 @@ export default function ProfileMenu() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ProfileMenu() {
+  return (
+    <Suspense fallback={<div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>}>
+      <ProfileMenuContent />
+    </Suspense>
   )
 }
