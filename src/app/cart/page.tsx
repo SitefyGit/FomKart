@@ -288,7 +288,7 @@ export default function CartPage() {
               href="/"
               className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium"
             >
-              <TranslatableText text="Continue Shopping" as="span" wrapperAs="span" className="inline" />
+              <TranslatableText text="Continue Exploring" as="span" wrapperAs="span" className="inline" />
             </Link>
           </div>
         </div>
@@ -306,7 +306,7 @@ export default function CartPage() {
               href="/"
               className="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
             >
-              <TranslatableText text="Start Shopping" as="span" wrapperAs="span" className="inline" />
+              <TranslatableText text="Start Exploring" as="span" wrapperAs="span" className="inline" />
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </div>

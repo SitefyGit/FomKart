@@ -152,7 +152,7 @@ export default function OrderPage({ params }: OrderPageProps) {
   const approveBy = order?.approve_by ? new Date(order.approve_by) : null
   const approveByLabel = approveBy ? approveBy.toLocaleString() : null
   const overdue = approveBy ? Date.now() > approveBy.getTime() : false
-  const canReview = isBuyer && (order?.status === 'completed' || order?.status === 'delivered')
+  const canReview = isBuyer && order?.status === 'completed'
   const hasSubmittedReview = !!existingReview
 
   const handleSubmitReview = async () => {
@@ -701,7 +701,21 @@ export default function OrderPage({ params }: OrderPageProps) {
                         <input type="file" multiple className="hidden" onChange={e=>setAttachments(e.target.files)} />
                         <TranslatableText text="Attach" as="span" wrapperAs="span" className="inline" />
                       </label>
-                      <input value={compose} onChange={e=>setCompose(e.target.value)} className="flex-1 border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" placeholder={uiT('writeMessage', 'Write a message...')} />
+                      <textarea 
+                        value={compose} 
+                        onChange={e=>setCompose(e.target.value)} 
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            if (!posting && !uploading && (compose.trim() || (attachments && attachments.length))) {
+                              handleSend();
+                            }
+                          }
+                        }}
+                        rows={1}
+                        className="flex-1 border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none overflow-hidden" 
+                        placeholder={uiT('writeMessage', 'Write a message...')} 
+                      />
                       <button onClick={handleSend} disabled={posting || uploading || (!compose.trim() && !(attachments && attachments.length))} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50 flex items-center gap-1">
                         <Send className="w-4 h-4"/>
                         <TranslatableText text={posting || uploading ? 'Sending…' : 'Send'} as="span" wrapperAs="span" className="inline" />
@@ -893,11 +907,11 @@ export default function OrderPage({ params }: OrderPageProps) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 truncate"><TranslatableText text={order.product?.title || 'Product'} as="span" wrapperAs="span" className="inline" /></div>
-                  <div className="text-xs text-gray-600 truncate"><TranslatableText text={`Seller: ${order.seller?.full_name || order.seller?.username || '—'}`} as="span" wrapperAs="span" className="inline" /></div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white truncate"><TranslatableText text={order.product?.title || 'Product'} as="span" wrapperAs="span" className="inline" /></div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 truncate"><TranslatableText text={`Seller: ${order.seller?.full_name || order.seller?.username || '—'}`} as="span" wrapperAs="span" className="inline" /></div>
                 </div>
               </div>
-              <div className="mt-3 text-xs text-gray-600 flex items-center justify-between">
+              <div className="mt-3 text-xs text-gray-600 dark:text-gray-400 flex items-center justify-between">
                 <div><TranslatableText text="Order #:" as="span" wrapperAs="span" className="inline" /> <span className="font-mono">{order.order_number || orderShort}</span></div>
                 <button onClick={async ()=>{ try{ await navigator.clipboard.writeText(order.order_number || order.id); pushToast('success','Order number copied'); }catch{ pushToast('error','Copy failed'); } }} className="inline-flex items-center gap-1 text-blue-600 hover:underline">
                   <Copy className="w-3 h-3"/> <TranslatableText text="Copy" as="span" wrapperAs="span" className="inline" />
@@ -1005,7 +1019,7 @@ export default function OrderPage({ params }: OrderPageProps) {
               </div>
             )}
             <div className="space-y-3">
-              <Link href="/" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center block"><TranslatableText text="Continue Shopping" as="span" wrapperAs="span" className="inline" /></Link>
+              <Link href="/" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center block"><TranslatableText text="Continue Exploring" as="span" wrapperAs="span" className="inline" /></Link>
               <Link href="/orders" className="w-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold py-3 px-4 rounded-lg border dark:border-gray-700 transition-colors text-center block"><TranslatableText text="View All Orders" as="span" wrapperAs="span" className="inline" /></Link>
             </div>
           </div>

@@ -207,7 +207,7 @@ function LoginContent() {
         {/* Authentication Notice */}
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-300">
-            <strong>Secure Login:</strong> Your account is protected with Supabase authentication. 
+            <strong>Secure Login:</strong> Your account is protected with FomKart authentication. 
             Works for both buyer and creator accounts.
           </p>
         </div>
