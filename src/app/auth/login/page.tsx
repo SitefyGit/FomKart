@@ -87,17 +87,26 @@ function LoginContent() {
     }))
   }
 
+  const handleBack = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (window.history.length > 2) {
+      router.back()
+    } else {
+      router.push(redirectUrl)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-8">
         {/* Back Button */}
-        <Link
-          href={redirectUrl}
-          className="mb-6 flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
+        <button
+          onClick={handleBack}
+          className="mb-6 flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
-        </Link>
+        </button>
 
         {/* Header */}
         <div className="text-center mb-8">

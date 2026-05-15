@@ -8,7 +8,10 @@ export default function AuthButton() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
+  const [currentPath, setCurrentPath] = useState('/')
+
   useEffect(() => {
+    setCurrentPath(window.location.pathname)
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user)
       setLoading(false)
@@ -28,7 +31,7 @@ export default function AuthButton() {
   }
 
   return (
-    <Link href="/auth/login" prefetch className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium">
+    <Link href={`/auth/login?redirect=${encodeURIComponent(currentPath)}`} prefetch className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium">
       Login
     </Link>
   )

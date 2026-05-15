@@ -50,6 +50,17 @@ type ProductCard = {
   tags?: string[] | null
   deliveryTime?: string | null
   categoryName?: string | null
+  type?: string
+}
+
+const getTypeLabel = (type?: string) => {
+  switch (type) {
+    case 'service': return 'Service'
+    case 'course': return 'Course'
+    case 'consultation': return 'Consultation'
+    case 'product': return 'Digital Product'
+    default: return 'Digital Product'
+  }
 }
 
 type ProductRow = {
@@ -113,7 +124,7 @@ const categories = {
     ]
   },
   'services': {
-    name: 'Professional Services',
+    name: 'Services',
     description: 'Get expert help from freelancers and agencies worldwide',
     icon: BoltIcon,
     color: 'from-emerald-500 to-teal-600',
@@ -359,7 +370,8 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             level: c?.is_verified ? 'Verified' : undefined,
             tags: p.tags || [],
             deliveryTime: p.delivery_time || null,
-            categoryName: p.category_data?.name || null
+            categoryName: p.category_data?.name || null,
+            type: p.type
           }
         })
 
@@ -851,7 +863,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                     </div>
                     
                     <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded truncate font-medium">
-                      {product.categoryName || category.name}
+                      {getTypeLabel(product.type)}
                     </span>
                   </div>
                   

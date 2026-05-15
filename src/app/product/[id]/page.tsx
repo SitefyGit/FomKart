@@ -449,6 +449,20 @@ export default function ProductPage({ params }: ProductPageProps) {
             <Link href="/" className="hover:text-emerald-600 flex items-center">
               <Home className="w-4 h-4" />
             </Link>
+            {product.type && (
+              <>
+                <span className="mx-2 text-gray-300 dark:text-gray-600">/</span>
+                <Link href={`/category/${product.type === 'product' ? 'digital-products' : product.type + 's'}`} className="hover:text-emerald-600 capitalize">
+                  <TranslatableText text={
+                    product.type === 'product' ? 'Digital Products' : 
+                    product.type === 'service' ? 'Services' : 
+                    product.type === 'course' ? 'Courses' : 
+                    product.type === 'consultation' ? 'Consultations' : 
+                    'Digital Products'
+                  } as="span" wrapperAs="span" className="inline" />
+                </Link>
+              </>
+            )}
             {(product.category || product.category_id) && (
               <>
                 <span className="mx-2 text-gray-300 dark:text-gray-600">/</span>
@@ -457,8 +471,6 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </Link>
               </>
             )}
-            <span className="mx-2 text-gray-300 dark:text-gray-600">/</span>
-            <TranslatableText text={product.title} as="span" wrapperAs="span" className="text-gray-900 dark:text-white truncate" />
           </nav>
         </div>
       </div>
@@ -466,8 +478,8 @@ export default function ProductPage({ params }: ProductPageProps) {
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 lg:gap-8 items-start">
           
-          {/* 1. Title & Actions (Top on mobile, below images on desktop) */}
-          <div className="order-1 lg:order-2 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 lg:p-6 w-full">
+          {/* 1. Title & Actions */}
+          <div className="order-1 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 lg:p-6 w-full">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <TranslatableText
                 text={product.title}
@@ -494,8 +506,8 @@ export default function ProductPage({ params }: ProductPageProps) {
             </div>
           </div>
 
-          {/* 2. Media Gallery (Second on mobile, top on desktop left) */}
-          <div className="order-2 lg:order-1 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 w-full">
+          {/* 2. Media Gallery */}
+          <div className="order-2 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 w-full">
             <ProductMediaGallery
               images={product.images}
               youtubeVideoId={product.youtubeVideoId}

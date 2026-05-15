@@ -64,6 +64,23 @@ export interface User {
   is_verified?: boolean
   created_at: string
   updated_at: string
+  // Onboarding & Viral Loop
+  plan_tier?: 'free' | 'pro' | 'business'
+  referred_by?: string | null
+  referral_code?: string | null
+  oauth_provider?: string | null
+  oauth_id?: string | null
+  theme_color?: string | null
+  font_family?: string | null
+  profile_status?: 'onboarding' | 'active' | 'suspended'
+  custom_branding?: { text: string; url: string } | null
+  // Profile extras already in DB
+  is_creator?: boolean
+  background_image?: string | null
+  location?: string | null
+  website?: string | null
+  social_links?: Record<string, string>
+  profile_section_order?: string[] | null
 }
 
 export interface ProductDigitalAsset {
@@ -778,4 +795,28 @@ export const markAllNotificationsRead = async (userId: string) => {
     // Return false to let caller handle it; UI can still locally mark as read.
     return false
   }
+}
+
+export interface Referral {
+  id: string
+  referrer_id: string
+  referred_id?: string | null
+  ref_code?: string | null
+  ip_address?: string | null
+  user_agent?: string | null
+  clicked_at?: string
+  converted_at?: string | null
+  attribution_source?: string
+  status?: 'clicked' | 'converted' | 'paid'
+  created_at?: string
+}
+
+export interface ProfileBlock {
+  id: string
+  user_id: string
+  type: 'link' | 'product' | 'post' | 'video' | 'divider'
+  content: JsonRecord
+  sort_order?: number
+  is_active?: boolean
+  created_at?: string
 }

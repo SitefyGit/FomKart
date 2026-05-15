@@ -84,18 +84,27 @@ export default function CreatorSignUpPage() {
     }))
   }
 
+  const handleBack = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (window.history.length > 2) {
+      router.back()
+    } else {
+      router.push('/')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mb-6"
+          <button
+            onClick={handleBack}
+            className="inline-flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mb-6 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
+            Back
+          </button>
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center mr-3">
               <Briefcase className="w-6 h-6 text-white" />

@@ -7,10 +7,10 @@ import { TranslatableText } from '@/components/TranslatableText'
 
 export const metadata: Metadata = {
   title: 'Explore Services | fomkart Marketplace',
-  description: 'Discover thousands of professional services on fomkart. Find freelancers for affiliate marketing, web design, SEO, digital products, and more.',
+  description: 'Discover thousands of services on fomkart. Find freelancers for affiliate marketing, web design, SEO, digital products, and more.',
   openGraph: {
     title: 'Explore Services | fomkart Marketplace',
-    description: 'Discover thousands of professional services. Find the perfect freelancer for your project.',
+    description: 'Discover thousands of services. Find the perfect freelancer for your project.',
     type: 'website',
   },
 }
@@ -203,7 +203,7 @@ export default async function MarketPage() {
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-8 text-gray-300">
               <Sparkles className="w-4 h-4 text-indigo-400" />
-              <TranslatableText text="Discover 10,000+ Professional Services" as="span" wrapperAs="span" className="inline" />
+              <TranslatableText text="Discover 10,000+ Services" as="span" wrapperAs="span" className="inline" />
             </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-8 leading-tight text-white tracking-tight">
@@ -314,7 +314,7 @@ export default async function MarketPage() {
               <TranslatableText text="Explore by Category" as="span" wrapperAs="span" className="inline" />
             </h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              <TranslatableText text="Find exactly what you need from our organized collection of professional services" as="span" wrapperAs="span" className="inline" />
+              <TranslatableText text="Find exactly what you need from our organized collection of services" as="span" wrapperAs="span" className="inline" />
             </p>
           </div>
           

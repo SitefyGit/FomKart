@@ -9,6 +9,7 @@ import { supabase, fetchCreatorPosts, createCreatorPost, deleteCreatorPost, type
 import { ShareModal } from '@/components/ShareModal';
 import { ToastContainer, ToastItem } from '@/components/Toast';
 import { SocialIconsBar } from '@/components/SocialIconsBar';
+import { PoweredByFomkart } from '@/components/PoweredByFomkart';
 import { TranslatableText } from '@/components/TranslatableText';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
@@ -46,6 +47,8 @@ interface Creator {
   social_links?: Record<string, string>;
   is_verified?: boolean;
   totalProducts: number;
+  theme_color?: string;
+  font_family?: string;
 }
 
 type BioItem = 
@@ -186,6 +189,8 @@ async function loadCreatorBio(username: string): Promise<{ creator: Creator; pro
         social_links: userData.social_links || {},
         is_verified: userData.is_verified,
         totalProducts: count ?? enrichedProducts.length,
+        theme_color: userData.theme_color,
+        font_family: userData.font_family,
       },
       products: enrichedProducts,
       posts: posts || [],
@@ -454,11 +459,27 @@ export default function CreatorBioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8 px-4 flex justify-center items-start">
+    <div 
+      className="relative min-h-screen bg-[#0a0a0f] py-12 px-4 flex justify-center items-start overflow-hidden"
+      style={{ fontFamily: creator.font_family ? `"${creator.font_family}", sans-serif` : undefined }}
+    >
+      {creator.font_family && (
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=${creator.font_family.replace(/ /g, '+')}:wght@400;500;600;700&display=swap');
+        `}</style>
+      )}
+
+      {/* Animated BG orbs */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20 blur-3xl animate-pulse" style={{ background: creator.theme_color || '#10b981' }} />
+        <div className="absolute -bottom-40 -right-40 w-[30rem] h-[30rem] rounded-full opacity-15 blur-3xl animate-pulse" style={{ background: creator.theme_color || '#10b981', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-10 blur-3xl" style={{ background: creator.theme_color || '#10b981' }} />
+      </div>
+
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
       {/* Main Content - Centered Card */}
-      <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6 sm:p-10 transition-all z-10">
+      <div className="relative z-10 w-full max-w-lg bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl shadow-2xl p-6 sm:p-10 transition-all text-white">
         {/* Profile Info */}
         <div className="text-center mb-8">
           {/* Avatar */}
@@ -474,20 +495,20 @@ export default function CreatorBioPage() {
 
           {/* Name & Verification */}
           <div className="flex items-center justify-center gap-2 mb-2">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{creator.full_name}</h1>
+            <h1 className="text-2xl font-bold">{creator.full_name}</h1>
             {creator.is_verified && (
-              <CheckBadgeIcon className="w-6 h-6 text-emerald-500" />
+              <CheckBadgeIcon className="w-6 h-6" style={{ color: creator.theme_color || '#10b981' }} />
             )}
           </div>
 
           {/* Username */}
-          <p className="text-gray-500 dark:text-gray-400 mb-3">@{creator.username}</p>
+          <p className="text-white/50 mb-3">@{creator.username}</p>
 
           {/* Bio */}
           {creator.bio && (
                 <TranslatableText
                   text={creator.bio}
-                  className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed"
+                  className="text-white/80 mb-4 leading-relaxed"
                   showListingControls
                 />
           )}
@@ -501,10 +522,10 @@ export default function CreatorBioPage() {
 
           {/* Store / Bio Navigation Tabs */}
           <div className="flex justify-center mb-6">
-            <div className="flex gap-1 bg-gray-100 dark:bg-gray-700/50 p-1 rounded-xl">
+            <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
               <Link
                 href={`/creator/${creator.username}`}
-                className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50"
+                className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all text-white/50 hover:text-white hover:bg-white/10"
               >
                 <span className="flex items-center gap-2">
                   <ShoppingBag className="w-4 h-4" />
@@ -512,7 +533,7 @@ export default function CreatorBioPage() {
                 </span>
               </Link>
               <button
-                className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all bg-white/10 text-white shadow-sm border border-white/10"
               >
                 <span className="flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -528,7 +549,7 @@ export default function CreatorBioPage() {
           <div className="flex justify-center gap-3 mb-6">
             <button
               onClick={() => setShareOpen(true)}
-              className="p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="p-3 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-all"
             >
               <ShareIcon className="w-5 h-5" />
             </button>
@@ -541,7 +562,7 @@ export default function CreatorBioPage() {
                   }
                   setMessageOpen(true);
                 }}
-                className="p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="p-3 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-all"
               >
                 <MessageCircle className="w-5 h-5" />
               </button>
@@ -552,7 +573,8 @@ export default function CreatorBioPage() {
         {/* View Store Button */}
         <Link
           href={`/creator/${creator.username}`}
-          className="flex items-center justify-between w-full p-4 mb-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg transition-colors group"
+          className="flex items-center justify-between w-full p-4 mb-6 text-white rounded-xl shadow-lg transition-all group hover:brightness-110"
+          style={{ backgroundColor: creator.theme_color || '#10b981' }}
         >
           <div className="flex items-center gap-3">
             <ShoppingBag className="w-5 h-5" />
@@ -570,7 +592,8 @@ export default function CreatorBioPage() {
                 {isOwner && (
                     <button 
                        onClick={() => setAddLinkOpen(true)} 
-                       className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors font-medium flex items-center gap-1"
+                       className="text-xs px-3 py-1.5 rounded-full hover:brightness-110 transition-all font-medium flex items-center gap-1"
+                       style={{ backgroundColor: `${creator.theme_color || '#10b981'}30`, color: creator.theme_color || '#10b981' }}
                     >
                         <PlusIcon className="w-3 h-3" /> <TranslatableText text="Add Post" as="span" wrapperAs="span" className="inline" />
                     </button>
@@ -749,7 +772,7 @@ export default function CreatorBioPage() {
             
             {creator.totalProducts > items.filter(i => i.type === 'product').length && (
                 <div className="mt-6 text-center">
-                    <Link href={`/creator/${creator.username}`} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
+                    <Link href={`/creator/${creator.username}`} className="text-sm font-medium transition-all hover:brightness-125" style={{ color: creator.theme_color || '#10b981' }}>
                         <TranslatableText text={`View all ${creator.totalProducts} products`} as="span" wrapperAs="span" className="inline" />
                     </Link>
                 </div>
@@ -758,28 +781,27 @@ export default function CreatorBioPage() {
 
         {/* Subscribe & Footer */}
         {!isOwner && (
-            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 text-center">
-                 <h3 className="font-medium text-gray-900 dark:text-white mb-3"><TranslatableText text="Newsletter" as="span" wrapperAs="span" className="inline" /></h3>
+            <div className="mt-8 pt-6 border-t border-white/10 text-center">
+                 <h3 className="font-medium text-white mb-3"><TranslatableText text="Newsletter" as="span" wrapperAs="span" className="inline" /></h3>
                  {subscribeOpen ? (
                    <div className="flex gap-2">
                        <input 
                           type="email" 
                           placeholder="Your email" 
-                          className="flex-1 px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                          className="flex-1 px-3 py-2 text-sm border rounded-lg bg-white/5 border-white/10 text-white placeholder:text-white/30"
                           value={subscribeEmail}
                           onChange={e => setSubscribeEmail(e.target.value)}
                        />
-                        <button onClick={handleSubscribe} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700"><TranslatableText text="Join" as="span" wrapperAs="span" className="inline" /></button>
+                        <button onClick={handleSubscribe} className="px-4 py-2 text-white rounded-lg text-sm transition-all hover:brightness-110" style={{ backgroundColor: creator.theme_color || '#10b981' }}><TranslatableText text="Join" as="span" wrapperAs="span" className="inline" /></button>
                    </div>
                  ) : (
-                      <button onClick={() => setSubscribeOpen(true)} className="text-emerald-600 hover:text-emerald-700 font-medium text-sm"><TranslatableText text="Subscribe for updates" as="span" wrapperAs="span" className="inline" /></button>
+                      <button onClick={() => setSubscribeOpen(true)} className="font-medium text-sm transition-all hover:brightness-110" style={{ color: creator.theme_color || '#10b981' }}><TranslatableText text="Subscribe for updates" as="span" wrapperAs="span" className="inline" /></button>
                  )}
             </div>
         )}
         
-        <div className="mt-6 text-center text-xs text-gray-400">
-          <Link href="/" className="hover:text-emerald-600 transition-colors">Powered by fomkart</Link>
-        </div>
+        {/* Viral Footer */}
+        <PoweredByFomkart username={creator.username} themeColor={creator.theme_color} />
 
       </div>
       

@@ -622,7 +622,7 @@ export default function TagPage({ params }: { params: Promise<{ tag: string }> }
                           </span>
                         </div>
                         <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded truncate">
-                          {product.categoryName || getProductTypeLabel(product.type)}
+                          {getProductTypeLabel(product.type)}
                         </span>
                       </div>
 

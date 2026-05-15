@@ -132,7 +132,7 @@ export default async function FeaturedServicesSection() {
                       <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-300">({service.reviews_count ?? 0})</span>
                     </div>
                     <span className="inline-block px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded">
-                      {service.category_data?.name || getTypeLabel(service.type)}
+                      {getTypeLabel(service.type)}
                     </span>
                   </div>
                   <CurrencyPrice

@@ -156,18 +156,27 @@ function SignUpContent() {
     }))
   }
 
+  const handleBack = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (window.history.length > 2) {
+      router.back()
+    } else {
+      router.push(redirectUrl)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <Link
-            href={redirectUrl}
-            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-6"
+          <button
+            onClick={handleBack}
+            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-6 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
-          </Link>
+          </button>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Create Account</h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Join fomkart and start your journey</p>
         </div>

@@ -121,3 +121,45 @@ button {
     background-position: 0% 50%;
   }
 }
+
+/* Text mask reveal */
+.mask-reveal {
+  overflow: hidden;
+  display: block;
+}
+.mask-reveal > span {
+  display: block;
+  transform: translateY(110%);
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mask-reveal.active > span {
+  transform: translateY(0);
+}
+
+/* Standard fade-up */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+.delay-100 { transition-delay: 0.1s; }
+.delay-200 { transition-delay: 0.2s; }
+.delay-300 { transition-delay: 0.3s; }
+
+/* Ambient floating orbs */
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.08); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  animation: drift 10s ease-in-out infinite alternate;
+}
