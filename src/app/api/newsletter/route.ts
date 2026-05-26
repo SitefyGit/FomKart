@@ -49,12 +49,43 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert or update newsletter subscription
-    const { data, error } = await supabase
-      .from('newsletter_subscriptions')
-      .upsert(payload, {
-        onConflict: creatorId ? 'email,creator_id' : 'email' // Adjust conflict target if needed
-      })
-      .select()
+    let data, error;
+
+    if (creatorId) {
+      const result = await supabase
+        .from('newsletter_subscriptions')
+        .upsert(payload, {
+          onConflict: 'email,creator_id'
+        })
+        .select();
+      data = result.data;
+      error = result.error;
+    } else {
+      // For platform subscriptions (creatorId is null)
+      const { data: existing } = await supabase
+        .from('newsletter_subscriptions')
+        .select('id')
+        .eq('email', payload.email)
+        .is('creator_id', null)
+        .single();
+
+      if (existing) {
+        const result = await supabase
+          .from('newsletter_subscriptions')
+          .update(payload)
+          .eq('id', existing.id)
+          .select();
+        data = result.data;
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from('newsletter_subscriptions')
+          .insert(payload)
+          .select();
+        data = result.data;
+        error = result.error;
+      }
+    }
 
     if (error) {
       console.error('Supabase error:', error)

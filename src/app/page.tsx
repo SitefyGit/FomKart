@@ -271,7 +271,7 @@ export default async function HomePage() {
           
           <HomeLeadCapture
             title="Join the fomkart Community"
-            subtitle="Weekly insights � Exclusive deals � Creator spotlights � Industry trends"
+            subtitle="Weekly insights • Exclusive deals • Creator spotlights • Industry trends"
             placeholder="Enter your email address"
             buttonText="Join the Community"
             showNameField={true}

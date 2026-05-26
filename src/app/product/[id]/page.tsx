@@ -401,7 +401,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!product || !selectedPackage) return;
     
     // Directly go to checkout with available info
@@ -418,7 +418,15 @@ export default function ProductPage({ params }: ProductPageProps) {
     
     // Navigate to checkout with the item
     const itemsParam = encodeURIComponent(JSON.stringify([checkoutItem]));
-    router.push(`/checkout?items=${itemsParam}`);
+    const checkoutUrl = `/checkout?items=${itemsParam}`;
+
+    const user = await getCurrentUser();
+    if (!user) {
+      router.push(`/auth/login?redirect=${encodeURIComponent(checkoutUrl)}`);
+      return;
+    }
+
+    router.push(checkoutUrl);
   };
 
   if (loading) {

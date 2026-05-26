@@ -145,6 +145,40 @@ export function LeadCaptureForm({
             console.error('Supabase error:', error)
             throw new Error(error.message)
           }
+        } else {
+          // Fallback for platform-wide subscription (no creatorId)
+          const { data: existing } = await supabase
+            .from('newsletter_subscriptions')
+            .select('id')
+            .eq('email', subscriptionData.email)
+            .is('creator_id', null)
+            .single()
+
+          if (existing) {
+            const { error } = await supabase
+              .from('newsletter_subscriptions')
+              .update({
+                name: subscriptionData.name,
+                preferences: { interests: subscriptionData.preferences },
+                source: subscriptionData.source,
+                tags: subscriptionData.preferences || [],
+                status: 'active'
+              })
+              .eq('id', existing.id)
+            if (error) throw new Error(error.message)
+          } else {
+            const { error } = await supabase
+              .from('newsletter_subscriptions')
+              .insert({
+                email: subscriptionData.email,
+                name: subscriptionData.name,
+                preferences: { interests: subscriptionData.preferences },
+                source: subscriptionData.source,
+                tags: subscriptionData.preferences || [],
+                status: 'active'
+              })
+            if (error) throw new Error(error.message)
+          }
         }
       }
 
