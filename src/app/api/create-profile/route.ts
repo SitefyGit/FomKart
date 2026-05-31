@@ -26,24 +26,24 @@ export async function POST(req: NextRequest) {
       is_verified = false,
     } = body ?? {}
 
-    if (!id || !email || !username || !full_name) {
+    if (!id || !email || !username) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
     const { error } = await supabaseAdmin
       .from('users')
-      .insert([
+      .upsert([
         {
           id,
           email,
           username,
-          full_name,
+          full_name: full_name || '',
           bio: bio || '',
           website: website || '',
           is_creator: !!is_creator,
           is_verified: !!is_verified,
         },
-      ])
+      ], { onConflict: 'id' })
 
     if (error) {
       console.error('create-profile error:', error)

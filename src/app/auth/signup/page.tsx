@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { ToastContainer, ToastItem } from '@/components/Toast'
 
 function SignUpContent() {
   const [showPassword, setShowPassword] = useState(false)
@@ -19,6 +20,10 @@ function SignUpContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectUrl = searchParams.get('redirect') || '/'
+
+  const [toasts, setToasts] = useState<ToastItem[]>([])
+  const pushToast = (t: Omit<ToastItem, 'id'>) => setToasts(prev => [...prev, { id: Math.random().toString(36).slice(2), ...t }])
+  const removeToast = (id: string) => setToasts(prev => prev.filter(t => t.id !== id))
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -134,12 +139,30 @@ function SignUpContent() {
         setLoading(false)
         
         if (data.session) {
+          // Process pending cart item
+          const pendingCartItem = localStorage.getItem('pending_cart_item')
+          if (pendingCartItem && data.user) {
+            try {
+              const item = JSON.parse(pendingCartItem)
+              const { error: cartError } = await supabase.from('carts').insert({
+                user_id: data.user.id,
+                ...item
+              })
+              if (!cartError) {
+                localStorage.removeItem('pending_cart_item')
+              }
+            } catch (e) {
+              console.error('Failed to process pending cart item', e)
+            }
+          }
           // Immediately signed in
           window.location.href = redirectUrl
         } else {
           // Show success message or redirect to confirmation page
-          alert('Account created successfully! Please check your email to confirm your account.')
-          router.push(`/auth/login?redirect=${encodeURIComponent(redirectUrl)}`)
+          pushToast({ type: 'success', title: 'Success', message: 'Account created successfully! Please check your email to confirm your account.' })
+          setTimeout(() => {
+            router.push(`/auth/login?redirect=${encodeURIComponent(redirectUrl)}`)
+          }, 2000)
         }
       }
     } catch (err) {
@@ -167,6 +190,7 @@ function SignUpContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <ToastContainer toasts={toasts} onClose={removeToast} />
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">

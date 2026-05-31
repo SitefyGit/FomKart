@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Briefcase } from 'lucide-react'
+import { ToastContainer, ToastItem } from '@/components/Toast'
 
 export default function CreatorSignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -13,7 +14,65 @@ export default function CreatorSignUpPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [existingUser, setExistingUser] = useState<any>(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const router = useRouter()
+
+  const [toasts, setToasts] = useState<ToastItem[]>([])
+  const pushToast = (t: Omit<ToastItem, 'id'>) => setToasts(prev => [...prev, { id: Math.random().toString(36).slice(2), ...t }])
+  const removeToast = (id: string) => setToasts(prev => prev.filter(t => t.id !== id))
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const { supabase } = await import('@/lib/supabase')
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          setExistingUser(user)
+        }
+      } catch (err) {
+        console.error('Failed to check auth state', err)
+      } finally {
+        setCheckingAuth(false)
+      }
+    }
+    checkUser()
+  }, [])
+
+  const handleUpgradeAccount = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const { supabase } = await import('@/lib/supabase')
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ is_creator: true })
+        .eq('id', existingUser.id)
+
+      if (updateError) {
+        throw updateError
+      }
+
+      const { data: profileData } = await supabase
+        .from('users')
+        .select('username')
+        .eq('id', existingUser.id)
+        .single()
+
+      pushToast({ type: 'success', title: 'Success', message: 'Account upgraded to Creator successfully!' })
+      setTimeout(() => {
+        if (profileData?.username) {
+          router.push(`/creator/${profileData.username}`)
+        } else {
+          router.push('/profile')
+        }
+      }, 1500)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to upgrade account'
+      setError(message)
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +94,11 @@ export default function CreatorSignUpPage() {
       })
 
       if (error) {
-        setError(error.message)
+        if (error.message.includes('already registered')) {
+          setError('This email is already registered. Please log in first to upgrade to a creator account.')
+        } else {
+          setError(error.message)
+        }
         setLoading(false)
         return
       }
@@ -67,8 +130,27 @@ export default function CreatorSignUpPage() {
         }
 
         setLoading(false)
-        alert('Creator account created successfully! Please check your email to confirm your account.')
-        router.push('/auth/login')
+        // Process pending cart item
+        const pendingCartItem = localStorage.getItem('pending_cart_item')
+        if (pendingCartItem && data.user) {
+          try {
+            const item = JSON.parse(pendingCartItem)
+            const { error: cartError } = await supabase.from('carts').insert({
+              user_id: data.user.id,
+              ...item
+            })
+            if (!cartError) {
+              localStorage.removeItem('pending_cart_item')
+            }
+          } catch (e) {
+            console.error('Failed to process pending cart item', e)
+          }
+        }
+
+        pushToast({ type: 'success', title: 'Success', message: 'Creator account created successfully! Please check your email to confirm your account.' })
+        setTimeout(() => {
+          router.push('/auth/login')
+        }, 2000)
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Sign up failed'
@@ -93,8 +175,13 @@ export default function CreatorSignUpPage() {
     }
   }
 
+  if (checkingAuth) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 border-2"></div>
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <ToastContainer toasts={toasts} onClose={removeToast} />
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
@@ -132,8 +219,27 @@ export default function CreatorSignUpPage() {
           </ul>
         </div>
 
-        {/* Sign Up Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 md:p-8">
+        {existingUser ? (
+          /* Upgrade Account CTA */
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 md:p-8 text-center">
+            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
+              <User className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">You're logged in</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              You are currently logged in as <span className="font-semibold">{existingUser.email}</span>. Would you like to upgrade this account to a Creator account?
+            </p>
+            <button
+              onClick={handleUpgradeAccount}
+              disabled={loading}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Upgrading Account...' : 'Upgrade to Creator Account'}
+            </button>
+          </div>
+        ) : (
+          /* Sign Up Form */
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 md:p-8">
           <form className="space-y-5" onSubmit={handleSubmit}>
             {/* Email */}
             <div>
@@ -196,6 +302,7 @@ export default function CreatorSignUpPage() {
             </button>
           </form>
         </div>
+        )}
 
         {/* Sign In Links */}
         <div className="text-center space-y-2">

@@ -27,14 +27,27 @@ export default function NotificationsBell() {
   useEffect(() => {
     setMounted(true)
     let channel: any
+    let poll: ReturnType<typeof setInterval> | null = null
+    let isActive = true
+
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
+      if (!user || !isActive) { setLoading(false); return }
+      
       setUserId(user.id)
-  const list = await listNotifications(user.id, 20)
-  // Ensure shape contains is_read boolean
-  setItems(list.map(n => ({ ...n, is_read: !!(n as any).is_read })))
-      setLoading(false)
+      
+      const fetchList = async () => {
+        const list = await listNotifications(user.id, 20)
+        if (isActive) {
+          setItems(list.map(n => ({ ...n, is_read: !!(n as any).is_read })))
+          setLoading(false)
+        }
+      }
+      
+      await fetchList()
+      
+      if (!isActive) return
+
       // Realtime for new notifications
       channel = supabase.channel(`notifs-${user.id}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload: any) => {
@@ -44,17 +57,26 @@ export default function NotificationsBell() {
           pushToast('info', n.message, n.title)
         })
         .subscribe()
+
+      // Fallback polling for notifications since realtime might not be enabled
+      poll = setInterval(fetchList, 3000)
     }
+    
     init()
+
     const onDocClick = (e: MouseEvent) => {
       if (!rootRef.current) return
       if (!rootRef.current.contains(e.target as Node)) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    
     document.addEventListener('mousedown', onDocClick)
     document.addEventListener('keydown', onKey)
+    
     return () => {
+      isActive = false
       if (channel) supabase.removeChannel(channel)
+      if (poll) clearInterval(poll)
       document.removeEventListener('mousedown', onDocClick)
       document.removeEventListener('keydown', onKey)
     }
@@ -79,9 +101,13 @@ export default function NotificationsBell() {
     }
     // Navigate if we have a deep link
     const orderId = (n as any)?.data?.order_id
+    const conversationId = (n as any)?.data?.conversation_id
     if (orderId) {
       setOpen(false)
       router.push(`/orders/${orderId}`)
+    } else if (conversationId || n.type === 'direct_message') {
+      setOpen(false)
+      router.push(`/messages`)
     }
   }
 
@@ -123,11 +149,11 @@ export default function NotificationsBell() {
                   else if (n.type === 'revision_requested') Icon = RefreshCcw
                   else if (n.type === 'requirements_submitted') Icon = ClipboardList
                   else if (n.type === 'order_placed') Icon = ShoppingCart
-                  else if (n.type === 'order_message') Icon = MessageCircle
+                  else if (n.type === 'order_message' || n.type === 'direct_message') Icon = MessageCircle
                   const accent = n.type === 'order_approved' ? 'bg-green-600' :
                                   n.type === 'delivery_posted' ? 'bg-indigo-600' :
                                   n.type === 'revision_requested' ? 'bg-amber-600' :
-                                  n.type === 'order_message' ? 'bg-violet-600' :
+                                  (n.type === 'order_message' || n.type === 'direct_message') ? 'bg-violet-600' :
                                   'bg-blue-600'
                   return (
                     <li key={n.id} className="relative">

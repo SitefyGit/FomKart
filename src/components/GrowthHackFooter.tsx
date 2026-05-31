@@ -141,10 +141,7 @@ export function GrowthHackFooter({
               <button className="hover:text-white transition-colors">Help Center</button>
               <button className="hover:text-white transition-colors">Contact Support</button>
               <button className="hover:text-white transition-colors">Community Guidelines</button>
-              <a href="mailto:parvesh@sitefy.co" className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 px-3 py-1.5 rounded-full transition-colors border border-emerald-500/20">
-                <ExternalLink className="w-4 h-4" />
-                Give Feedback to Founder
-              </a>
+
             </div>
             
             <div className="flex items-center space-x-4">

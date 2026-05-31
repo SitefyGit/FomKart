@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { 
   Twitter, 
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { supabase } from '@/lib/supabase'
 
 export default function Footer() {
   const { currency, currencies, setCurrency } = useCurrency()
@@ -24,11 +25,22 @@ export default function Footer() {
   const pathname = usePathname()
   const currentCurrencyObj = currencies.find(c => c.code === currency) ?? currencies[0]
   const currentLanguageObj = languages.find(l => l.code === language) ?? languages[0]
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const isBioPage = pathname?.match(/^\/creator\/[^/]+\/bio$/)
 
   return (
-    <footer className={`bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8 ${isBioPage ? 'hidden md:block' : ''}`}>
+    <footer className={`bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8 ${(isBioPage && !isLoggedIn) ? 'hidden md:block' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand Column */}
@@ -183,10 +195,7 @@ export default function Footer() {
               <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('termsOfService', 'Terms of Service')}</Link>
               <Link href="/cookies" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('cookieSettings', 'Cookie Settings')}</Link>
               <Link href="/site-map" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">{t('sitemap', 'Sitemap')}</Link>
-              <a href="mailto:parvesh@sitefy.co" className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors border border-emerald-200 dark:border-emerald-800">
-                <Mail className="w-4 h-4" />
-                {t('feedbackToFounder', 'Give Feedback to Founder')}
-              </a>
+
             </div>
 
             <div className="flex items-center gap-5 text-gray-400 relative">

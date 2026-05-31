@@ -361,10 +361,14 @@ export default function OrderPage({ params }: OrderPageProps) {
     if (!order) return
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/login'); return }
-    if (!deliveryFiles || deliveryFiles.length === 0) return
+    if ((!deliveryFiles || deliveryFiles.length === 0) && !deliveryNote?.trim()) return
     try {
       setUploading(true)
-      const files = Array.from(deliveryFiles).map(f => ({ name: f.name, blob: f as any }))
+      const files = Array.from(deliveryFiles || []).map(f => ({ name: f.name, blob: f as any }))
+      if (files.length === 0 && deliveryNote?.trim()) {
+        const textBlob = new Blob([deliveryNote], { type: 'text/plain' })
+        files.push({ name: 'delivery_note.txt', blob: textBlob as any })
+      }
       const ok = await createDeliverable({ order_id: order.id, uploaded_by: user.id, description: deliveryNote || undefined, files })
       if (ok) {
         await updateOrderStatus(order.id, 'delivered')
@@ -791,7 +795,7 @@ export default function OrderPage({ params }: OrderPageProps) {
 
                 {activeTab === 'requirements' && (
                   <div className="space-y-4">
-                    {!order.requirements ? (
+                    {!order.requirements || (typeof order.requirements === 'object' && Object.keys(order.requirements).length === 0) ? (
                       <div className="space-y-3">
                         <div className="p-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-sm"><TranslatableText text="No requirements submitted yet." as="span" wrapperAs="span" className="inline" /></div>
                         {isBuyer && (
@@ -898,16 +902,16 @@ export default function OrderPage({ params }: OrderPageProps) {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 p-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-3"><TranslatableText text="Order details" as="span" wrapperAs="span" className="inline" /></h3>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
+                <Link href={`/product/${order.product?.id || ''}`} className="w-12 h-12 rounded bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity">
                   {order.product?.images?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={order.product.images[0]} alt="thumb" className="w-full h-full object-cover"/>
                   ) : (
                     <span className="text-xs text-gray-400"><TranslatableText text="No image" as="span" wrapperAs="span" className="inline" /></span>
                   )}
-                </div>
+                </Link>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white truncate"><TranslatableText text={order.product?.title || 'Product'} as="span" wrapperAs="span" className="inline" /></div>
+                  <Link href={`/product/${order.product?.id || ''}`} className="text-sm font-medium text-gray-900 dark:text-white truncate hover:underline block"><TranslatableText text={order.product?.title || 'Product'} as="span" wrapperAs="span" className="inline" /></Link>
                   <div className="text-xs text-gray-600 dark:text-gray-400 truncate"><TranslatableText text={`Seller: ${order.seller?.full_name || order.seller?.username || '—'}`} as="span" wrapperAs="span" className="inline" /></div>
                 </div>
               </div>
@@ -943,13 +947,6 @@ export default function OrderPage({ params }: OrderPageProps) {
                       <div className="font-medium text-gray-900 dark:text-white">{existingReview?.rating ?? reviewForm.rating}/5</div>
                       {existingReview?.comment && <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{existingReview.comment}</p>}
                     </div>
-                    {existingReview?.seller_rating ? (
-                      <div>
-                        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1"><TranslatableText text="Seller experience" as="span" wrapperAs="span" className="inline" /></div>
-                        <div className="font-medium text-gray-900 dark:text-white">{existingReview.seller_rating}/5</div>
-                        {existingReview.seller_comment && <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{existingReview.seller_comment}</p>}
-                      </div>
-                    ) : null}
                   </div>
                 ) : canReview ? (
                   <div className="space-y-4">
@@ -977,32 +974,6 @@ export default function OrderPage({ params }: OrderPageProps) {
                       />
                       <div className="text-[10px] text-gray-500 dark:text-gray-400 text-right">{reviewForm.comment.length}/500</div>
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1"><TranslatableText text="Seller rating (optional)" as="span" wrapperAs="span" className="inline" /></label>
-                      <select
-                        value={reviewForm.sellerRating}
-                        onChange={e => setReviewForm(prev => ({ ...prev, sellerRating: Number(e.target.value) }))}
-                        className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      >
-                        {[0,5,4,3,2,1].map(val => (
-                          <option key={val} value={val}>{val === 0 ? uiT('skipLabel', 'Skip') : uiT('starsLabel', `${val} Stars`)}</option>
-                        ))}
-                      </select>
-                    </div>
-                    {reviewForm.sellerRating > 0 && (
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-1"><TranslatableText text="Seller feedback" as="span" wrapperAs="span" className="inline" /></label>
-                        <textarea
-                          value={reviewForm.sellerComment}
-                          onChange={e => setReviewForm(prev => ({ ...prev, sellerComment: e.target.value }))}
-                          rows={3}
-                          maxLength={400}
-                          placeholder={uiT('sellerFeedbackPlaceholder', 'Let the seller know what stood out.')}
-                          className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                        />
-                        <div className="text-[10px] text-gray-500 dark:text-gray-400 text-right">{reviewForm.sellerComment.length}/400</div>
-                      </div>
-                    )}
                     <button
                       onClick={handleSubmitReview}
                       disabled={submittingReview}
@@ -1127,7 +1098,7 @@ function RequestInfoCard({ orderId, onRequested }:{ orderId:string; onRequested:
   return (
     <div className="mt-3 p-3 border rounded-lg bg-gray-50 flex items-center justify-between">
       <div className="text-sm text-gray-700"><TranslatableText text="Need additional information?" as="span" wrapperAs="span" className="inline" /></div>
-      <button onClick={askMore} disabled={sending} className="px-3 py-2 border rounded-lg text-sm"><TranslatableText text={sending?'Requesting…':'Request more info'} as="span" wrapperAs="span" className="inline" /></button>
+      <button onClick={askMore} disabled={sending} className="px-3 py-2 border dark:border-gray-600 rounded-lg text-sm dark:text-gray-200 dark:hover:bg-gray-800"><TranslatableText text={sending?'Requesting…':'Request more info'} as="span" wrapperAs="span" className="inline" /></button>
     </div>
   )
 }

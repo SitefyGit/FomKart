@@ -71,6 +71,23 @@ function LoginContent() {
           console.warn('User profile query returned no data without error')
         }
 
+        // Process pending cart item
+        const pendingCartItem = localStorage.getItem('pending_cart_item')
+        if (pendingCartItem) {
+          try {
+            const item = JSON.parse(pendingCartItem)
+            const { error: cartError } = await supabase.from('carts').insert({
+              user_id: data.user.id,
+              ...item
+            })
+            if (!cartError) {
+              localStorage.removeItem('pending_cart_item')
+            }
+          } catch (e) {
+            console.error('Failed to process pending cart item', e)
+          }
+        }
+
         window.location.href = redirectUrl
       }
     } catch (err) {

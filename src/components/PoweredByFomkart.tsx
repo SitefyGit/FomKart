@@ -39,13 +39,12 @@ export const PoweredByFomkart = ({ username, planTier = 'free', customBranding, 
         onClick={handleClick}
         className="group flex flex-col items-center gap-1.5 transition-all"
       >
-        <span className="text-[11px] text-gray-400 group-hover:text-white tracking-wider transition-colors uppercase">
+        <span className="text-[11px] text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white tracking-wider transition-colors uppercase">
           {label}
         </span>
         {!customBranding && (
           <span 
-            className="text-xs font-semibold transition-colors flex items-center gap-1 hover:brightness-125"
-            style={{ color: themeColor || '#10b981' }}
+            className="text-xs font-semibold transition-colors flex items-center gap-1 hover:brightness-125 text-gray-900 dark:text-white"
           >
             Start for free
             <svg className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">

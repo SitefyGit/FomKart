@@ -115,6 +115,8 @@ export function ShareModal({ isOpen, onClose, username, url, title }: ShareModal
           <a
             href={`mailto:support@fomkart.com?subject=${encodeURIComponent('Report page on fomkart')}&body=${encodeURIComponent(`I would like to report this page: ${shareLink}`)}`}
             className="w-full flex items-center space-x-3 p-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-red-600 dark:text-red-400 mt-2"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             <Flag className="h-5 w-5" />
             <span>Report page</span>
@@ -132,7 +134,7 @@ export function ShareModal({ isOpen, onClose, username, url, title }: ShareModal
               <a href="/auth/creator-signup" className="flex-1 text-center bg-emerald-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-emerald-700 transition-colors">
                 Sign up
               </a>
-              <a href="/creator-login" className="flex-1 text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <a href="/start" className="flex-1 text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 Learn more
               </a>
             </div>

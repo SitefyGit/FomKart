@@ -390,6 +390,9 @@ export default function CreatorPage() {
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [subscribeEmail, setSubscribeEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reporting, setReporting] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [sectionOrder, setSectionOrder] = useState<ProfileSectionKey[]>(DEFAULT_SECTION_ORDER);
   const [draggingSection, setDraggingSection] = useState<ProfileSectionKey | null>(null);
@@ -407,6 +410,9 @@ export default function CreatorPage() {
     facebook: '',
     linkedin: ''
   });
+
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
   // Product share modal
   const [shareProduct, setShareProduct] = useState<{ url: string; title: string } | null>(null);
   const productTypes = [
@@ -745,7 +751,7 @@ export default function CreatorPage() {
   useEffect(()=>{
     if (searchParams?.get('contact') === '1') {
       if (currentUser) setMessageOpen(true);
-      else if (creator) router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`);
+      else if (creator) router.replace(`/auth/login?redirect=/creator/${creator.username}?contact=1`);
     }
   }, [searchParams, currentUser, creator, router]);
 
@@ -756,6 +762,36 @@ export default function CreatorPage() {
       setCurrentUser(user || null);
     })();
   }, []);
+
+  // Fetch follower count and current user following status
+  useEffect(() => {
+    if (!creator?.id) return;
+    const fetchFollowers = async () => {
+      const { count } = await supabase
+        .from('newsletter_subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('creator_id', creator.id);
+      if (count !== null) setFollowerCount(count);
+    };
+    fetchFollowers();
+  }, [creator?.id]);
+
+  useEffect(() => {
+    if (!creator?.id || !currentUser?.email) {
+      setIsFollowing(false);
+      return;
+    }
+    const checkFollowing = async () => {
+      const { data } = await supabase
+        .from('newsletter_subscriptions')
+        .select('id')
+        .eq('creator_id', creator.id)
+        .eq('email', currentUser.email)
+        .maybeSingle();
+      setIsFollowing(!!data);
+    };
+    checkFollowing();
+  }, [creator?.id, currentUser?.email]);
 
   const isOwner = !!(currentUser && creator && currentUser.id === creator.id);
 
@@ -787,23 +823,22 @@ export default function CreatorPage() {
     if (!creator || !currentUser || !messageBody.trim()) return;
     
     try {
-      const response = await fetch('/api/notifications/create', {
+      const response = await fetch('/api/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: creator.id,
-          type: 'message',
-          title: `New message from ${currentUser.email?.split('@')[0] || 'User'}`,
-          message: messageBody,
-          data: { sender_id: currentUser.id, sender_email: currentUser.email }
+          sender_id: currentUser.id,
+          receiver_id: creator.id,
+          content: messageBody
         })
       });
 
       if (!response.ok) throw new Error('Failed to send message');
 
-      pushToast({ type: 'success', title: 'Message sent', message: 'Your message has been sent to the creator.' });
+      pushToast({ type: 'success', title: 'Message sent', message: 'You will now be redirected to the chat.' });
       setMessageBody('');
       setMessageOpen(false);
+      router.push('/messages');
     } catch (error) {
       console.error('Error sending message:', error);
       pushToast({ type: 'error', title: 'Send failed', message: 'Could not send message. Please try again.' });
@@ -1403,26 +1438,60 @@ export default function CreatorPage() {
                 <span className="text-gray-600 dark:text-gray-400">
                   <span className="font-semibold text-gray-900 dark:text-white">{yearsOnPlatform}</span> years on fomkart
                 </span>
+                <span className="text-gray-300 dark:text-gray-600">|</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  <span className="font-semibold text-gray-900 dark:text-white">{followerCount}</span> followers
+                </span>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => { if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }}
-                className="flex items-center gap-2 px-5 py-2.5 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                <TranslatableText text="Contact" as="span" wrapperAs="span" className="inline" />
-              </button>
-              <button
-                onClick={() => setSubscribeOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                <TranslatableText text="Follow" as="span" wrapperAs="span" className="inline" />
-              </button>
-            </div>
+            {(!currentUser || currentUser.id !== creator.id) && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => { if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }}
+                  className="flex items-center gap-2 px-5 py-2.5 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                  <TranslatableText text="Contact" as="span" wrapperAs="span" className="inline" />
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!currentUser) {
+                      setSubscribeOpen(true);
+                    } else {
+                      if (isFollowing) {
+                        setIsFollowing(false);
+                        setFollowerCount(prev => Math.max(0, prev - 1));
+                        try {
+                          await supabase.from('newsletter_subscriptions').delete().eq('creator_id', creator.id).eq('email', currentUser.email);
+                          pushToast({ type: 'info', title: 'Unfollowed', message: `You are no longer following ${creator.username}` });
+                        } catch (err) {
+                          setIsFollowing(true);
+                          setFollowerCount(prev => prev + 1);
+                        }
+                      } else {
+                        setIsFollowing(true);
+                        setFollowerCount(prev => prev + 1);
+                        try {
+                          const { error } = await supabase.from('newsletter_subscriptions').insert({ creator_id: creator.id, email: currentUser.email, source: 'creator_profile' });
+                          if (error && error.code !== '23505') throw error;
+                          pushToast({ type: 'success', title: 'Subscribed', message: `You are now following ${creator.username}` });
+                        } catch (err) {
+                          setIsFollowing(false);
+                          setFollowerCount(prev => Math.max(0, prev - 1));
+                          pushToast({ type: 'error', title: 'Error', message: 'Could not follow. Please try again later.' });
+                        }
+                      }
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-5 py-2.5 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium transition-colors ${isFollowing ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                >
+                  <svg className={`w-4 h-4 transition-colors ${isFollowing ? 'fill-red-500 text-red-500 stroke-none' : 'fill-none stroke-currentColor'}`} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                  <TranslatableText text={isFollowing ? 'Following' : 'Follow'} as="span" wrapperAs="span" className="inline" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1485,13 +1554,15 @@ export default function CreatorPage() {
             </div>
 
             {/* Contact Button */}
-            <button
-              onClick={() => { if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-4"
-            >
-              <ChatBubbleLeftRightIcon className="w-4 h-4" />
-              <TranslatableText text="Contact shop owner" as="span" wrapperAs="span" className="inline" />
-            </button>
+            {(!currentUser || currentUser.id !== creator.id) && (
+              <button
+                onClick={() => { if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-4"
+              >
+                <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                <TranslatableText text="Contact shop owner" as="span" wrapperAs="span" className="inline" />
+              </button>
+            )}
 
             {/* Shop Stats */}
             <div className="text-sm space-y-2 text-gray-600 dark:text-gray-400">
@@ -1500,11 +1571,13 @@ export default function CreatorPage() {
             </div>
 
             {/* Report Link */}
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400">
-                <TranslatableText text="Report this shop" as="span" wrapperAs="span" className="inline" />
-              </button>
-            </div>
+            {(!currentUser || currentUser.id !== creator.id) && (
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <button onClick={() => setReportOpen(true)} className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400">
+                  <TranslatableText text="Report this shop" as="span" wrapperAs="span" className="inline" />
+                </button>
+              </div>
+            )}
           </aside>
 
           {/* Products Grid */}
@@ -2306,6 +2379,44 @@ export default function CreatorPage() {
                 <button disabled={subscribing} className="px-4 bg-gray-800 dark:bg-gray-700 text-white text-sm font-medium hover:bg-black dark:hover:bg-gray-600 disabled:opacity-50"><TranslatableText text={subscribing? '...' : 'Submit'} as="span" wrapperAs="span" className="inline" /></button>
               </form>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-2"><TranslatableText text="We respect your inbox. Unsubscribe anytime." as="span" wrapperAs="span" className="inline" /></p>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Report Modal */}
+      {reportOpen && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold dark:text-white"><TranslatableText text="Report this shop" as="span" wrapperAs="span" className="inline" /></h3>
+              <button onClick={()=>setReportOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl leading-none">×</button>
+            </div>
+            <textarea value={reportReason} onChange={e=>setReportReason(e.target.value)} placeholder="Why are you reporting this shop?" className="w-full border dark:border-gray-600 rounded px-3 py-2 text-sm h-32 dark:bg-gray-700 dark:text-white" />
+            <div className="flex justify-end gap-2">
+              <button onClick={()=>setReportOpen(false)} className="px-3 py-2 text-sm rounded border dark:border-gray-600 dark:text-white"><TranslatableText text="Cancel" as="span" wrapperAs="span" className="inline" /></button>
+              <button 
+                onClick={async () => {
+                  if (!reportReason.trim()) return;
+                  setReporting(true);
+                  try {
+                    await supabase.from('reports').insert({
+                      reported_user_id: creator.id,
+                      reporter_id: currentUser?.id || null,
+                      reason: reportReason
+                    });
+                  } catch (e) {
+                    console.warn('Report submission', e);
+                  } finally {
+                    setReporting(false);
+                    setReportOpen(false);
+                    setReportReason('');
+                    pushToast({ type: 'success', title: 'Report Submitted', message: 'Thank you for your report. We will review it shortly.' });
+                  }
+                }}
+                disabled={!reportReason.trim() || reporting} 
+                className="px-4 py-2 text-sm rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                  <TranslatableText text={reporting ? "Reporting..." : "Submit Report"} as="span" wrapperAs="span" className="inline" />
+              </button>
             </div>
           </div>
         </div>

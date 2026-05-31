@@ -403,21 +403,20 @@ export default function CreatorBioPage() {
   const handleSendMessage = async () => {
     if (!creator || !currentUser || !messageBody.trim()) return;
     try {
-      const response = await fetch('/api/notifications/create', {
+      const response = await fetch('/api/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: creator.id,
-          type: 'message',
-          title: `New message from ${currentUser.email?.split('@')[0] || 'User'}`,
-          message: messageBody,
-          data: { sender_id: currentUser.id, sender_email: currentUser.email }
+          sender_id: currentUser.id,
+          receiver_id: creator.id,
+          content: messageBody
         })
       });
       if (!response.ok) throw new Error('Failed to send');
-      pushToast({ type: 'success', title: 'Message sent', message: 'Your message has been sent.' });
+      pushToast({ type: 'success', title: 'Message sent', message: 'You will now be redirected to the chat.' });
       setMessageBody('');
       setMessageOpen(false);
+      router.push('/messages');
     } catch {
       pushToast({ type: 'error', title: 'Send failed', message: 'Could not send message.' });
     }
@@ -795,7 +794,7 @@ export default function CreatorBioPage() {
                         <button onClick={handleSubscribe} className="px-4 py-2 text-white rounded-lg text-sm transition-all hover:brightness-110" style={{ backgroundColor: creator.theme_color || '#10b981' }}><TranslatableText text="Join" as="span" wrapperAs="span" className="inline" /></button>
                    </div>
                  ) : (
-                      <button onClick={() => setSubscribeOpen(true)} className="font-medium text-sm transition-all hover:brightness-110" style={{ color: creator.theme_color || '#10b981' }}><TranslatableText text="Subscribe for updates" as="span" wrapperAs="span" className="inline" /></button>
+                      <button onClick={() => setSubscribeOpen(true)} className="font-medium text-sm transition-all hover:brightness-110 text-white"><TranslatableText text="Subscribe for updates" as="span" wrapperAs="span" className="inline" /></button>
                  )}
             </div>
         )}

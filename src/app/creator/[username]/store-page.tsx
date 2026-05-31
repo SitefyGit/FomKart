@@ -211,21 +211,20 @@ export default function CreatorStorePage() {
   const handleSendMessage = async () => {
     if (!creator || !currentUser || !messageBody.trim()) return;
     try {
-      const response = await fetch('/api/notifications/create', {
+      const response = await fetch('/api/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: creator.id,
-          type: 'message',
-          title: `New message from ${currentUser.email?.split('@')[0] || 'User'}`,
-          message: messageBody,
-          data: { sender_id: currentUser.id, sender_email: currentUser.email }
+          sender_id: currentUser.id,
+          receiver_id: creator.id,
+          content: messageBody
         })
       });
       if (!response.ok) throw new Error('Failed to send');
-      pushToast({ type: 'success', title: 'Message sent', message: 'Your message has been sent.' });
+      pushToast({ type: 'success', title: 'Message sent', message: 'You will now be redirected to the chat.' });
       setMessageBody('');
       setMessageOpen(false);
+      router.push('/messages');
     } catch {
       pushToast({ type: 'error', title: 'Send failed', message: 'Could not send message.' });
     }

@@ -373,6 +373,12 @@ export default function ProductPage({ params }: ProductPageProps) {
       const user = await getCurrentUser();
       if (!user) {
         setCartFeedback('Please log in to add items to cart');
+        // Store intended item in localStorage
+        localStorage.setItem('pending_cart_item', JSON.stringify({
+          product_id: product.id,
+          package_id: selectedPackage.id,
+          quantity: 1
+        }));
         setTimeout(() => setCartFeedback(null), 2000);
         router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
         return;
