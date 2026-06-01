@@ -281,7 +281,8 @@ export default function OrderPage({ params }: OrderPageProps) {
           const uploaded: string[] = []
           for (const f of files) {
             const stamp = Date.now().toString(36)
-            const path = `${order.id}/messages/${stamp}-${encodeURIComponent(f.name)}`
+            const safeName = f.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')
+            const path = `${order.id}/messages/${stamp}-${safeName}`
             const { error: upErr } = await supabase.storage.from('order-deliveries').upload(path, f, { upsert: true })
             if (upErr) throw upErr
             const { data: pub } = supabase.storage.from('order-deliveries').getPublicUrl(path)
@@ -1018,7 +1019,7 @@ export default function OrderPage({ params }: OrderPageProps) {
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <button onClick={()=>setShowDeliverModal(false)} className="px-3 py-2 border dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"><TranslatableText text="Cancel" as="span" wrapperAs="span" className="inline" /></button>
-              <button onClick={handleSendDelivery} disabled={uploading || !(deliveryFiles && deliveryFiles.length)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50"><TranslatableText text="Send delivery" as="span" wrapperAs="span" className="inline" /></button>
+              <button onClick={handleSendDelivery} disabled={uploading || (!(deliveryFiles && deliveryFiles.length) && !deliveryNote?.trim())} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50"><TranslatableText text="Send delivery" as="span" wrapperAs="span" className="inline" /></button>
             </div>
           </div>
         </div>

@@ -646,7 +646,8 @@ export const createDeliverable = async (params: {
     const uploaded: { file_name: string; file_url: string; file_size: number }[] = []
     for (const f of params.files) {
       const stamp = Date.now().toString(36)
-      const path = `${params.order_id}/deliveries/${stamp}-${encodeURIComponent(f.name)}`
+      const safeName = f.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')
+      const path = `${params.order_id}/deliveries/${stamp}-${safeName}`
       const { error: upErr } = await supabase.storage
         .from('order-deliveries')
         .upload(path, f.blob, { upsert: true })
