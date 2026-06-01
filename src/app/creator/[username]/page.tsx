@@ -2196,7 +2196,8 @@ export default function CreatorPage() {
                       try {
                         const stamp = Date.now() + idx;
                         const rand = Math.random().toString(36).slice(2, 8);
-                        const path = `${creator.id}/${slug}/files/${stamp}-${rand}-${encodeURIComponent(file.name)}`;
+                        const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                        const path = `${creator.id}/${slug}/files/${stamp}-${rand}-${safeName}`;
                         const bucket = 'digital-products';
                         const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
                         if (upErr) throw upErr;
