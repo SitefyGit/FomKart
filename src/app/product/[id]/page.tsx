@@ -786,17 +786,19 @@ export default function ProductPage({ params }: ProductPageProps) {
                   className="text-gray-700 dark:text-gray-300 text-sm mb-4"
                   showListingControls
                 />
-                <button
-                  onClick={() => {
-                    if (product?.creator?.username) {
-                      router.push(`/creator/${product.creator.username}?contact=1`);
-                    }
-                  }}
-                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  <TranslatableText text="Contact Creator" as="span" wrapperAs="span" className="inline" />
-                </button>
+                {currentUserId !== product.creator_id && (
+                  <button
+                    onClick={() => {
+                      if (product?.creator?.username) {
+                        router.push(`/creator/${product.creator.username}?contact=1`);
+                      }
+                    }}
+                    className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    <TranslatableText text="Contact Creator" as="span" wrapperAs="span" className="inline" />
+                  </button>
+                )}
               </div>
             )}
           </div>
