@@ -77,7 +77,7 @@ export default function ProductsPage() {
         .from('products')
         .select(`
           *,
-          creator:creator_id(id, username, full_name, avatar_url, is_verified),
+          creator:users(id, username, full_name, avatar_url, is_verified),
           category:categories(id, name, slug)
         `, { count: 'exact' })
 

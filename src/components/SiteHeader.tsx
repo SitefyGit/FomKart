@@ -50,6 +50,10 @@ export default function SiteHeader() {
 
   const isBioPage = pathname?.match(/^\/creator\/[^/]+\/bio$/);
 
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <>
       <header className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 ${(isBioPage && !isLoggedIn) ? 'hidden md:block' : ''}`}>

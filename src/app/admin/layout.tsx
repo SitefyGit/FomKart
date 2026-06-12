@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import NotificationsBell from '@/components/NotificationsBell'
 import {
   LayoutDashboard,
   FolderTree,
@@ -20,7 +21,8 @@ import {
   ChevronDown,
   Flag,
   Megaphone,
-  Home
+  Home,
+  CreditCard
 } from 'lucide-react'
 
 type AdminUser = {
@@ -43,6 +45,7 @@ const navigation = [
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
+  { name: 'Settlements', href: '/admin/settlements', icon: CreditCard },
   { name: 'Reports', href: '/admin/reports', icon: Flag },
   { name: 'Announcements', href: '/admin/announcements', icon: Megaphone },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
@@ -256,10 +259,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Right side */}
             <div className="flex items-center gap-3">
               {/* Notifications */}
-              <button className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                <Bell className="w-5 h-5 text-gray-500" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
+              <div className="relative">
+                <NotificationsBell />
+              </div>
 
               {/* User menu */}
               <div className="relative">

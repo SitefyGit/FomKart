@@ -39,7 +39,7 @@ export default function NotificationsBell() {
       const fetchList = async () => {
         const list = await listNotifications(user.id, 20)
         if (isActive) {
-          setItems(list.map(n => ({ ...n, is_read: !!(n as any).is_read })))
+          setItems(list.filter(n => n.type !== 'direct_message').map(n => ({ ...n, is_read: !!(n as any).is_read })))
           setLoading(false)
         }
       }
@@ -52,6 +52,7 @@ export default function NotificationsBell() {
       channel = supabase.channel(`notifs-${user.id}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload: any) => {
           const n = payload.new as Notification
+          if (n.type === 'direct_message') return; // Ignore chat notifications here
           setItems(prev => [n, ...prev])
           // Show a toast
           pushToast('info', n.message, n.title)

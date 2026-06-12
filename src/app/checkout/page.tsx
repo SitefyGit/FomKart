@@ -3,20 +3,11 @@
 import { useCallback, useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import { 
-  Lock, 
-  Clock, 
-  CheckCircle,
-  FileText,
-  User
-} from 'lucide-react'
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { Lock, Clock, CheckCircle, FileText, User } from 'lucide-react'
 import { supabase, type User as ProfileUser, type CourseDeliveryPayload, type ProductDigitalAsset } from '@/lib/supabase'
 import { useCurrency } from '@/contexts/CurrencyContext'
-
-const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null
+import { convertFromUSD } from '@/lib/currency'
+import Script from 'next/script'
 
 interface CheckoutItem {
   productId: string
@@ -61,8 +52,9 @@ function CheckoutContent() {
   const [items, setItems] = useState<CheckoutItem[]>([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<ProfileUser | null>(null)
-  const { formatPrice } = useCurrency()
+  const { formatPrice, currency } = useCurrency()
   const [billingInfo, setBillingInfo] = useState({
     fullName: '',
     email: '',
@@ -71,9 +63,7 @@ function CheckoutContent() {
     zipCode: '',
     country: ''
   })
-  const [paymentMethod, setPaymentMethod] = useState('stripe')
-  const [clientSecret, setClientSecret] = useState('')
-  const [stripeError, setStripeError] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('razorpay')
   const [commissionRate, setCommissionRate] = useState(5)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -92,38 +82,6 @@ function CheckoutContent() {
     }
     fetchSettings()
   }, [])
-
-  useEffect(() => {
-    if (items.length > 0) {
-      const total = items.reduce((sum, item) => {
-        const price = item.package?.price || item.product?.base_price || 0
-        return sum + (price * item.quantity)
-      }, 0)
-      
-      // Create PaymentIntent as soon as the page loads
-      fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: total }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.clientSecret) {
-            setClientSecret(data.clientSecret)
-          } else {
-            // Only log if it's an unexpected error (not the expected "not configured" message)
-            if (data.error && !data.error.includes('not configured')) {
-              console.error('Stripe error:', data.error)
-            }
-            setStripeError(true)
-          }
-        })
-        .catch((err) => {
-          console.error('Payment intent error:', err)
-          setStripeError(true)
-        })
-    }
-  }, [items])
 
   const checkAuth = useCallback(async () => {
     try {
@@ -266,175 +224,163 @@ function CheckoutContent() {
     }, 0)
   }
 
-  const calculateServiceFee = (subtotal: number) => {
-    return Math.round(subtotal * (commissionRate / 100) * 100) / 100
-  }
-
   const calculateTotal = () => {
-    const subtotal = calculateSubtotal()
-    const serviceFee = calculateServiceFee(subtotal)
-    return subtotal + serviceFee
+    return calculateSubtotal()
   }
 
-  const processPayment = async () => {
-  if (!currentUser || items.length === 0) return
+  const handlePayment = async () => {
+    if (!currentUser || items.length === 0) return
 
     setProcessing(true)
+    setPaymentError(null)
     try {
-      // Create orders for each item
-      const orderPromises = items.map(async (item) => {
-        if (!item.product || !item.package) {
-          throw new Error('Checkout item is missing product or package details')
-        }
-
-        const product = item.product
-        const selectedPackage = item.package
-
-        const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`
-        const subtotal = selectedPackage.price * item.quantity
-        const serviceFee = Math.round(subtotal * 0.05 * 100) / 100
-        const total = subtotal + serviceFee
-
-        // Calculate expected delivery date
-        const deliveryDays = selectedPackage.delivery_time
-          ?? selectedPackage.delivery_days
-          ?? 5
-        const expectedDelivery = new Date()
-        expectedDelivery.setDate(expectedDelivery.getDate() + deliveryDays)
-
-        const { data: order, error } = await supabase
-          .from('orders')
-          .insert([{
-            order_number: orderNumber,
-            buyer_id: currentUser.id,
-            seller_id: product.creator_id,
-            product_id: item.productId,
-            package_id: item.packageId,
-            quantity: item.quantity,
-            unit_price: selectedPackage.price,
-            total_price: total,
-            service_fee: serviceFee,
-            status: 'confirmed',
-            payment_status: 'completed',
-            payment_method: paymentMethod,
-            transaction_id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            expected_delivery: expectedDelivery.toISOString()
-          }])
-          .select()
-          .single()
-
-        if (error) {
-          console.error('Error creating order:', error)
-          throw error
-        }
-
-        // If seller enabled automation, send welcome message automatically
-        if (order?.id && product.auto_message_enabled && product.auto_message) {
-          try {
-            const response = await fetch('/api/orders/auto-message', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                orderId: order.id,
-                creatorId: product.creator_id,
-                message: product.auto_message
-              })
-            })
-
-            if (!response.ok) {
-              const errorBody = await response.json().catch(() => ({}))
-              throw new Error(errorBody.error || 'Auto message request failed')
-            }
-          } catch (autoMessageError) {
-            console.warn('Auto message insert failed', autoMessageError)
-          }
-        }
-
-        if (order?.id) {
-          const coursePayload = (product.course_delivery || null) as CourseDeliveryPayload | null
-          const hasCoursePayload = !!(
-            coursePayload &&
-            ((Array.isArray(coursePayload.links) && coursePayload.links.length > 0) ||
-              (Array.isArray(coursePayload.passkeys) && coursePayload.passkeys.length > 0) ||
-              (coursePayload.notes && coursePayload.notes.trim()))
-          )
-          const hasDigitalFiles = Array.isArray(product.digital_files) && product.digital_files.length > 0
-          if (product.auto_deliver || hasDigitalFiles || hasCoursePayload) {
-            try {
-              await fetch('/api/orders/auto-deliver', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId: order.id, productId: product.id })
-              })
-            } catch (autoDeliveryError) {
-              console.warn('Digital auto delivery failed', autoDeliveryError)
-            }
-          }
-        }
-
-        return order
+      const totalAmountUSD = calculateTotal()
+      const totalAmountLocal = convertFromUSD(totalAmountUSD, currency || 'USD')
+      
+      const res = await fetch('/api/create-razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: totalAmountLocal, currency: currency || 'USD' })
       })
 
-      const orders = await Promise.all(orderPromises)
+      if (!res.ok) {
+        const text = await res.text()
+        console.error('Create order error response:', text)
+        throw new Error('Failed to create order. Server returned an error.')
+      }
 
-      // Notify sellers (and buyer) about new orders
-      try {
-        for (const ord of orders) {
-          // Seller notification: order placed
-          if (ord.seller_id) {
-            await fetch('/api/notifications/create', {
+      const data = await res.json()
+      
+      if (!data.order) {
+        throw new Error('Failed to create Razorpay order')
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: data.order.amount,
+        currency: data.order.currency,
+        name: 'FomKart',
+        description: 'Order Checkout',
+        order_id: data.order.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch('/api/verify-razorpay-payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                user_id: ord.seller_id,
-                type: 'order_placed',
-                title: 'New order placed',
-                message: `Order #${(ord.id || '').toString().slice(0, 8)} has been placed`,
-                data: { order_id: ord.id }
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                items,
+                buyer_id: currentUser?.id,
+                billing_info: billingInfo,
+                payment_method: paymentMethod
               })
             })
+
+            if (!verifyRes.ok) {
+              const text = await verifyRes.text()
+              console.error('Verify payment error response:', text)
+              throw new Error('Verification failed. Server returned an error.')
+            }
+
+            const verifyData = await verifyRes.json()
+            if (verifyData.success && verifyData.orders?.length > 0) {
+              
+              // Run all the auto deliveries and notifications since they are frontend fetches 
+              for (const order of verifyData.orders) {
+                const item = items.find(i => i.productId === order.product_id)
+                const product = item?.product
+                
+                if (product) {
+                  // If seller enabled automation, send welcome message automatically
+                  if (product.auto_message_enabled && product.auto_message) {
+                    try {
+                      await fetch('/api/orders/auto-message', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          orderId: order.id,
+                          creatorId: product.creator_id,
+                          message: product.auto_message
+                        })
+                      })
+                    } catch (autoMessageError) {
+                      console.warn('Auto message insert failed', autoMessageError)
+                    }
+                  }
+
+                  const coursePayload = (product.course_delivery || null) as CourseDeliveryPayload | null
+                  const hasCoursePayload = !!(
+                    coursePayload &&
+                    ((Array.isArray(coursePayload.links) && coursePayload.links.length > 0) ||
+                      (Array.isArray(coursePayload.passkeys) && coursePayload.passkeys.length > 0) ||
+                      (coursePayload.notes && coursePayload.notes.trim()))
+                  )
+                  const hasDigitalFiles = Array.isArray(product.digital_files) && product.digital_files.length > 0
+                  
+                  if (product.auto_deliver || hasDigitalFiles || hasCoursePayload) {
+                    try {
+                      await fetch('/api/orders/auto-deliver', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderId: order.id, productId: product.id })
+                      })
+                    } catch (e) {}
+                  }
+                }
+                
+                // Notifications
+                try {
+                  if (order.seller_id) {
+                    await fetch('/api/notifications/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: order.seller_id, type: 'order_placed', title: 'New order placed', message: `Order #${(order.id || '').toString().slice(0, 8)} has been placed`, data: { order_id: order.id } })})
+                  }
+                  if (order.buyer_id) {
+                    await fetch('/api/notifications/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: order.buyer_id, type: 'order_placed', title: 'Order confirmed', message: `Your order #${(order.id || '').toString().slice(0, 8)} is confirmed`, data: { order_id: order.id } })})
+                  }
+                } catch (e) {}
+              }
+
+              router.push(`/orders/${verifyData.orders[0].id}?success=true`)
+            } else {
+              throw new Error('Verification failed')
+            }
+          } catch (error) {
+            console.error('Payment verification failed:', error)
+            setPaymentError('Payment verification failed. Please contact support.')
+            setProcessing(false)
           }
-          // Buyer notification: order confirmed
-          if (ord.buyer_id) {
-            await fetch('/api/notifications/create', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                user_id: ord.buyer_id,
-                type: 'order_placed',
-                title: 'Order confirmed',
-                message: `Your order #${(ord.id || '').toString().slice(0, 8)} is confirmed`,
-                data: { order_id: ord.id }
-              })
-            })
+        },
+        prefill: {
+          name: billingInfo.fullName,
+          email: billingInfo.email,
+        },
+        theme: {
+          color: '#10b981',
+        },
+        modal: {
+          ondismiss: function() {
+            setProcessing(false)
+            setPaymentError('Payment was cancelled. You can try again when you are ready.')
           }
         }
-      } catch (e) {
-        console.warn('Notification create failed', e)
-      }
-      
-      // Clear cart after successful order creation
-      if (currentUser.id) {
-        await supabase
-          .from('carts')
-          .delete()
-          .eq('user_id', currentUser.id)
       }
 
-      // Redirect to the first order confirmation page
-      if (orders.length > 0) {
-        router.push(`/orders/${orders[0].id}?success=true`)
-      }
-      
+      const rzp = new (window as any).Razorpay(options)
+      rzp.on('payment.failed', function (response: any) {
+        console.error('Payment failed', response.error)
+        setProcessing(false)
+        setPaymentError('Payment failed: ' + response.error.description)
+      })
+      rzp.open()
     } catch (error) {
-      console.error('Payment processing error:', error)
-      alert('Payment failed. Please try again.')
+      console.error('Error in handlePayment:', error)
       setProcessing(false)
+      setPaymentError(error instanceof Error ? error.message : 'An error occurred during checkout')
     }
   }
 
   const subtotal = calculateSubtotal()
-  const serviceFee = calculateServiceFee(subtotal)
   const total = calculateTotal()
 
   if (loading) {
@@ -592,53 +538,48 @@ function CheckoutContent() {
                   <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
                   <span className="text-gray-900 dark:text-white">{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Service Fee (5%)</span>
-                  <span className="text-gray-900 dark:text-white">{formatPrice(serviceFee)}</span>
-                </div>
               </div>
               
               <div className="flex justify-between pt-4 mb-6">
                 <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(total)}</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(calculateTotal())}</span>
               </div>
 
-              {/* Checkout Button */}
-              {clientSecret && stripePromise ? (
-                <Elements options={{ clientSecret, appearance: { theme: 'stripe' } }} stripe={stripePromise}>
-                  <PaymentForm onSuccess={processPayment} />
-                </Elements>
-              ) : stripeError || (clientSecret && !stripePromise) ? (
-                <div>
-                  <p className="text-amber-600 dark:text-amber-400 text-sm mb-3 text-center">
-                    {!stripePromise 
-                      ? "Payment configuration missing. You can still place the order." 
-                      : "Payment system unavailable. You can still place the order."}
-                  </p>
-                  <button
-                    onClick={processPayment}
-                    disabled={processing}
-                    className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {processing ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="w-5 h-5" />
-                        Place Order
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600 mx-auto mb-2"></div>
-                  Loading payment details...
+              {paymentError && (
+                <div className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Payment Issue</h3>
+                    <p className="mt-1 opacity-90">{paymentError}</p>
+                  </div>
                 </div>
               )}
+
+              {/* Checkout Button */}
+              <div>
+                <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+                <button
+                  onClick={handlePayment}
+                  disabled={processing}
+                  className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {processing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-5 h-5" />
+                      Pay with Razorpay
+                    </>
+                  )}
+                </button>
+              </div>
 
               <div className="mt-4 space-y-2 text-xs text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-2">
@@ -659,63 +600,6 @@ function CheckoutContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-function PaymentForm({ onSuccess }: { onSuccess: () => void }) {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [message, setMessage] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!stripe || !elements) {
-      return
-    }
-
-    setIsLoading(true)
-
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/orders`,
-      },
-      redirect: 'if_required'
-    })
-
-    if (error) {
-      setMessage(error.message ?? 'An unexpected error occurred.')
-    } else {
-      onSuccess()
-    }
-
-    setIsLoading(false)
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <PaymentElement />
-      <button 
-        disabled={isLoading || !stripe || !elements} 
-        id="submit"
-        className="w-full mt-4 bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-      >
-        {isLoading ? (
-          <>
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            Processing...
-          </>
-        ) : (
-          <>
-            <Lock className="w-5 h-5" />
-            Pay now
-          </>
-        )}
-      </button>
-      {message && <div id="payment-message" className="text-red-500 dark:text-red-400 mt-2 text-sm">{message}</div>}
-    </form>
   )
 }
 

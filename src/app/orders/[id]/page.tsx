@@ -871,12 +871,18 @@ export default function OrderPage({ params }: OrderPageProps) {
                 const qty = order?.quantity ?? 1
                 const subtotal = unit * qty
                 const fee = typeof order?.service_fee === 'number' ? order.service_fee : Math.round(subtotal * 0.05 * 100) / 100
-                const total = typeof order?.total_price === 'number' ? order.total_price : subtotal + fee
+                const total = typeof order?.total_price === 'number' ? order.total_price : subtotal
                 return (
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400"><TranslatableText text="Package Price" as="span" wrapperAs="span" className="inline" /></span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(subtotal)}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400"><TranslatableText text="Service Fee (5%)" as="span" wrapperAs="span" className="inline" /></span><span className="font-medium text-gray-900 dark:text-white">{formatPrice(fee)}</span></div>
-                    <div className="border-t dark:border-gray-700 pt-3 flex justify-between font-semibold text-lg text-gray-900 dark:text-white"><span><TranslatableText text="Total" as="span" wrapperAs="span" className="inline" /></span><span>{formatPrice(total)}</span></div>
+                    {isSeller ? (
+                      <>
+                        <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400"><TranslatableText text="Platform Fee" as="span" wrapperAs="span" className="inline" /></span><span className="font-medium text-red-600 dark:text-red-400">-{formatPrice(fee)}</span></div>
+                        <div className="border-t dark:border-gray-700 pt-3 flex justify-between font-semibold text-lg text-gray-900 dark:text-white"><span><TranslatableText text="You Earn" as="span" wrapperAs="span" className="inline" /></span><span className="text-emerald-600 dark:text-emerald-400">{formatPrice(subtotal - fee)}</span></div>
+                      </>
+                    ) : (
+                      <div className="border-t dark:border-gray-700 pt-3 flex justify-between font-semibold text-lg text-gray-900 dark:text-white"><span><TranslatableText text="Total Paid" as="span" wrapperAs="span" className="inline" /></span><span>{formatPrice(total)}</span></div>
+                    )}
                   </div>
                 )
               })()}
@@ -888,13 +894,19 @@ export default function OrderPage({ params }: OrderPageProps) {
                 const qty = order?.quantity ?? 1
                 const subtotal = unit * qty
                 const fee = typeof order?.service_fee === 'number' ? order.service_fee : Math.round(subtotal * 0.05 * 100) / 100
-                const total = typeof order?.total_price === 'number' ? order.total_price : subtotal + fee
+                const total = typeof order?.total_price === 'number' ? order.total_price : subtotal
                 return (
                   <div className="mt-3 text-xs text-gray-600 dark:text-gray-400 space-y-1">
                     <div>Order placed: {order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
                     <div>Payment method: {order.payment_method || '—'}</div>
                     <div>Transaction ID: {order.transaction_id || '—'}</div>
-                    <div>Subtotal: ${subtotal.toFixed(2)} • Fee: ${fee.toFixed(2)} • Total: ${total.toFixed(2)}</div>
+                    <div>
+                      {isSeller ? (
+                        <>Subtotal: {formatPrice(subtotal)} • Fee: {formatPrice(fee)} • Earnings: {formatPrice(subtotal - fee)}</>
+                      ) : (
+                        <>Total Paid: {formatPrice(total)}</>
+                      )}
+                    </div>
                   </div>
                 )
               })()}

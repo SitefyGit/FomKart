@@ -39,6 +39,10 @@ export default function Footer() {
 
   const isBioPage = pathname?.match(/^\/creator\/[^/]+\/bio$/)
 
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <footer className={`bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8 ${(isBioPage && !isLoggedIn) ? 'hidden md:block' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

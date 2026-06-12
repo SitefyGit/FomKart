@@ -292,9 +292,9 @@ export const getProduct = async (id: string): Promise<Product | null> => {
       .from('products')
       .select(`
         *,
-        creator:creator_id(*),
+        creator:users(*),
         packages:product_packages(*),
-        category:category_id(*)
+        category:categories(*)
       `)
       .eq('id', id)
       .single()
@@ -318,8 +318,8 @@ export const getProducts = async (filters?: {
       .from('products')
       .select(`
         *,
-        creator:creator_id(*),
-        category:category_id(*)
+        creator:users(*),
+        category:categories(*)
       `)
       .eq('status', 'active')
 
