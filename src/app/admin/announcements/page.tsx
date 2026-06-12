@@ -12,6 +12,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react'
+import { ConfirmModal } from '@/components/ConfirmModal'
 
 type Announcement = {
   id: string
@@ -33,6 +34,7 @@ export default function AnnouncementsPage() {
     is_active: true
   })
   const [saveLoading, setSaveLoading] = useState(false)
+  const [announcementToDelete, setAnnouncementToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     fetchAnnouncements()
@@ -97,8 +99,14 @@ export default function AnnouncementsPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this announcement?')) return
+  const confirmDelete = (id: string) => {
+    setAnnouncementToDelete(id)
+  }
+
+  const executeDelete = async () => {
+    if (!announcementToDelete) return
+    const id = announcementToDelete
+    setAnnouncementToDelete(null)
 
     try {
       const { error } = await supabase
@@ -196,7 +204,7 @@ export default function AnnouncementsPage() {
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(announcement.id)}
+                    onClick={() => confirmDelete(announcement.id)}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -303,6 +311,16 @@ export default function AnnouncementsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!announcementToDelete}
+        title="Delete Announcement"
+        message="Are you sure you want to delete this announcement? This action cannot be undone."
+        onConfirm={executeDelete}
+        onCancel={() => setAnnouncementToDelete(null)}
+        confirmText="Yes, delete"
+        isDestructive={true}
+      />
     </div>
   )
 }

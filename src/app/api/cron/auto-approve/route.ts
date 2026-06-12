@@ -45,7 +45,7 @@ export async function GET(request: Request) {
         for (const tx of pendingTxs) {
           await supabaseAdmin
             .from('wallet_transactions')
-            .update({ status: 'completed', updated_at: new Date().toISOString() })
+            .update({ status: 'completed' })
             .eq('id', tx.id)
 
           await supabaseAdmin.rpc('release_seller_pending_to_available', {

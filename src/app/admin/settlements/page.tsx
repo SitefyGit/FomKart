@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { supabase } from '@/lib/supabase'
 import { CheckCircle, Clock, XCircle, MoreVertical, CreditCard } from 'lucide-react'
+import { ConfirmModal } from '@/components/ConfirmModal'
 
 interface Settlement {
   id: string
@@ -27,7 +28,8 @@ export default function AdminSettlementsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('pending')
   const [processingId, setProcessingId] = useState<string | null>(null)
-  const { formatPrice } = useCurrency()
+  const [confirmAction, setConfirmAction] = useState<{ id: string, status: string } | null>(null)
+  const { formatPrice, currency } = useCurrency()
 
   useEffect(() => {
     fetchSettlements()
@@ -50,8 +52,14 @@ export default function AdminSettlementsPage() {
     }
   }
 
-  const updateStatus = async (id: string, newStatus: string) => {
-    if (!confirm(`Are you sure you want to mark this payout as ${newStatus}?`)) return
+  const updateStatus = (id: string, newStatus: string) => {
+    setConfirmAction({ id, status: newStatus })
+  }
+
+  const executeStatusUpdate = async () => {
+    if (!confirmAction) return
+    const { id, status: newStatus } = confirmAction
+    setConfirmAction(null)
 
     setProcessingId(id)
     try {
@@ -153,12 +161,31 @@ export default function AdminSettlementsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-semibold text-gray-900 dark:text-white">{formatPrice(s.amount)}</div>
-                    <div className="text-xs text-gray-500">{s.currency}</div>
+                    <div className="text-xs text-gray-500">{currency}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 dark:text-white capitalize">{s.payout_method.replace('_', ' ')}</div>
-                    <div className="text-sm text-gray-500 max-w-[200px] truncate" title={s.payout_details?.account}>
-                      {s.payout_details?.account || JSON.stringify(s.payout_details)}
+                    <div className="text-sm text-gray-900 dark:text-white capitalize font-medium mb-1">
+                      {s.payout_method.replace('_', ' ')}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
+                      {s.payout_method === 'bank_transfer' && s.payout_details && (
+                        <>
+                          <div><span className="font-medium text-gray-700 dark:text-gray-300">Name:</span> {s.payout_details.accountName}</div>
+                          <div><span className="font-medium text-gray-700 dark:text-gray-300">Bank:</span> {s.payout_details.bankName} ({s.payout_details.country})</div>
+                          <div><span className="font-medium text-gray-700 dark:text-gray-300">Acct:</span> {s.payout_details.accountNumber}</div>
+                          <div><span className="font-medium text-gray-700 dark:text-gray-300">Code:</span> {s.payout_details.routingCode}</div>
+                        </>
+                      )}
+                      {s.payout_method === 'paypal' && s.payout_details && (
+                        <div><span className="font-medium text-gray-700 dark:text-gray-300">Email:</span> {s.payout_details.paypalEmail}</div>
+                      )}
+                      {s.payout_method === 'crypto' && s.payout_details && (
+                        <div className="break-all"><span className="font-medium text-gray-700 dark:text-gray-300">Wallet:</span> {s.payout_details.walletAddress}</div>
+                      )}
+                      {/* Fallback for unknown methods or old data */}
+                      {!['bank_transfer', 'paypal', 'crypto'].includes(s.payout_method) && s.payout_details && (
+                        <div className="break-all whitespace-pre-wrap">{s.payout_details.account || JSON.stringify(s.payout_details)}</div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -192,6 +219,16 @@ export default function AdminSettlementsPage() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmAction}
+        title="Update Payout Status"
+        message={confirmAction ? `Are you sure you want to mark this payout as ${confirmAction.status}?` : ''}
+        onConfirm={executeStatusUpdate}
+        onCancel={() => setConfirmAction(null)}
+        confirmText="Yes, update status"
+        isDestructive={confirmAction?.status === 'failed'}
+      />
     </div>
   )
 }

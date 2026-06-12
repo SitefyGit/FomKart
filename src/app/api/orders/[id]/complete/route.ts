@@ -43,7 +43,7 @@ export async function POST(
         // Mark transaction as completed
         await supabaseAdmin
           .from('wallet_transactions')
-          .update({ status: 'completed', updated_at: new Date().toISOString() })
+          .update({ status: 'completed' })
           .eq('id', tx.id)
 
         // Release funds

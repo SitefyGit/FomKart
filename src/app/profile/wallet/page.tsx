@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Wallet, ArrowUpRight, ArrowDownRight, Clock, CheckCircle, XCircle } from 'lucide-react'
 import { useCurrency } from '@/contexts/CurrencyContext'
+import { convertToUSD, convertFromUSD } from '@/lib/currency'
 import { supabase } from '@/lib/supabase'
 
 interface WalletData {
@@ -36,7 +37,7 @@ export default function WalletDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [settlements, setSettlements] = useState<Settlement[]>([])
   const [loading, setLoading] = useState(true)
-  const { formatPrice } = useCurrency()
+  const { formatPrice, currency } = useCurrency()
 
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [payoutMethod, setPayoutMethod] = useState('bank_transfer')
@@ -101,16 +102,22 @@ export default function WalletDashboard() {
     setError(null)
     setSuccess(null)
     
-    const amount = parseFloat(withdrawAmount)
-    if (isNaN(amount) || amount <= 0) {
+    const inputAmount = parseFloat(withdrawAmount)
+    if (isNaN(inputAmount) || inputAmount <= 0) {
       setError('Please enter a valid amount')
       return
     }
 
-    if (wallet && amount > wallet.available_balance) {
+    const amount = convertToUSD(inputAmount, currency)
+
+    // Handle floating point precision issues (allow within 1 cent)
+    if (wallet && amount > wallet.available_balance && (amount - wallet.available_balance) > 0.01) {
       setError('Amount exceeds available balance')
       return
     }
+
+    // Ensure we don't withdraw more than available due to precision
+    const finalAmount = Math.min(amount, wallet?.available_balance || 0);
 
     if (payoutMethod === 'bank_transfer') {
       if (!payoutForm.accountName || !payoutForm.accountNumber || !payoutForm.bankName || !payoutForm.routingCode) {
@@ -139,7 +146,7 @@ export default function WalletDashboard() {
           'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
-          amount,
+          amount: finalAmount,
           payoutMethod,
           payoutDetails: payoutForm
         })
@@ -232,8 +239,15 @@ export default function WalletDashboard() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">{tx.description}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(tx.created_at).toLocaleDateString()} • {tx.status}
+                        <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5">
+                          {new Date(tx.created_at).toLocaleDateString()} • 
+                          <span className={`capitalize font-medium ${
+                            tx.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : 
+                            tx.status === 'pending' ? 'text-amber-600 dark:text-amber-400' : 
+                            'text-red-600 dark:text-red-400'
+                          }`}>
+                            {tx.status}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -258,7 +272,7 @@ export default function WalletDashboard() {
 
             <form onSubmit={handleWithdraw} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount (USD)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount ({currency})</label>
                 <input
                   type="number"
                   step="0.01"

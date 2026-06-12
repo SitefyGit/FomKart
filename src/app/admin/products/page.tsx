@@ -20,6 +20,7 @@ import {
   Star,
   ExternalLink
 } from 'lucide-react'
+import { ConfirmModal } from '@/components/ConfirmModal'
 
 type Product = {
   id: string
@@ -65,6 +66,7 @@ export default function ProductsPage() {
   const [actionMenuId, setActionMenuId] = useState<string | null>(null)
   const [moderationModal, setModerationModal] = useState<{ product: Product; action: 'approve' | 'reject' } | null>(null)
   const [moderationNotes, setModerationNotes] = useState('')
+  const [productToDelete, setProductToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     fetchProducts()
@@ -155,8 +157,15 @@ export default function ProductsPage() {
     setActionMenuId(null)
   }
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return
+  const confirmDeleteProduct = (productId: string) => {
+    setProductToDelete(productId)
+    setActionMenuId(null)
+  }
+
+  const executeDeleteProduct = async () => {
+    if (!productToDelete) return
+    const productId = productToDelete
+    setProductToDelete(null)
     
     try {
       const { error } = await supabase
@@ -169,7 +178,6 @@ export default function ProductsPage() {
     } catch (error) {
       console.error('Failed to delete product:', error)
     }
-    setActionMenuId(null)
   }
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
@@ -393,7 +401,7 @@ export default function ProductsPage() {
                             </button>
                             <hr className="my-1 border-gray-200 dark:border-gray-700" />
                             <button
-                              onClick={() => handleDeleteProduct(product.id)}
+                              onClick={() => confirmDeleteProduct(product.id)}
                               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                             >
                               <XCircle className="w-4 h-4" /> Delete Product
@@ -493,6 +501,16 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!productToDelete}
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This action cannot be undone."
+        onConfirm={executeDeleteProduct}
+        onCancel={() => setProductToDelete(null)}
+        confirmText="Yes, delete product"
+        isDestructive={true}
+      />
     </div>
   )
 }

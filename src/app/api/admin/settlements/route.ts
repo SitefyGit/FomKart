@@ -67,15 +67,34 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Cannot update a completed or failed settlement' }, { status: 400 })
     }
 
-    // If failed, refund the amount back to available balance
-    if (status === 'failed') {
-      const { data: wallet } = await supabaseAdmin
-        .from('seller_wallets')
-        .select('*')
-        .eq('seller_id', settlement.seller_id)
-        .single()
+    // Find the wallet first
+    const { data: wallet } = await supabaseAdmin
+      .from('seller_wallets')
+      .select('*')
+      .eq('seller_id', settlement.seller_id)
+      .single()
 
-      if (wallet) {
+    if (wallet) {
+      // Update the corresponding pending transaction
+      const { data: transactions } = await supabaseAdmin
+        .from('wallet_transactions')
+        .select('id')
+        .eq('wallet_id', wallet.id)
+        .eq('status', 'pending')
+        .eq('transaction_type', 'withdrawal')
+        .eq('amount', -settlement.amount)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (transactions && transactions.length > 0) {
+        await supabaseAdmin
+          .from('wallet_transactions')
+          .update({ status: status === 'failed' ? 'failed' : 'completed' })
+          .eq('id', transactions[0].id)
+      }
+
+      // If failed, refund the amount back to available balance
+      if (status === 'failed') {
         await supabaseAdmin
           .from('seller_wallets')
           .update({ available_balance: wallet.available_balance + settlement.amount })
