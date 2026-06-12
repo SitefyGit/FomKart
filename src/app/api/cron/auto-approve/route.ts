@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     const processedIds: string[] = []
 
     for (const order of (expiredOrders || [])) {
-      // Update status to completed
+      // Complete order via the new unified API logic (simulated since we're already server-side)
       const { error: updateError } = await supabaseAdmin
         .from('orders')
         .update({ status: 'completed' })
@@ -31,6 +31,28 @@ export async function GET(request: Request) {
       if (updateError) {
         console.error(`Failed to auto-approve order ${order.id}:`, updateError)
         continue
+      }
+      
+      // Find the pending transaction
+      const { data: pendingTxs } = await supabaseAdmin
+        .from('wallet_transactions')
+        .select('*')
+        .eq('order_id', order.id)
+        .eq('transaction_type', 'credit')
+        .eq('status', 'pending')
+
+      if (pendingTxs && pendingTxs.length > 0) {
+        for (const tx of pendingTxs) {
+          await supabaseAdmin
+            .from('wallet_transactions')
+            .update({ status: 'completed', updated_at: new Date().toISOString() })
+            .eq('id', tx.id)
+
+          await supabaseAdmin.rpc('release_seller_pending_to_available', {
+            p_seller_id: order.seller_id,
+            p_amount: tx.amount
+          })
+        }
       }
 
       processedIds.push(order.id)

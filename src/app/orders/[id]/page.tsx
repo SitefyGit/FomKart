@@ -327,8 +327,15 @@ export default function OrderPage({ params }: OrderPageProps) {
 
   const approveDelivery = async () => {
     if (!order) return
-    const ok = await updateOrderStatus(order.id, 'completed')
-    if (ok) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch(`/api/orders/${order.id}/complete`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session?.access_token}`
+      }
+    })
+    
+    if (res.ok) {
       setOrder((o:any)=>({ ...o, status: 'completed' }))
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
@@ -339,6 +346,8 @@ export default function OrderPage({ params }: OrderPageProps) {
         }
       }
       pushToast('success', 'Delivery approved. Thank you!', 'Order completed')
+    } else {
+      pushToast('error', 'Failed to complete order. Please try again.')
     }
   }
 
