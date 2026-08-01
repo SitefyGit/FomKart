@@ -371,8 +371,7 @@ export default function CreatorPage() {
     id: string;
     title?: string;
   }>({ show: false, type: 'product', id: '' });
-  const [messageOpen, setMessageOpen] = useState(false);
-  const [messageBody, setMessageBody] = useState('');
+  // Removed messageOpen and messageBody states
   const [moreOpen, setMoreOpen] = useState(false);
   const [addPostOpen, setAddPostOpen] = useState(false);
   const [posts, setPosts] = useState<CreatorPost[]>([]);
@@ -746,12 +745,29 @@ export default function CreatorPage() {
     })();
   }, [username]);
 
-  // Open message modal if coming from product page with ?contact=1
+  // Initialize chat if coming from product page with ?contact=1
   const searchParams = useSearchParams();
   useEffect(()=>{
     if (searchParams?.get('contact') === '1') {
-      if (currentUser) setMessageOpen(true);
-      else if (creator) router.replace(`/auth/login?redirect=/creator/${creator.username}?contact=1`);
+      if (currentUser && creator) {
+        // Automatically start chat
+        fetch('/api/messages/init', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sender_id: currentUser.id,
+            receiver_id: creator.id,
+          })
+        }).then(res => res.json()).then(data => {
+          if (data.conversation_id) {
+            router.push(`/messages?c=${data.conversation_id}`);
+          }
+        }).catch(err => {
+          console.error(err);
+        });
+      } else if (creator) {
+        router.replace(`/auth/login?redirect=/creator/${creator.username}?contact=1`);
+      }
     }
   }, [searchParams, currentUser, creator, router]);
 
@@ -819,29 +835,30 @@ export default function CreatorPage() {
     }
   }, [creator, isOwner, pushToast, sanitizeLayout, setCreator]);
 
-  const handleSendMessage = async () => {
-    if (!creator || !currentUser || !messageBody.trim()) return;
+  const handleContactClick = async () => {
+    if (!creator) return;
+    if (!currentUser) {
+      router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`);
+      return;
+    }
     
     try {
-      const response = await fetch('/api/messages/send', {
+      const response = await fetch('/api/messages/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sender_id: currentUser.id,
           receiver_id: creator.id,
-          content: messageBody
         })
       });
 
-      if (!response.ok) throw new Error('Failed to send message');
-
-      pushToast({ type: 'success', title: 'Message sent', message: 'You will now be redirected to the chat.' });
-      setMessageBody('');
-      setMessageOpen(false);
-      router.push('/messages');
+      if (!response.ok) throw new Error('Failed to start chat');
+      const data = await response.json();
+      
+      router.push(`/messages?c=${data.conversation_id}`);
     } catch (error) {
-      console.error('Error sending message:', error);
-      pushToast({ type: 'error', title: 'Send failed', message: 'Could not send message. Please try again.' });
+      console.error('Error starting chat:', error);
+      pushToast({ type: 'error', title: 'Chat Error', message: 'Could not open chat. Please try again.' });
     }
   };
 
@@ -1449,7 +1466,7 @@ export default function CreatorPage() {
             {(!currentUser || currentUser.id !== creator.id) && (
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => { if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }}
+                  onClick={handleContactClick}
                   className="flex items-center gap-2 px-5 py-2.5 border border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <ChatBubbleLeftRightIcon className="w-4 h-4" />
@@ -1556,7 +1573,7 @@ export default function CreatorPage() {
             {/* Contact Button */}
             {(!currentUser || currentUser.id !== creator.id) && (
               <button
-                onClick={() => { if (!currentUser) { router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`); } else { setMessageOpen(true); } }}
+                onClick={handleContactClick}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-4"
               >
                 <ChatBubbleLeftRightIcon className="w-4 h-4" />
@@ -2422,22 +2439,7 @@ export default function CreatorPage() {
           </div>
         </div>
       )}
-      {/* Message Modal */}
-  {messageOpen && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold dark:text-white"><TranslatableText text={`Message ${creator.full_name}`} as="span" wrapperAs="span" className="inline" /></h3>
-              <button onClick={()=>setMessageOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl leading-none">×</button>
-            </div>
-            <textarea value={messageBody} onChange={e=>setMessageBody(e.target.value)} placeholder="Write your message..." className="w-full border dark:border-gray-600 rounded px-3 py-2 text-sm h-40 dark:bg-gray-700 dark:text-white" />
-            <div className="flex justify-end gap-2">
-              <button onClick={()=>setMessageOpen(false)} className="px-3 py-2 text-sm rounded border dark:border-gray-600 dark:text-white"><TranslatableText text="Cancel" as="span" wrapperAs="span" className="inline" /></button>
-              <button onClick={handleSendMessage} disabled={!messageBody.trim()} className="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"><TranslatableText text="Send" as="span" wrapperAs="span" className="inline" /></button>
-            </div>
-          </div>
-        </div>
-      )}
+
       {/* Settings Modal */}
   {isOwner && settingsOpen && creator && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1.5px] flex items-center justify-center z-50">

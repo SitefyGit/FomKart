@@ -211,8 +211,7 @@ export default function CreatorBioPage() {
 
   // Modals
   const [shareOpen, setShareOpen] = useState(false);
-  const [messageOpen, setMessageOpen] = useState(false);
-  const [messageBody, setMessageBody] = useState('');
+  // Removed messageOpen and messageBody states
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [subscribeEmail, setSubscribeEmail] = useState('');
 
@@ -400,25 +399,26 @@ export default function CreatorBioPage() {
   };
 
 
-  const handleSendMessage = async () => {
-    if (!creator || !currentUser || !messageBody.trim()) return;
+  const handleContactClick = async () => {
+    if (!creator) return;
+    if (!currentUser) {
+      router.push(`/auth/login?redirect=/creator/${creator.username}/bio?contact=1`);
+      return;
+    }
     try {
-      const response = await fetch('/api/messages/send', {
+      const response = await fetch('/api/messages/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sender_id: currentUser.id,
           receiver_id: creator.id,
-          content: messageBody
         })
       });
-      if (!response.ok) throw new Error('Failed to send');
-      pushToast({ type: 'success', title: 'Message sent', message: 'You will now be redirected to the chat.' });
-      setMessageBody('');
-      setMessageOpen(false);
-      router.push('/messages');
+      if (!response.ok) throw new Error('Failed to start chat');
+      const data = await response.json();
+      router.push(`/messages?c=${data.conversation_id}`);
     } catch {
-      pushToast({ type: 'error', title: 'Send failed', message: 'Could not send message.' });
+      pushToast({ type: 'error', title: 'Chat Error', message: 'Could not open chat.' });
     }
   };
 
@@ -554,13 +554,7 @@ export default function CreatorBioPage() {
             </button>
             {!isOwner && (
               <button
-                onClick={() => {
-                  if (!currentUser) {
-                    router.push(`/auth/login?redirect=/creator/${creator.username}/bio?contact=1`);
-                    return;
-                  }
-                  setMessageOpen(true);
-                }}
+                onClick={handleContactClick}
                 className="p-3 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-all"
               >
                 <MessageCircle className="w-5 h-5" />
@@ -812,25 +806,7 @@ export default function CreatorBioPage() {
         title={`Check out ${creator.full_name} on fomkart`}
       />
       
-      {/* Message Modal */}
-      {messageOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-                <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white"><TranslatableText text={`Message ${creator.full_name}`} as="span" wrapperAs="span" className="inline" /></h3>
-                <textarea 
-                   className="w-full border p-3 rounded-xl mb-4 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                   rows={4} 
-                   placeholder="Type your message..."
-                   value={messageBody}
-                   onChange={e => setMessageBody(e.target.value)}
-                />
-                <div className="flex justify-end gap-2">
-                   <button onClick={() => setMessageOpen(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"><TranslatableText text="Cancel" as="span" wrapperAs="span" className="inline" /></button>
-                   <button onClick={handleSendMessage} className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"><TranslatableText text="Send" as="span" wrapperAs="span" className="inline" /></button>
-                </div>
-             </div>
-          </div>
-      )}
+
 
       {/* Add Post Modal */}
       {addLinkOpen && (

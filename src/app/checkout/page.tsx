@@ -228,6 +228,60 @@ function CheckoutContent() {
     return calculateSubtotal()
   }
 
+  const processOrderSuccess = async (orders: any[]) => {
+    for (const order of orders) {
+      const item = items.find(i => i.productId === order.product_id)
+      const product = item?.product
+      
+      if (product) {
+        if (product.auto_message_enabled && product.auto_message) {
+          try {
+            await fetch('/api/orders/auto-message', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: order.id,
+                creatorId: product.creator_id,
+                message: product.auto_message
+              })
+            })
+          } catch (autoMessageError) {
+            console.warn('Auto message insert failed', autoMessageError)
+          }
+        }
+
+        const coursePayload = (product.course_delivery || null) as CourseDeliveryPayload | null
+        const hasCoursePayload = !!(
+          coursePayload &&
+          ((Array.isArray(coursePayload.links) && coursePayload.links.length > 0) ||
+            (Array.isArray(coursePayload.passkeys) && coursePayload.passkeys.length > 0) ||
+            (coursePayload.notes && coursePayload.notes.trim()))
+        )
+        const hasDigitalFiles = Array.isArray(product.digital_files) && product.digital_files.length > 0
+        
+        if (product.auto_deliver || hasDigitalFiles || hasCoursePayload) {
+          try {
+            await fetch('/api/orders/auto-deliver', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderId: order.id, productId: product.id })
+            })
+          } catch (e) {}
+        }
+      }
+      
+      try {
+        if (order.seller_id) {
+          await fetch('/api/notifications/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: order.seller_id, type: 'order_placed', title: 'New order placed', message: `Order #${(order.id || '').toString().slice(0, 8)} has been placed`, data: { order_id: order.id } })})
+        }
+        if (order.buyer_id) {
+          await fetch('/api/notifications/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: order.buyer_id, type: 'order_placed', title: 'Order confirmed', message: `Your order #${(order.id || '').toString().slice(0, 8)} is confirmed`, data: { order_id: order.id } })})
+        }
+      } catch (e) {}
+    }
+    router.push(`/orders/${orders[0].id}?success=true`)
+  }
+
   const handlePayment = async () => {
     if (!currentUser || items.length === 0) return
 
@@ -237,6 +291,33 @@ function CheckoutContent() {
       const totalAmountUSD = calculateTotal()
       const totalAmountLocal = convertFromUSD(totalAmountUSD, currency || 'USD')
       
+      if (totalAmountLocal === 0) {
+        const verifyRes = await fetch('/api/create-free-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items,
+            buyer_id: currentUser?.id,
+            billing_info: billingInfo,
+            payment_method: 'free'
+          })
+        })
+
+        if (!verifyRes.ok) {
+          const text = await verifyRes.text()
+          console.error('Free order error response:', text)
+          throw new Error('Failed to create free order.')
+        }
+
+        const verifyData = await verifyRes.json()
+        if (verifyData.success && verifyData.orders?.length > 0) {
+          await processOrderSuccess(verifyData.orders)
+          return
+        } else {
+          throw new Error('Verification failed for free order')
+        }
+      }
+
       const res = await fetch('/api/create-razorpay-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -286,62 +367,7 @@ function CheckoutContent() {
 
             const verifyData = await verifyRes.json()
             if (verifyData.success && verifyData.orders?.length > 0) {
-              
-              // Run all the auto deliveries and notifications since they are frontend fetches 
-              for (const order of verifyData.orders) {
-                const item = items.find(i => i.productId === order.product_id)
-                const product = item?.product
-                
-                if (product) {
-                  // If seller enabled automation, send welcome message automatically
-                  if (product.auto_message_enabled && product.auto_message) {
-                    try {
-                      await fetch('/api/orders/auto-message', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          orderId: order.id,
-                          creatorId: product.creator_id,
-                          message: product.auto_message
-                        })
-                      })
-                    } catch (autoMessageError) {
-                      console.warn('Auto message insert failed', autoMessageError)
-                    }
-                  }
-
-                  const coursePayload = (product.course_delivery || null) as CourseDeliveryPayload | null
-                  const hasCoursePayload = !!(
-                    coursePayload &&
-                    ((Array.isArray(coursePayload.links) && coursePayload.links.length > 0) ||
-                      (Array.isArray(coursePayload.passkeys) && coursePayload.passkeys.length > 0) ||
-                      (coursePayload.notes && coursePayload.notes.trim()))
-                  )
-                  const hasDigitalFiles = Array.isArray(product.digital_files) && product.digital_files.length > 0
-                  
-                  if (product.auto_deliver || hasDigitalFiles || hasCoursePayload) {
-                    try {
-                      await fetch('/api/orders/auto-deliver', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ orderId: order.id, productId: product.id })
-                      })
-                    } catch (e) {}
-                  }
-                }
-                
-                // Notifications
-                try {
-                  if (order.seller_id) {
-                    await fetch('/api/notifications/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: order.seller_id, type: 'order_placed', title: 'New order placed', message: `Order #${(order.id || '').toString().slice(0, 8)} has been placed`, data: { order_id: order.id } })})
-                  }
-                  if (order.buyer_id) {
-                    await fetch('/api/notifications/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: order.buyer_id, type: 'order_placed', title: 'Order confirmed', message: `Your order #${(order.id || '').toString().slice(0, 8)} is confirmed`, data: { order_id: order.id } })})
-                  }
-                } catch (e) {}
-              }
-
-              router.push(`/orders/${verifyData.orders[0].id}?success=true`)
+              await processOrderSuccess(verifyData.orders)
             } else {
               throw new Error('Verification failed')
             }

@@ -113,6 +113,22 @@ export default function MessagesPage() {
     }
   }
 
+  // Effect to auto-select conversation from URL
+  useEffect(() => {
+    if (conversations.length > 0 && typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const cId = urlParams.get('c')
+      if (cId) {
+        const conv = conversations.find(c => c.id === cId)
+        if (conv && !activeConversation) {
+          selectConversation(conv)
+          // Clean up the URL
+          window.history.replaceState(null, '', '/messages')
+        }
+      }
+    }
+  }, [conversations])
+
   // Effect to handle live message polling for the active conversation
   useEffect(() => {
     if (!activeConversation) return

@@ -134,8 +134,7 @@ export default function CreatorStorePage() {
   const [showFilters, setShowFilters] = useState(false);
 
   // Modals
-  const [messageOpen, setMessageOpen] = useState(false);
-  const [messageBody, setMessageBody] = useState('');
+  // Removed messageOpen and messageBody states
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [subscribeEmail, setSubscribeEmail] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
@@ -208,25 +207,26 @@ export default function CreatorStorePage() {
     return result;
   }, [products, searchTerm, productType, sortBy]);
 
-  const handleSendMessage = async () => {
-    if (!creator || !currentUser || !messageBody.trim()) return;
+  const handleContactClick = async () => {
+    if (!creator) return;
+    if (!currentUser) {
+      router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`);
+      return;
+    }
     try {
-      const response = await fetch('/api/messages/send', {
+      const response = await fetch('/api/messages/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sender_id: currentUser.id,
           receiver_id: creator.id,
-          content: messageBody
         })
       });
-      if (!response.ok) throw new Error('Failed to send');
-      pushToast({ type: 'success', title: 'Message sent', message: 'You will now be redirected to the chat.' });
-      setMessageBody('');
-      setMessageOpen(false);
-      router.push('/messages');
+      if (!response.ok) throw new Error('Failed to start chat');
+      const data = await response.json();
+      router.push(`/messages?c=${data.conversation_id}`);
     } catch {
-      pushToast({ type: 'error', title: 'Send failed', message: 'Could not send message.' });
+      pushToast({ type: 'error', title: 'Chat Error', message: 'Could not open chat.' });
     }
   };
 
@@ -323,13 +323,7 @@ export default function CreatorStorePage() {
               </Link>
               {!isOwner && (
                 <button
-                  onClick={() => {
-                    if (!currentUser) {
-                      router.push(`/auth/login?redirect=/creator/${creator.username}?contact=1`);
-                      return;
-                    }
-                    setMessageOpen(true);
-                  }}
+                  onClick={handleContactClick}
                   className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors flex items-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -514,38 +508,7 @@ export default function CreatorStorePage() {
         </div>
       </div>
 
-      {/* Message Modal */}
-      {messageOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Message {creator.full_name}
-            </h3>
-            <textarea
-              value={messageBody}
-              onChange={(e) => setMessageBody(e.target.value)}
-              placeholder="Write your message..."
-              rows={4}
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white mb-4"
-            />
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setMessageOpen(false)}
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendMessage}
-                disabled={!messageBody.trim()}
-                className="px-4 py-2 text-sm rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
-              >
-                Send Message
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Share Product Modal */}
       {shareProduct && (
