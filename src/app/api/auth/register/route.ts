@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { sendWelcomeEmail } from '@/lib/mailer'
 
 /**
  * POST /api/auth/register
@@ -138,6 +139,9 @@ export async function POST(request: NextRequest) {
         // Best-effort: referral conversion is not critical
       }
     }
+
+    // ── Send welcome email (non-blocking) ──
+    sendWelcomeEmail(email, full_name || slug, slug).catch(() => {})
 
     return NextResponse.json({
       ok: true,

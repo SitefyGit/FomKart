@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '../../../lib/supabase'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { sendNewsletterConfirmationEmail } from '@/lib/mailer'
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     let data, error;
 
     if (creatorId) {
-      const result = await supabase
+      const result = await supabaseAdmin
         .from('newsletter_subscriptions')
         .upsert(payload, {
           onConflict: 'email,creator_id'
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
       error = result.error;
     } else {
       // For platform subscriptions (creatorId is null)
-      const { data: existing } = await supabase
+      const { data: existing } = await supabaseAdmin
         .from('newsletter_subscriptions')
         .select('id')
         .eq('email', payload.email)
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (existing) {
-        const result = await supabase
+        const result = await supabaseAdmin
           .from('newsletter_subscriptions')
           .update(payload)
           .eq('id', existing.id)
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
         data = result.data;
         error = result.error;
       } else {
-        const result = await supabase
+        const result = await supabaseAdmin
           .from('newsletter_subscriptions')
           .insert(payload)
           .select();
@@ -96,10 +97,16 @@ export async function POST(request: NextRequest) {
     }
 
     // In a production app, you would also:
-    // 1. Send a confirmation email
+    // 1. Send a confirmation email ✅ Done via MailerSend
     // 2. Add to your email marketing service (Mailchimp, ConvertKit, etc.)
     // 3. Track the subscription event in analytics
     // 4. Generate a confirmation token
+
+    // Send confirmation email (non-blocking)
+    sendNewsletterConfirmationEmail(
+      email.toLowerCase().trim(),
+      name?.trim()
+    ).catch(() => {})
 
     return NextResponse.json({
       success: true,
@@ -130,7 +137,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('newsletter_subscriptions')
       .select('*')
       .eq('creator_id', creatorId)

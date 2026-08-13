@@ -13,7 +13,7 @@ As the digital creator economy matures into a $250B+ global market, enterprise-l
 
 Fomkart enables high-volume creators, influencers, and digital service providers to consolidate their brand identity, community management, and digital storefronts into a single, high-performance, centralized infrastructure. By eliminating the high-friction gap between top-of-funnel discovery (social media) and point-of-sale checkout, Sitefy engineered a highly scalable, conversion-optimized architecture that automates digital asset delivery and maximizes revenue retention.
 
-## 2. The Business Challenge: Operational Fragmentation at Scale
+## 2. The Business Challenge: Operational Fragmentation at Scale   
 
 Prior to the deployment of Fomkart, digital entrepreneurs were forced to stitch together a patchwork of disconnected micro-tools to operate their digital businesses. As creator businesses scaled, this fragmentation evolved from an inconvenience into a critical operational liability:
 

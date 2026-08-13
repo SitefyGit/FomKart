@@ -79,9 +79,9 @@ export class NewsletterService {
       return { success: true }
     } catch (error) {
       console.error('Newsletter subscription error:', error)
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
       }
     }
   }
@@ -90,7 +90,7 @@ export class NewsletterService {
    * Get subscribers for a creator
    */
   static async getSubscribers(
-    creatorId: string, 
+    creatorId: string,
     status: 'all' | 'active' | 'unsubscribed' | 'bounced' = 'active'
   ): Promise<{ success: boolean; subscribers?: NewsletterSubscriber[]; error?: string }> {
     try {
@@ -98,20 +98,20 @@ export class NewsletterService {
         creatorId,
         ...(status !== 'all' && { status })
       })
-      
+
       const response = await fetch(`/api/newsletter?${params}`)
       const data = await response.json()
-      
+
       if (!response.ok) {
         return { success: false, error: data.error || 'Failed to fetch subscribers' }
       }
-      
+
       return { success: true, subscribers: data.subscribers }
     } catch (error) {
       console.error('Error fetching subscribers:', error)
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to fetch subscribers' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch subscribers'
       }
     }
   }
@@ -133,9 +133,9 @@ export class NewsletterService {
       return { success: true }
     } catch (error) {
       console.error('Unsubscribe error:', error)
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to unsubscribe' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to unsubscribe'
       }
     }
   }
@@ -201,60 +201,47 @@ export class NewsletterService {
       }
     } catch (error) {
       console.error('Error fetching stats:', error)
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to fetch statistics' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch statistics'
       }
     }
   }
 
   /**
-   * Send newsletter to subscribers (mock implementation)
-   * In production, this would integrate with an email service
+   * Send newsletter to subscribers via the server-side API
+   * which uses MailerSend to deliver the emails
    */
   static async sendNewsletter(
-    creatorId: string, 
-    subject: string, 
-    content: string, 
+    creatorId: string,
+    subject: string,
+    content: string,
     targetPreferences?: string[]
   ): Promise<{ success: boolean; sent?: number; error?: string }> {
     try {
-      // Get active subscribers
-      const { success, subscribers, error } = await this.getSubscribers(creatorId, 'active')
-      
-      if (!success || !subscribers) {
-        return { success: false, error: error || 'Failed to get subscribers' }
+      const response = await fetch('/api/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creatorId,
+          subject,
+          content,
+          targetPreferences
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        return { success: false, error: result.error || 'Failed to send newsletter' }
       }
 
-      // Filter by preferences if specified
-      let targetSubscribers = subscribers
-      if (targetPreferences && targetPreferences.length > 0) {
-        targetSubscribers = subscribers.filter(sub => 
-          sub.preferences?.interests?.some(interest => 
-            targetPreferences.includes(interest)
-          )
-        )
-      }
-
-      // In a real implementation, you would:
-      // 1. Use an email service (SendGrid, Mailchimp, etc.)
-      // 2. Create email templates
-      // 3. Handle bounce management
-      // 4. Track open rates and clicks
-      
-      console.log(`Would send newsletter "${subject}" to ${targetSubscribers.length} subscribers`)
-      console.log('Content preview:', content.substring(0, 100) + '...')
-      
-      // Mock successful send
-      return { 
-        success: true, 
-        sent: targetSubscribers.length 
-      }
+      return { success: true, sent: result.sent }
     } catch (error) {
       console.error('Newsletter send error:', error)
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to send newsletter' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send newsletter'
       }
     }
   }

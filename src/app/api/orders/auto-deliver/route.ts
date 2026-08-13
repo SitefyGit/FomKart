@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import type { CourseDeliveryPayload, ProductDigitalAsset } from '@/lib/supabase'
+import { sendOrderDeliveryEmail } from '@/lib/mailer'
 
 const AUTO_DELIVERY_NOTE = 'Auto digital delivery'
 
@@ -77,6 +78,24 @@ export async function POST(request: Request) {
         const { error: insertError } = await supabaseAdmin.from('order_deliverables').insert(rows)
         if (insertError) throw insertError
         results.push('digital-files')
+
+        // Send email with digital file attachments (non-blocking)
+        if (order.buyer_id) {
+          const { data: buyerProfile } = await supabaseAdmin
+            .from('users')
+            .select('email, full_name, name')
+            .eq('id', order.buyer_id)
+            .single()
+
+          if (buyerProfile?.email) {
+            sendOrderDeliveryEmail(
+              buyerProfile.email,
+              buyerProfile.full_name || buyerProfile.name || 'Customer',
+              product.title || 'Your purchase',
+              digitalFiles
+            ).catch(() => {})
+          }
+        }
       }
     }
 

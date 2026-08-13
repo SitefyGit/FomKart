@@ -155,18 +155,46 @@ export default function Footer() {
               <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                 {t('newsletterDescription', 'Subscribe to our newsletter for the latest updates and creator tips.')}
               </p>
-              <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-3" onSubmit={async (e) => {
+                e.preventDefault()
+                const input = e.currentTarget.querySelector('input[type="email"]') as HTMLInputElement
+                const btn = e.currentTarget.querySelector('button') as HTMLButtonElement
+                if (!input?.value) return
+                btn.disabled = true
+                btn.textContent = '...'
+                try {
+                  const res = await fetch('/api/newsletter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: input.value, source: 'footer' })
+                  })
+                  if (res.ok) {
+                    input.value = ''
+                    btn.textContent = '✓ Subscribed!'
+                    setTimeout(() => { btn.textContent = t('subscribe', 'Subscribe') }, 3000)
+                  } else {
+                    btn.textContent = 'Failed'
+                    setTimeout(() => { btn.textContent = t('subscribe', 'Subscribe') }, 3000)
+                  }
+                } catch {
+                  btn.textContent = 'Failed'
+                  setTimeout(() => { btn.textContent = t('subscribe', 'Subscribe') }, 3000)
+                } finally {
+                  btn.disabled = false
+                }
+              }}>
                 <div className="relative">
                   <input 
                     type="email" 
+                    required
                     placeholder={t('enterYourEmail', 'Enter your email')} 
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm text-gray-900 dark:text-white placeholder-gray-500"
                   />
                   <Mail className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
                 </div>
                 <button 
-                  type="button" 
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
+                  type="submit" 
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50"
                 >
                   {t('subscribe', 'Subscribe')}
                 </button>

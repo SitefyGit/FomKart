@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { sendOrderConfirmationBuyer, sendNewOrderSeller } from '@/lib/mailer'
 
 export async function POST(req: Request) {
   try {
@@ -99,6 +100,58 @@ export async function POST(req: Request) {
       .from('carts')
       .delete()
       .eq('user_id', buyer_id)
+
+    // ── Send order emails (non-blocking) ──
+    try {
+      const { data: buyerUser } = await supabaseAdmin
+        .from('users')
+        .select('email, full_name, name')
+        .eq('id', buyer_id)
+        .single()
+
+      if (buyerUser?.email) {
+        for (const order of orders) {
+          const item = items.find((i: any) => i.productId === order.product_id)
+          const productTitle = item?.product?.title || 'Your product'
+          const total = order.total_price || 0
+
+          // Buyer confirmation
+          sendOrderConfirmationBuyer(
+            buyerUser.email,
+            buyerUser.full_name || buyerUser.name || 'Customer',
+            order.order_number,
+            productTitle,
+            total
+          ).catch(() => {})
+
+          // Seller notification
+          if (order.seller_id) {
+            (async () => {
+              try {
+                const { data: sellerUser } = await supabaseAdmin
+                  .from('users')
+                  .select('email, full_name, name')
+                  .eq('id', order.seller_id)
+                  .single()
+
+                if (sellerUser?.email) {
+                  await sendNewOrderSeller(
+                    sellerUser.email,
+                    sellerUser.full_name || sellerUser.name || 'Seller',
+                    order.order_number,
+                    productTitle,
+                    total,
+                    buyerUser.full_name || buyerUser.name || 'Customer'
+                  )
+                }
+              } catch {}
+            })()
+          }
+        }
+      }
+    } catch (emailErr) {
+      console.error('Order email sending failed (non-critical):', emailErr)
+    }
 
     return NextResponse.json({ success: true, orders })
   } catch (error: any) {
