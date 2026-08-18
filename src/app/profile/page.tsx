@@ -45,8 +45,34 @@ export default function BuyerProfilePage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
       // Load profile
-      const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single()
-      if (error || !data) { router.push('/auth/login'); return }
+      let { data, error } = await supabase.from('users').select('*').eq('id', user.id).single()
+      
+      // Auto-create profile if missing instead of redirecting to login
+      if (error && error.code === 'PGRST116' || !data) {
+        const newProfile = {
+          id: user.id,
+          email: user.email,
+          username: user.email?.split('@')[0] || 'user',
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+          is_creator: false
+        }
+        
+        const { error: createError } = await supabase.from('users').insert([newProfile])
+        if (!createError) {
+          data = newProfile
+          error = null
+        } else {
+          console.error('Failed to auto-create profile:', createError)
+        }
+      }
+
+      if (error || !data) {
+        console.error('Profile load error:', error)
+        pushToast('error', 'Could not load profile. Please try refreshing.')
+        setLoading(false)
+        return
+      }
+
       setUser(data)
       const existingSocial = data.social_links || {}
       setForm({

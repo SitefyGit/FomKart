@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { sendWelcomeEmail } from '@/lib/mailer'
 
 interface CreateProfilePayload {
   id: string
@@ -48,6 +49,11 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error('create-profile error:', error)
       return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    // Send Welcome Email for creators (non-blocking)
+    if (is_creator) {
+      sendWelcomeEmail(email, full_name || username, username).catch(() => {})
     }
 
     return NextResponse.json({ ok: true })
