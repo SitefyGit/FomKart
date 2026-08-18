@@ -112,27 +112,34 @@ function SignUpContent() {
         
         // Create user profile
         const generatedUsername = formData.email.split('@')[0] + Math.floor(Math.random() * 10000).toString()
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([{
-            id: data.user.id,
-            email: formData.email,
-            username: generatedUsername,
-            full_name: '',
-            is_creator: false
-          }])
-
-        if (profileError) {
+        // Use admin API route to bypass RLS for profile creation
+        try {
+          const profileRes = await fetch('/api/create-profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: data.user.id,
+              email: formData.email,
+              username: generatedUsername,
+              full_name: '',
+              is_creator: false,
+              is_verified: false
+            }),
+          })
+          
+          if (!profileRes.ok) {
+            const errorData = await profileRes.json().catch(() => ({}))
+            throw new Error(errorData.error || 'Failed to create profile')
+          }
+        } catch (profileError: any) {
           console.error('Error creating user profile:', profileError)
           
-          // Try to provide more specific error messages
-          if (profileError.code === '23505') {
+          if (profileError.message?.includes('duplicate key') || profileError.message?.includes('already exists')) {
             setError('Username already exists. Please choose a different username.')
-          } else if (profileError.message.includes('row-level security')) {
-            setError('Database permission error. Please contact support or check your database setup.')
           } else {
             console.warn('Profile creation failed, but user account was created:', profileError.message)
-            // Don't fail completely if profile creation fails - the user can still log in
           }
         }
 

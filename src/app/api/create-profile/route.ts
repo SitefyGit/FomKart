@@ -51,10 +51,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    // Send Welcome Email for creators (non-blocking)
-    if (is_creator) {
-      sendWelcomeEmail(email, full_name || username, username).catch(() => {})
-    }
+    // Send Welcome Email for all users (non-blocking)
+    sendWelcomeEmail(email, full_name || username, username).catch(() => {})
 
     return NextResponse.json({ ok: true })
   } catch (error) {
