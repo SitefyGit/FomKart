@@ -107,7 +107,7 @@ export const ReviewsSlider: React.FC<ReviewsSliderProps> = ({ creatorId, limit =
                     id: reviewer.id || 'unknown',
                     full_name: reviewer.full_name || reviewer.username || 'Anonymous',
                     username: reviewer.username || 'anonymous',
-                    avatar_url: reviewer.avatar_url || ''
+                    avatar_url: reviewer?.avatar_url || ''
                   }
                 : undefined,
               product: productInfo ? { id: productInfo.id, title: productInfo.title || 'Product' } : undefined

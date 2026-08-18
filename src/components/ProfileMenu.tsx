@@ -70,7 +70,16 @@ function ProfileMenuContent() {
     )
   }
 
-  const avatar = user.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.full_name || user.username || 'User')}`
+  const getDisplayName = () => {
+    if (user.full_name) return user.full_name
+    if (user.username) return user.username
+    if (user.user_metadata?.full_name) return user.user_metadata.full_name
+    if (user.email) return user.email.split('@')[0]
+    return 'User'
+  }
+
+  const displayName = getDisplayName()
+  const avatar = user.avatar_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}`
 
   return (
     <div className="relative" ref={rootRef}>
@@ -82,7 +91,7 @@ function ProfileMenuContent() {
       {open && (
         <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-semibold text-gray-900 dark:text-white">{user.full_name || user.username}</div>
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{displayName}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</div>
           </div>
           <div className="py-1 text-sm overflow-y-auto max-h-[calc(100vh-200px)]">

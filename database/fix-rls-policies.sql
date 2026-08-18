@@ -5,6 +5,11 @@
 DROP POLICY IF EXISTS "Users can insert own profile" ON public.users;
 DROP POLICY IF EXISTS "Users can update own profile" ON public.users;
 DROP POLICY IF EXISTS "Users can view public profiles" ON public.users;
+DROP POLICY IF EXISTS "Anyone can view public user profiles" ON public.users;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.users;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.users;
+DROP POLICY IF EXISTS "Authenticated users can read user data for relationships" ON public.users;
+DROP POLICY IF EXISTS "Public can view creator profiles for products" ON public.users;
 
 -- Create more permissive policies for user creation
 CREATE POLICY "Anyone can view public user profiles" 

@@ -116,7 +116,7 @@ export default async function FeaturedServicesSection() {
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 overflow-hidden flex items-center justify-center text-xs sm:text-sm text-white">
                     {service.creator?.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={service.creator.avatar_url} alt={service.creator.full_name || service.creator.username} className="w-full h-full object-cover" loading="lazy" decoding="async" suppressHydrationWarning />
+                      <img src={service.creator?.avatar_url} alt={service.creator.full_name || service.creator.username} className="w-full h-full object-cover" loading="lazy" decoding="async" suppressHydrationWarning />
                     ) : (
                       <span className="font-bold">{(service.creator?.full_name || service.creator?.username || 'U').slice(0,1)}</span>
                     )}

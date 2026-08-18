@@ -91,7 +91,7 @@ export default async function TopCreatorsSection() {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 overflow-hidden flex items-center justify-center text-2xl sm:text-3xl group-hover:scale-110 transition-all duration-300 relative flex-shrink-0">
                   {creator.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={creator.avatar_url} alt={creator.full_name || creator.username} className="w-full h-full object-cover" loading="lazy" decoding="async" suppressHydrationWarning />
+                    <img src={creator?.avatar_url} alt={creator.full_name || creator.username} className="w-full h-full object-cover" loading="lazy" decoding="async" suppressHydrationWarning />
                   ) : (
                     <span className="text-white font-bold">{(creator.full_name || creator.username).slice(0,1)}</span>
                   )}

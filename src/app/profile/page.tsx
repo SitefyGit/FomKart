@@ -172,6 +172,23 @@ export default function BuyerProfilePage() {
     )
   }
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 max-w-md w-full text-center">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Profile Not Found</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">We couldn't load your profile information. This occasionally happens if your account setup was incomplete.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-800/60 border-b border-gray-100 dark:border-gray-700">
