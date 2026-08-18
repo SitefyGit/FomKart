@@ -325,9 +325,16 @@ function CheckoutContent() {
       })
 
       if (!res.ok) {
-        const text = await res.text()
-        console.error('Create order error response:', text)
-        throw new Error('Failed to create order. Server returned an error.')
+        let errorMsg = 'Failed to create order. Server returned an error.'
+        try {
+          const errData = await res.json()
+          if (errData?.error) errorMsg = errData.error
+        } catch {
+          const text = await res.text().catch(() => '')
+          if (text) errorMsg = text
+        }
+        console.error('Create order error response:', errorMsg)
+        throw new Error(errorMsg)
       }
 
       const data = await res.json()

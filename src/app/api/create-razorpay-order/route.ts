@@ -3,10 +3,20 @@ import Razorpay from 'razorpay'
 
 export async function POST(req: Request) {
   try {
+    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+    const keySecret = process.env.RAZORPAY_KEY_SECRET
+
+    if (!keyId || !keySecret) {
+      console.error('Razorpay credentials missing: NEXT_PUBLIC_RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not configured on Vercel.')
+      return NextResponse.json({ 
+        error: 'Razorpay API keys (NEXT_PUBLIC_RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET) are missing in environment variables.' 
+      }, { status: 500 })
+    }
+
     // Initialize Razorpay
     const razorpay = new Razorpay({
-      key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
-      key_secret: process.env.RAZORPAY_KEY_SECRET || '',
+      key_id: keyId,
+      key_secret: keySecret,
     })
 
     const { amount, currency = 'USD' } = await req.json()
@@ -16,20 +26,22 @@ export async function POST(req: Request) {
     }
 
     // Convert amount to sub-units (e.g. cents for USD, paise for INR)
-    // Razorpay requires amount in smallest unit.
-    const amountInSmallestUnit = Math.round(amount * 100)
+    // Razorpay requires amount in smallest unit (integer).
+    const amountInSmallestUnit = Math.round(Number(amount) * 100)
 
     const options = {
       amount: amountInSmallestUnit,
-      currency,
+      currency: currency.toUpperCase(),
       receipt: `receipt_${Date.now()}`,
     }
 
     const order = await razorpay.orders.create(options)
 
     return NextResponse.json({ order })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating Razorpay order:', error)
-    return NextResponse.json({ error: 'Error creating order' }, { status: 500 })
+    const message = error?.error?.description || error?.message || 'Error creating Razorpay order'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
+

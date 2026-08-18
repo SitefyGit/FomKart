@@ -16,7 +16,12 @@ export async function POST(req: Request) {
     } = await req.json()
 
     // 1. Verify the signature
-    const secret = process.env.RAZORPAY_KEY_SECRET!
+    const secret = process.env.RAZORPAY_KEY_SECRET
+    if (!secret) {
+      console.error('RAZORPAY_KEY_SECRET is not configured on Vercel.')
+      return NextResponse.json({ error: 'Server configuration error: missing Razorpay secret key.' }, { status: 500 })
+    }
+
     const generated_signature = crypto
       .createHmac('sha256', secret)
       .update(razorpay_order_id + '|' + razorpay_payment_id)
