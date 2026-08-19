@@ -101,7 +101,7 @@ export async function POST(req: Request) {
       .delete()
       .eq('user_id', buyer_id)
 
-    // ── Send order emails (non-blocking) ──
+    // ── Send order emails (awaited so they complete before response on serverless) ──
     try {
       const { data: buyerUser } = await supabaseAdmin
         .from('users')
@@ -110,24 +110,28 @@ export async function POST(req: Request) {
         .single()
 
       if (buyerUser?.email) {
+        const emailPromises: Promise<any>[] = []
+
         for (const order of orders) {
           const item = items.find((i: any) => i.productId === order.product_id)
           const productTitle = item?.product?.title || 'Your product'
           const total = order.total_price || 0
 
           // Buyer confirmation
-          sendOrderConfirmationBuyer(
-            buyerUser.email,
-            buyerUser.full_name || buyerUser.name || 'Customer',
-            order.order_number,
-            productTitle,
-            total
-          ).catch(() => {})
+          emailPromises.push(
+            sendOrderConfirmationBuyer(
+              buyerUser.email,
+              buyerUser.full_name || buyerUser.name || 'Customer',
+              order.order_number,
+              productTitle,
+              total
+            )
+          )
 
           // Seller notification
           if (order.seller_id) {
-            (async () => {
-              try {
+            emailPromises.push(
+              (async () => {
                 const { data: sellerUser } = await supabaseAdmin
                   .from('users')
                   .select('email, full_name, name')
@@ -144,10 +148,13 @@ export async function POST(req: Request) {
                     buyerUser.full_name || buyerUser.name || 'Customer'
                   )
                 }
-              } catch {}
-            })()
+              })()
+            )
           }
         }
+
+        // Wait for all emails — allSettled so one failure doesn't block others
+        await Promise.allSettled(emailPromises)
       }
     } catch (emailErr) {
       console.error('Order email sending failed (non-critical):', emailErr)

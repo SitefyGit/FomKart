@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { sendWelcomeEmail } from '@/lib/mailer'
+import { sendWelcomeSellerEmail } from '@/lib/mailer'
 
 /**
  * POST /api/auth/register
@@ -140,8 +140,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── Send welcome email (non-blocking) ──
-    sendWelcomeEmail(email, full_name || slug, slug).catch(() => {})
+    // ── Send seller welcome email (await so it completes on serverless) ──
+    await sendWelcomeSellerEmail(email, full_name || slug, slug).catch((err) => {
+      console.error('Welcome email failed (non-critical):', err)
+    })
 
     return NextResponse.json({
       ok: true,

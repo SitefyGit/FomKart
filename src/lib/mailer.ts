@@ -64,8 +64,52 @@ export async function sendEmail({
   }
 }
 
-// ─── 1. Welcome Email (after registration) ──────────────────────────
-export async function sendWelcomeEmail(
+// ─── 1a. Welcome Email — Buyer (after buyer registration) ───────────
+export async function sendWelcomeBuyerEmail(
+  email: string,
+  name: string
+) {
+  return sendEmail({
+    to: email,
+    toName: name,
+    subject: 'Welcome to FomKart! 🛍️',
+    fromLabel: 'FomKart',
+    html: `
+      <div style="font-family:'Inter',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div style="background:linear-gradient(135deg,#3b82f6,#2563eb);padding:40px 32px;text-align:center;">
+          <h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:700;">Welcome to FomKart!</h1>
+          <p style="color:#dbeafe;margin:8px 0 0;font-size:16px;">Your account is ready</p>
+        </div>
+        <div style="padding:32px;">
+          <p style="font-size:16px;color:#374151;line-height:1.6;">Hey <strong>${name}</strong>,</p>
+          <p style="font-size:16px;color:#374151;line-height:1.6;">Thank you for joining FomKart! Your account is set up and you're ready to discover amazing products and services from talented creators.</p>
+          <div style="background:#eff6ff;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #3b82f6;">
+            <p style="margin:0;font-size:14px;color:#1e40af;font-weight:600;">What you can do:</p>
+            <ul style="margin:8px 0 0;padding-left:18px;font-size:14px;color:#1e40af;line-height:1.8;">
+              <li>Browse products & services from creators</li>
+              <li>Add items to your cart and checkout</li>
+              <li>Track your orders and deliveries</li>
+              <li>Message sellers directly</li>
+            </ul>
+          </div>
+          <div style="background:#f0fdf4;border-radius:8px;padding:16px;margin:16px 0;border:1px solid #bbf7d0;">
+            <p style="margin:0;font-size:14px;color:#065f46;">💡 <strong>Want to sell too?</strong> You can upgrade to a seller account anytime from your profile to start listing your own products!</p>
+          </div>
+          <div style="text-align:center;margin-top:32px;">
+            <a href="${BASE_URL}" style="display:inline-block;background:#3b82f6;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">Start Exploring →</a>
+          </div>
+        </div>
+        <div style="background:#f9fafb;padding:20px 32px;text-align:center;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;font-size:13px;color:#9ca3af;">© FomKart — Built for creators</p>
+        </div>
+      </div>
+    `,
+    text: `Welcome to FomKart, ${name}! Your account is ready. Start exploring products and services from talented creators at fomkart.com`,
+  })
+}
+
+// ─── 1b. Welcome Email — Seller (after creator/seller registration) ──
+export async function sendWelcomeSellerEmail(
   email: string,
   name: string,
   username: string
@@ -73,17 +117,17 @@ export async function sendWelcomeEmail(
   return sendEmail({
     to: email,
     toName: name,
-    subject: 'Welcome to FomKart! 🎉',
+    subject: 'Welcome to FomKart — Your Store is Live! 🚀',
     fromLabel: 'FomKart',
     html: `
       <div style="font-family:'Inter',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
         <div style="background:linear-gradient(135deg,#10b981,#059669);padding:40px 32px;text-align:center;">
-          <h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:700;">Welcome to FomKart!</h1>
+          <h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:700;">Your Store is Live! 🚀</h1>
           <p style="color:#d1fae5;margin:8px 0 0;font-size:16px;">Your creator journey starts now</p>
         </div>
         <div style="padding:32px;">
           <p style="font-size:16px;color:#374151;line-height:1.6;">Hey <strong>${name}</strong>,</p>
-          <p style="font-size:16px;color:#374151;line-height:1.6;">Thank you for joining FomKart! Your creator profile is live and ready to go.</p>
+          <p style="font-size:16px;color:#374151;line-height:1.6;">Thank you for joining FomKart as a seller! Your creator profile is live and ready for you to start selling.</p>
           <div style="background:#f0fdf4;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #10b981;">
             <p style="margin:0;font-size:14px;color:#065f46;"><strong>Your store URL:</strong></p>
             <p style="margin:4px 0 0;font-size:16px;"><a href="${BASE_URL}/creator/${username}" style="color:#059669;text-decoration:none;font-weight:600;">fomkart.com/creator/${username}</a></p>
@@ -92,8 +136,12 @@ export async function sendWelcomeEmail(
           <ul style="font-size:15px;color:#4b5563;line-height:1.8;padding-left:20px;">
             <li>Add your first product or service</li>
             <li>Customize your store page</li>
+            <li>Set up your pricing packages</li>
             <li>Share your link on social media</li>
           </ul>
+          <div style="background:#fffbeb;border-radius:8px;padding:16px;margin:16px 0;border:1px solid #fde68a;">
+            <p style="margin:0;font-size:14px;color:#92400e;">💰 <strong>Earnings:</strong> You keep 80% of every sale. Payments are settled directly to your wallet.</p>
+          </div>
           <div style="text-align:center;margin-top:32px;">
             <a href="${BASE_URL}/creator/${username}" style="display:inline-block;background:#10b981;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">Go to Your Store →</a>
           </div>
@@ -103,9 +151,67 @@ export async function sendWelcomeEmail(
         </div>
       </div>
     `,
-    text: `Welcome to FomKart, ${name}! Your store is live at fomkart.com/creator/${username}. Start by adding your first product.`,
+    text: `Welcome to FomKart, ${name}! Your store is live at fomkart.com/creator/${username}. Start by adding your first product. You keep 80% of every sale!`,
   })
 }
+
+// ─── 1c. Buyer → Seller Upgrade Email ───────────────────────────────
+export async function sendBuyerToSellerEmail(
+  email: string,
+  name: string,
+  username: string
+) {
+  return sendEmail({
+    to: email,
+    toName: name,
+    subject: 'You\'re Now a Seller on FomKart! 🎉',
+    fromLabel: 'FomKart',
+    html: `
+      <div style="font-family:'Inter',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div style="background:linear-gradient(135deg,#8b5cf6,#10b981);padding:40px 32px;text-align:center;">
+          <h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:700;">Congrats, You're a Seller! 🎉</h1>
+          <p style="color:#e0e7ff;margin:8px 0 0;font-size:16px;">Your store is now open for business</p>
+        </div>
+        <div style="padding:32px;">
+          <p style="font-size:16px;color:#374151;line-height:1.6;">Hey <strong>${name}</strong>,</p>
+          <p style="font-size:16px;color:#374151;line-height:1.6;">Great news! Your account has been upgraded to a <strong>Seller account</strong>. You can now list your own products and services alongside browsing and buying from other creators.</p>
+          <div style="background:#f0fdf4;border-radius:8px;padding:20px;margin:24px 0;border-left:4px solid #10b981;">
+            <p style="margin:0;font-size:14px;color:#065f46;"><strong>Your store URL:</strong></p>
+            <p style="margin:4px 0 0;font-size:16px;"><a href="${BASE_URL}/creator/${username}" style="color:#059669;text-decoration:none;font-weight:600;">fomkart.com/creator/${username}</a></p>
+          </div>
+          <p style="font-size:16px;color:#374151;line-height:1.6;">Get started with these steps:</p>
+          <div style="margin:16px 0;">
+            <div style="display:flex;align-items:flex-start;margin-bottom:12px;">
+              <span style="display:inline-block;width:28px;height:28px;background:#10b981;color:white;border-radius:50%;text-align:center;line-height:28px;font-weight:700;font-size:14px;flex-shrink:0;margin-right:12px;">1</span>
+              <p style="margin:0;font-size:15px;color:#4b5563;line-height:1.6;">Add your first product or service from your dashboard</p>
+            </div>
+            <div style="display:flex;align-items:flex-start;margin-bottom:12px;">
+              <span style="display:inline-block;width:28px;height:28px;background:#10b981;color:white;border-radius:50%;text-align:center;line-height:28px;font-weight:700;font-size:14px;flex-shrink:0;margin-right:12px;">2</span>
+              <p style="margin:0;font-size:15px;color:#4b5563;line-height:1.6;">Customize your store page and profile</p>
+            </div>
+            <div style="display:flex;align-items:flex-start;margin-bottom:12px;">
+              <span style="display:inline-block;width:28px;height:28px;background:#10b981;color:white;border-radius:50%;text-align:center;line-height:28px;font-weight:700;font-size:14px;flex-shrink:0;margin-right:12px;">3</span>
+              <p style="margin:0;font-size:15px;color:#4b5563;line-height:1.6;">Share your store link and start earning!</p>
+            </div>
+          </div>
+          <div style="background:#fffbeb;border-radius:8px;padding:16px;margin:16px 0;border:1px solid #fde68a;">
+            <p style="margin:0;font-size:14px;color:#92400e;">💰 <strong>Earnings:</strong> You keep 80% of every sale. Payments are settled directly to your wallet.</p>
+          </div>
+          <div style="text-align:center;margin-top:32px;">
+            <a href="${BASE_URL}/creator/${username}" style="display:inline-block;background:#10b981;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">Open Your Store →</a>
+          </div>
+        </div>
+        <div style="background:#f9fafb;padding:20px 32px;text-align:center;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;font-size:13px;color:#9ca3af;">© FomKart — Built for creators</p>
+        </div>
+      </div>
+    `,
+    text: `Congrats ${name}! Your account has been upgraded to a Seller account. Your store is live at fomkart.com/creator/${username}. Start adding products and earn 80% of every sale!`,
+  })
+}
+
+// Backward-compatible alias (routes to seller welcome)
+export const sendWelcomeEmail = sendWelcomeSellerEmail
 
 // ─── 2. Order Confirmation — Buyer ──────────────────────────────────
 export async function sendOrderConfirmationBuyer(

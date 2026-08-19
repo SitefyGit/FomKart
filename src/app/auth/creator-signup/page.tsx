@@ -43,26 +43,22 @@ export default function CreatorSignUpPage() {
     setLoading(true)
     setError('')
     try {
-      const { supabase } = await import('@/lib/supabase')
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ is_creator: true })
-        .eq('id', existingUser.id)
+      const res = await fetch('/api/upgrade-to-seller', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: existingUser.id }),
+      })
 
-      if (updateError) {
-        throw updateError
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to upgrade account')
       }
-
-      const { data: profileData } = await supabase
-        .from('users')
-        .select('username')
-        .eq('id', existingUser.id)
-        .single()
 
       pushToast({ type: 'success', title: 'Success', message: 'Account upgraded to Creator successfully!' })
       setTimeout(() => {
-        if (profileData?.username) {
-          router.push(`/creator/${profileData.username}`)
+        if (data.username) {
+          router.push(`/creator/${data.username}`)
         } else {
           router.push('/profile')
         }

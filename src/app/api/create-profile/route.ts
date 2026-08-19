@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { sendWelcomeEmail } from '@/lib/mailer'
+import { sendWelcomeBuyerEmail, sendWelcomeSellerEmail } from '@/lib/mailer'
 
 interface CreateProfilePayload {
   id: string
@@ -51,8 +51,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    // Send Welcome Email for all users (non-blocking)
-    sendWelcomeEmail(email, full_name || username, username).catch(() => {})
+    // Send the appropriate welcome email based on account type
+    if (is_creator) {
+      await sendWelcomeSellerEmail(email, full_name || username, username).catch((err) => {
+        console.error('Seller welcome email failed (non-critical):', err)
+      })
+    } else {
+      await sendWelcomeBuyerEmail(email, full_name || username).catch((err) => {
+        console.error('Buyer welcome email failed (non-critical):', err)
+      })
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {
