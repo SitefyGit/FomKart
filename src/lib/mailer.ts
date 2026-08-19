@@ -55,11 +55,25 @@ export async function sendEmail({
     if (text) emailParams.setText(text)
     if (attachments?.length) emailParams.setAttachments(attachments)
 
-    await ms.email.send(emailParams)
-    console.log(`[mailer] Email sent → ${to} | ${subject}`)
+    const response = await ms.email.send(emailParams)
+    console.log(`[mailer] ✅ Email sent → ${to} | ${subject}`)
     return true
-  } catch (err) {
-    console.error(`[mailer] Failed to send email to ${to}:`, err)
+  } catch (err: any) {
+    // Extract detailed error from MailerSend SDK
+    const errorDetails: Record<string, any> = {
+      to,
+      subject,
+      from: process.env.MAILERSEND_FROM_EMAIL || 'no-reply@fomkart.com',
+      message: err?.message || 'Unknown error',
+    }
+
+    // MailerSend SDK errors often have response body details
+    if (err?.body) errorDetails.body = err.body
+    if (err?.statusCode) errorDetails.statusCode = err.statusCode
+    if (err?.response?.body) errorDetails.responseBody = err.response.body
+    if (err?.response?.statusCode) errorDetails.responseStatusCode = err.response.statusCode
+
+    console.error(`[mailer] ❌ Failed to send email:`, JSON.stringify(errorDetails, null, 2))
     return false
   }
 }
