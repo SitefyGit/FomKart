@@ -233,7 +233,7 @@ export async function sendOrderConfirmationBuyer(
   buyerName: string,
   orderNumber: string,
   productTitle: string,
-  total: number
+  formattedTotal: string
 ) {
   return sendEmail({
     to: buyerEmail,
@@ -261,10 +261,11 @@ export async function sendOrderConfirmationBuyer(
               </tr>
               <tr style="border-top:1px solid #e5e7eb;">
                 <td style="padding:8px 0;font-size:16px;color:#111827;font-weight:700;">Total</td>
-                <td style="padding:8px 0;font-size:16px;color:#111827;font-weight:700;text-align:right;">₹${total.toFixed(2)}</td>
+                <td style="padding:8px 0;font-size:16px;color:#111827;font-weight:700;text-align:right;">${formattedTotal}</td>
               </tr>
             </table>
           </div>
+          <p style="font-size:14px;color:#6b7280;line-height:1.6;">You will receive instructions for accessing your product shortly, or you can check your dashboard.</p>
           <div style="text-align:center;margin-top:32px;">
             <a href="${BASE_URL}/orders" style="display:inline-block;background:#3b82f6;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">View Your Order →</a>
           </div>
@@ -274,7 +275,7 @@ export async function sendOrderConfirmationBuyer(
         </div>
       </div>
     `,
-    text: `Order Confirmed! Order ${orderNumber} for "${productTitle}" — Total: ₹${total.toFixed(2)}. View your order at fomkart.com/orders`,
+    text: `Order Confirmed! Order ${orderNumber} for "${productTitle}" — Total: ${formattedTotal}. View your order at fomkart.com/orders`,
   })
 }
 
@@ -284,8 +285,9 @@ export async function sendNewOrderSeller(
   sellerName: string,
   orderNumber: string,
   productTitle: string,
-  total: number,
-  buyerName: string
+  formattedTotal: string,
+  buyerName: string,
+  buyerEmail?: string
 ) {
   return sendEmail({
     to: sellerEmail,
@@ -301,24 +303,28 @@ export async function sendNewOrderSeller(
         <div style="padding:32px;">
           <p style="font-size:16px;color:#374151;line-height:1.6;">Hey <strong>${sellerName}</strong>,</p>
           <p style="font-size:16px;color:#374151;line-height:1.6;"><strong>${buyerName}</strong> just placed an order for your product!</p>
-          <div style="background:#fffbeb;border-radius:8px;padding:20px;margin:24px 0;border:1px solid #fde68a;">
+          <div style="background:#fffbeb;border-radius:8px;padding:24px;margin:24px 0;border:1px solid #fde68a;">
             <table style="width:100%;border-collapse:collapse;">
               <tr>
-                <td style="padding:8px 0;font-size:14px;color:#6b7280;">Product</td>
-                <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;text-align:right;">${productTitle}</td>
+                <td style="padding:8px 0;font-size:14px;color:#92400e;">Order #</td>
+                <td style="padding:8px 0;font-size:14px;color:#92400e;font-weight:600;text-align:right;">${orderNumber}</td>
               </tr>
-              <tr style="border-top:1px solid #e5e7eb;">
-                <td style="padding:8px 0;font-size:14px;color:#6b7280;">Buyer</td>
-                <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;text-align:right;">${buyerName}</td>
+              <tr style="border-top:1px solid #fde68a;">
+                <td style="padding:8px 0;font-size:14px;color:#92400e;">Product</td>
+                <td style="padding:8px 0;font-size:14px;color:#92400e;font-weight:600;text-align:right;">${productTitle}</td>
               </tr>
-              <tr style="border-top:1px solid #e5e7eb;">
-                <td style="padding:8px 0;font-size:16px;color:#111827;font-weight:700;">Amount</td>
-                <td style="padding:8px 0;font-size:16px;color:#111827;font-weight:700;text-align:right;">₹${total.toFixed(2)}</td>
+              <tr style="border-top:1px solid #fde68a;">
+                <td style="padding:8px 0;font-size:14px;color:#92400e;">Buyer</td>
+                <td style="padding:8px 0;font-size:14px;color:#92400e;font-weight:600;text-align:right;">${buyerName} ${buyerEmail ? `(${buyerEmail})` : ''}</td>
+              </tr>
+              <tr style="border-top:1px solid #fde68a;">
+                <td style="padding:12px 0 0 0;font-size:16px;color:#92400e;font-weight:700;">Amount</td>
+                <td style="padding:12px 0 0 0;font-size:24px;font-weight:700;color:#111827;text-align:right;">${formattedTotal}</td>
               </tr>
             </table>
           </div>
           <div style="text-align:center;margin-top:32px;">
-            <a href="${BASE_URL}/orders" style="display:inline-block;background:#f59e0b;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">Manage Order →</a>
+            <a href="${BASE_URL}/admin/orders" style="display:inline-block;background:#f59e0b;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">Manage Order →</a>
           </div>
         </div>
         <div style="background:#f9fafb;padding:20px 32px;text-align:center;border-top:1px solid #e5e7eb;">
@@ -326,7 +332,7 @@ export async function sendNewOrderSeller(
         </div>
       </div>
     `,
-    text: `New order! ${buyerName} ordered "${productTitle}" (${orderNumber}) — ₹${total.toFixed(2)}. Check your dashboard.`,
+    text: `New order! ${buyerName} ordered "${productTitle}" (${orderNumber}) — ${formattedTotal}. Check your dashboard.`,
   })
 }
 

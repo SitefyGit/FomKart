@@ -8,7 +8,8 @@ export async function POST(req: Request) {
       items, 
       buyer_id, 
       billing_info, 
-      payment_method 
+      payment_method,
+      currency
     } = await req.json()
 
     // 1. Fetch the commission rate (though it will be 0 since total is 0)
@@ -117,21 +118,34 @@ export async function POST(req: Request) {
           const productTitle = item?.product?.title || 'Your product'
           const total = order.total_price || 0
 
+          // Format price with correct currency (defaulting to USD if none provided)
+          const displayCurrency = currency || 'USD'
+
           // Buyer confirmation
           emailPromises.push(
-            sendOrderConfirmationBuyer(
-              buyerUser.email,
-              buyerUser.full_name || buyerUser.username || 'Customer',
-              order.order_number,
-              productTitle,
-              total
-            )
+            (async () => {
+              const { convertFromUSD } = await import('@/lib/currency')
+              const localTotal = convertFromUSD(total, displayCurrency)
+              const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: displayCurrency }).format(localTotal)
+
+              await sendOrderConfirmationBuyer(
+                buyerUser.email,
+                buyerUser.full_name || buyerUser.username || 'Customer',
+                order.order_number,
+                productTitle,
+                formattedTotal
+              )
+            })()
           )
 
           // Seller notification
           if (order.seller_id) {
             emailPromises.push(
               (async () => {
+                const { convertFromUSD } = await import('@/lib/currency')
+                const localTotal = convertFromUSD(total, displayCurrency)
+                const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: displayCurrency }).format(localTotal)
+
                 const { data: sellerUser } = await supabaseAdmin
                   .from('users')
                   .select('email, full_name, username')
@@ -144,8 +158,9 @@ export async function POST(req: Request) {
                     sellerUser.full_name || sellerUser.username || 'Seller',
                     order.order_number,
                     productTitle,
-                    total,
-                    buyerUser.full_name || buyerUser.username || 'Customer'
+                    formattedTotal,
+                    buyerUser.full_name || buyerUser.username || 'Customer',
+                    buyerUser.email
                   )
                 }
               })()

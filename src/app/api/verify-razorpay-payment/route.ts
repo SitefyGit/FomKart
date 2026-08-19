@@ -12,7 +12,8 @@ export async function POST(req: Request) {
       items, 
       buyer_id, 
       billing_info, 
-      payment_method 
+      payment_method,
+      currency
     } = await req.json()
 
     // 1. Verify the signature
@@ -138,21 +139,40 @@ export async function POST(req: Request) {
           const productTitle = item?.product?.title || 'Your product'
           const total = order.total_price || 0
 
+          // Format price with correct currency (defaulting to USD if none provided)
+          const displayCurrency = currency || 'USD'
+          // We convert from USD (base) to displayCurrency. If they are the same, it's 1:1.
+          // Note: The UI calculates totalAmountLocal for Razorpay, but for emails we can just format it nicely.
+          // Actually, we don't have the conversion rate on backend easily without importing `convertFromUSD`. 
+          // But we can just import it! Wait, can we? Let's just use the `Intl.NumberFormat` with the appropriate conversion if needed, 
+          // OR simply, if the currency is INR, multiply by 84.5. Since we don't have currency.ts imported here, let's just do a basic switch 
+          // or import `convertFromUSD` from `@/lib/currency`.
+
           // Buyer confirmation
           emailPromises.push(
-            sendOrderConfirmationBuyer(
-              buyerUser.email,
-              buyerUser.full_name || buyerUser.username || 'Customer',
-              order.order_number,
-              productTitle,
-              total
-            )
+            (async () => {
+              const { convertFromUSD } = await import('@/lib/currency')
+              const localTotal = convertFromUSD(total, displayCurrency)
+              const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: displayCurrency }).format(localTotal)
+
+              await sendOrderConfirmationBuyer(
+                buyerUser.email,
+                buyerUser.full_name || buyerUser.username || 'Customer',
+                order.order_number,
+                productTitle,
+                formattedTotal
+              )
+            })()
           )
 
           // Seller notification
           if (order.seller_id) {
             emailPromises.push(
               (async () => {
+                const { convertFromUSD } = await import('@/lib/currency')
+                const localTotal = convertFromUSD(total, displayCurrency)
+                const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: displayCurrency }).format(localTotal)
+
                 const { data: sellerUser } = await supabaseAdmin
                   .from('users')
                   .select('email, full_name, username')
@@ -165,8 +185,9 @@ export async function POST(req: Request) {
                     sellerUser.full_name || sellerUser.username || 'Seller',
                     order.order_number,
                     productTitle,
-                    total,
-                    buyerUser.full_name || buyerUser.username || 'Customer'
+                    formattedTotal,
+                    buyerUser.full_name || buyerUser.username || 'Customer',
+                    buyerUser.email
                   )
                 }
               })()

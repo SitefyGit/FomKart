@@ -299,7 +299,8 @@ function CheckoutContent() {
             items,
             buyer_id: currentUser?.id,
             billing_info: billingInfo,
-            payment_method: 'free'
+            payment_method: 'free',
+            currency: currency || 'USD'
           })
         })
 
@@ -362,7 +363,8 @@ function CheckoutContent() {
                 items,
                 buyer_id: currentUser?.id,
                 billing_info: billingInfo,
-                payment_method: paymentMethod
+                payment_method: paymentMethod,
+                currency: currency || 'USD'
               })
             })
 
