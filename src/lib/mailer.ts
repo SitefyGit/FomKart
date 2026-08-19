@@ -324,7 +324,7 @@ export async function sendNewOrderSeller(
             </table>
           </div>
           <div style="text-align:center;margin-top:32px;">
-            <a href="${BASE_URL}/admin/orders" style="display:inline-block;background:#f59e0b;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">Manage Order →</a>
+            <a href="${BASE_URL}/orders?tab=selling" style="display:inline-block;background:#f59e0b;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">Manage Order →</a>
           </div>
         </div>
         <div style="background:#f9fafb;padding:20px 32px;text-align:center;border-top:1px solid #e5e7eb;">
