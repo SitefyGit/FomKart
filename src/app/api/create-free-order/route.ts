@@ -105,7 +105,7 @@ export async function POST(req: Request) {
     try {
       const { data: buyerUser } = await supabaseAdmin
         .from('users')
-        .select('email, full_name, name')
+        .select('email, full_name, username')
         .eq('id', buyer_id)
         .single()
 
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
           emailPromises.push(
             sendOrderConfirmationBuyer(
               buyerUser.email,
-              buyerUser.full_name || buyerUser.name || 'Customer',
+              buyerUser.full_name || buyerUser.username || 'Customer',
               order.order_number,
               productTitle,
               total
@@ -134,18 +134,18 @@ export async function POST(req: Request) {
               (async () => {
                 const { data: sellerUser } = await supabaseAdmin
                   .from('users')
-                  .select('email, full_name, name')
+                  .select('email, full_name, username')
                   .eq('id', order.seller_id)
                   .single()
 
                 if (sellerUser?.email) {
                   await sendNewOrderSeller(
                     sellerUser.email,
-                    sellerUser.full_name || sellerUser.name || 'Seller',
+                    sellerUser.full_name || sellerUser.username || 'Seller',
                     order.order_number,
                     productTitle,
                     total,
-                    buyerUser.full_name || buyerUser.name || 'Customer'
+                    buyerUser.full_name || buyerUser.username || 'Customer'
                   )
                 }
               })()
