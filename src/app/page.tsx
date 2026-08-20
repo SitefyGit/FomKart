@@ -1,5 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
 import { TrendingUp, ArrowRight, ShieldCheck, BadgeCheck, Box, GraduationCap, Video, Zap, CheckCircle } from 'lucide-react'
 import { SparklesIcon } from '@heroicons/react/24/solid'
 import { HomeLeadCapture } from './HomeClientWidgets'

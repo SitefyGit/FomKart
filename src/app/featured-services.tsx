@@ -5,8 +5,6 @@ import { supabase } from '@/lib/supabase'
 import { CurrencyPrice } from '@/components/CurrencyPrice'
 import { TranslatableText } from '@/components/TranslatableText'
 
-// Cache this list for 60s; content stays fresh enough and speeds navigation
-export const revalidate = 60
 
 type Service = {
   id: string

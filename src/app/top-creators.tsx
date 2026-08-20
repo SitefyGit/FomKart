@@ -3,8 +3,6 @@ import { BadgeCheck, Star, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { TranslatableText } from '@/components/TranslatableText'
 
-// Cache this section for 60s to avoid re-fetching on every request
-export const revalidate = 60
 
 type Creator = {
   id: string

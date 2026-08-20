@@ -1,5 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
 import { TrendingUp, Star, Sparkles, Zap, Users, Shield, ArrowRight } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 import MarketSearch from '@/components/MarketSearch'
