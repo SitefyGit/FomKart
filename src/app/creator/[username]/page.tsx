@@ -283,28 +283,12 @@ export default function CreatorPage() {
   // Extra dynamic product fields (gig style)
   const [tagInput, setTagInput] = useState('');
   const [productExtras, setProductExtras] = useState({
-    videoUrl: '',
-    externalUrl: '',
-    tags: '',
-    fileFormat: '',
-    downloadUrl: '',
-    fileSize: '',
-    licenseType: '',
-    consultationDuration: '', // minutes
-    consultationMethod: '',
-    consultationAvailability: '',
-    consultationLiveEnabled: false,
-    consultationCallType: '',
-    consultationProvider: '',
-    serviceDuration: '',
-    serviceAvailability: '',
-    courseModules: '',
-    courseHours: '',
-    courseCurriculum: '',
-    courseLevel: '',
-    courseAccessLinks: '',
-    coursePasskeys: '',
-    courseAccessNotes: ''
+    videoUrl: '', externalUrl: '', tags: '',
+    fileFormat: '', downloadUrl: '', fileSize: '', licenseType: '',
+    consultationDuration: '', consultationMethod: '', consultationAvailability: '', consultationLiveEnabled: false, consultationCallType: '', consultationProvider: '',
+    serviceDuration: '', serviceAvailability: '',
+    courseModules: '', courseHours: '', courseLevel: '', courseCurriculum: '', courseAccessLinks: '', coursePasskeys: '', courseAccessNotes: '',
+    deliveryDate: '', revisions: ''
   });
 
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({
@@ -1896,6 +1880,16 @@ export default function CreatorPage() {
                   <input value={productExtras.externalUrl} onChange={e=>setProductExtras(x=>({...x,externalUrl:e.target.value}))} placeholder="https://example.com" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                 </div>
               </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Delivery Date (or Time)</label>
+                  <input value={productExtras.deliveryDate} onChange={e=>setProductExtras(x=>({...x,deliveryDate:e.target.value}))} placeholder="e.g. 3 Days" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Revisions</label>
+                  <input value={productExtras.revisions} onChange={e=>setProductExtras(x=>({...x,revisions:e.target.value}))} placeholder="e.g. 1 or Unlimited" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                   Tags <span className="font-normal text-gray-400">({(productExtras.tags||'').split(',').filter(t=>t.trim()).length}/5)</span>
@@ -2167,6 +2161,8 @@ export default function CreatorPage() {
                   }
                   const requirements: string[] = [];
                   if (productExtras.externalUrl) requirements.push(`External: ${productExtras.externalUrl}`);
+                  if (productExtras.deliveryDate) requirements.push(`Delivery: ${productExtras.deliveryDate}`);
+                  if (productExtras.revisions) requirements.push(`Revisions: ${productExtras.revisions}`);
                   if (selectedType==='digital' && productExtras.downloadUrl) requirements.push(`Download: ${productExtras.downloadUrl}`);
                   if (selectedType==='course' && productExtras.courseCurriculum) requirements.push(`Curriculum: ${productExtras.courseCurriculum.slice(0,400)}`);
                   
@@ -2353,7 +2349,9 @@ export default function CreatorPage() {
                     courseLevel:'',
                     courseAccessLinks:'',
                     coursePasskeys:'',
-                    courseAccessNotes:''
+                    courseAccessNotes:'',
+                    deliveryDate:'',
+                    revisions:''
                   });
                   setAutoMessageEnabled(false);
                   setAutoMessage('');

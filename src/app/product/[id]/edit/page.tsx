@@ -25,6 +25,15 @@ interface DBProduct {
   slug: string;
   auto_message?: string | null;
   auto_message_enabled?: boolean | null;
+  category_id?: string | null;
+  videos?: string[] | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  parent_id?: string | null;
+  children?: Category[];
 }
 
 export default function EditProductPage({ params }: EditProductProps) {
@@ -46,12 +55,32 @@ export default function EditProductPage({ params }: EditProductProps) {
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  // New fields state
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [revisions, setRevisions] = useState('');
+  const [demoLink, setDemoLink] = useState('');
+  const [externalLink, setExternalLink] = useState('');
+  const [videoLink, setVideoLink] = useState('');
+
   useEffect(() => {
     const load = async () => {
       try {
         const user = await getCurrentUser();
         if (!user) { router.push('/auth/login'); return; }
         setCurrentUserId(user.id);
+
+        const { data: cats } = await supabase.from('categories').select('id, name, parent_id');
+        let rootCats: Category[] = [];
+        if (cats) {
+          rootCats = cats.filter(c => !c.parent_id).map(c => ({
+            ...c,
+            children: cats.filter(sub => sub.parent_id === c.id)
+          }));
+          setCategories(rootCats);
+        }
         const { data, error } = await supabase
           .from('products')
           .select('*')
@@ -69,6 +98,34 @@ export default function EditProductPage({ params }: EditProductProps) {
         setAutoMessageEnabled(Boolean(data.auto_message_enabled));
         setAutoMessage(data.auto_message || '');
         setImages((data.images || []).filter(Boolean));
+
+        // Parse requirements for demo, external, delivery
+        const reqs = data.requirements || [];
+        const extLine = reqs.find((r: string) => r.startsWith('External:'));
+        if (extLine) setExternalLink(extLine.replace('External:', '').trim());
+        const demoLine = reqs.find((r: string) => r.startsWith('Demo:'));
+        if (demoLine) setDemoLink(demoLine.replace('Demo:', '').trim());
+        const delLine = reqs.find((r: string) => r.startsWith('Delivery:'));
+        if (delLine) setDeliveryDate(delLine.replace('Delivery:', '').trim());
+        const revLine = reqs.find((r: string) => r.startsWith('Revisions:'));
+        if (revLine) setRevisions(revLine.replace('Revisions:', '').trim());
+
+        // Parse video link
+        if (data.videos && data.videos.length > 0) {
+          setVideoLink(data.videos[0]);
+        }
+
+        // Set categories based on category_id
+        if (data.category_id) {
+          // Check if it's a subcategory
+          const parentCat = cats?.find(c => c.id === data.category_id)?.parent_id;
+          if (parentCat) {
+            setSelectedCategoryId(parentCat);
+            setSelectedSubcategoryId(data.category_id);
+          } else {
+            setSelectedCategoryId(data.category_id);
+          }
+        }
       } catch (e) {
         console.warn('Load edit product failed', e);
       } finally {
@@ -146,6 +203,13 @@ export default function EditProductPage({ params }: EditProductProps) {
         .filter((tag) => tag.length > 0)
         .slice(0, 5);
 
+      // Build requirements array maintaining old requirements and adding our new mapped fields
+      let newReqs = (product.requirements || []).filter(r => !r.startsWith('External:') && !r.startsWith('Demo:') && !r.startsWith('Delivery:') && !r.startsWith('Revisions:'));
+      if (externalLink.trim()) newReqs.push(`External: ${externalLink.trim()}`);
+      if (demoLink.trim()) newReqs.push(`Demo: ${demoLink.trim()}`);
+      if (deliveryDate.trim()) newReqs.push(`Delivery: ${deliveryDate.trim()}`);
+      if (revisions.trim()) newReqs.push(`Revisions: ${revisions.trim()}`);
+
       const payload: Partial<DBProduct> = {
         title,
         description,
@@ -153,7 +217,10 @@ export default function EditProductPage({ params }: EditProductProps) {
         tags: parsedTags,
         images: finalImages,
         auto_message_enabled: autoMessageEnabled,
-        auto_message: autoMessageEnabled ? autoMessage : null
+        auto_message: autoMessageEnabled ? autoMessage : null,
+        category_id: selectedSubcategoryId || selectedCategoryId || null,
+        videos: videoLink.trim() ? [videoLink.trim()] : [],
+        requirements: newReqs
       };
       const { error, data } = await supabase
         .from('products')
@@ -275,6 +342,90 @@ export default function EditProductPage({ params }: EditProductProps) {
                 )}
               </div>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Press Enter or comma to add · Max 5 tags · 20 chars each</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Category</label>
+              <select
+                value={selectedCategoryId}
+                onChange={e => { setSelectedCategoryId(e.target.value); setSelectedSubcategoryId(''); }}
+                className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
+              >
+                <option value="">Select Category</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Subcategory</label>
+              <select
+                value={selectedSubcategoryId}
+                onChange={e => setSelectedSubcategoryId(e.target.value)}
+                disabled={!selectedCategoryId}
+                className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed outline-none transition-colors"
+              >
+                <option value="">Select Subcategory</option>
+                {categories.find(c => c.id === selectedCategoryId)?.children?.map(sub => (
+                  <option key={sub.id} value={sub.id}>{sub.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Delivery Date (or Time)</label>
+              <input 
+                value={deliveryDate} 
+                onChange={e=>setDeliveryDate(e.target.value)} 
+                placeholder="e.g. 3 Days"
+                className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Revisions</label>
+              <input 
+                value={revisions} 
+                onChange={e=>setRevisions(e.target.value)} 
+                placeholder="e.g. 1 or Unlimited"
+                className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
+              />
+            </div>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Video Link (YouTube)</label>
+              <input 
+                value={videoLink} 
+                onChange={e=>setVideoLink(e.target.value)} 
+                placeholder="https://youtu.be/..."
+                className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">External Link</label>
+              <input 
+                value={externalLink} 
+                onChange={e=>setExternalLink(e.target.value)} 
+                placeholder="https://..."
+                className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Demo Link</label>
+              <input 
+                value={demoLink} 
+                onChange={e=>setDemoLink(e.target.value)} 
+                placeholder="https://..."
+                className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
+              />
             </div>
           </div>
           <div>

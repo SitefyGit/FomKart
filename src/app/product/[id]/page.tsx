@@ -61,6 +61,8 @@ interface Product {
   reviewCount?: number;
   features?: string[];
   requirements?: string[];
+  deliveryStat?: string;
+  revisionsStat?: string;
 }
 
 interface User {
@@ -211,9 +213,17 @@ export default function ProductPage({ params }: ProductPageProps) {
           }
           // External / demo link encoded in requirements lines starting with "External:" or "Download:" or we keep first external
           let externalLink: string | undefined;
+          let deliveryStat: string | undefined;
+          let revisionsStat: string | undefined;
           if (Array.isArray(prod.requirements)) {
             const extLine = prod.requirements.find((r: string) => r.startsWith('External:'));
             if (extLine) externalLink = extLine.replace('External:','').trim();
+            
+            const delLine = prod.requirements.find((r: string) => r.startsWith('Delivery:'));
+            if (delLine) deliveryStat = delLine.replace('Delivery:','').trim();
+            
+            const revLine = prod.requirements.find((r: string) => r.startsWith('Revisions:'));
+            if (revLine) revisionsStat = revLine.replace('Revisions:','').trim();
           }
           let fetchedReviews: Review[] = [];
           let creatorRating = typeof prod.creator?.rating === 'number' ? prod.creator.rating : 0;
@@ -299,8 +309,10 @@ export default function ProductPage({ params }: ProductPageProps) {
             reviewCount,
             youtubeVideoId: youTubeId,
             demoUrl: externalLink,
-            features: prod.features || [],
-            requirements: prod.requirements || [],
+            features: Array.isArray(prod.features) ? prod.features : undefined,
+            requirements: Array.isArray(prod.requirements) ? prod.requirements : undefined,
+            deliveryStat,
+            revisionsStat,
             creator: prod.creator ? {
               id: prod.creator.id,
               full_name: prod.creator.full_name || prod.creator.username,
@@ -562,13 +574,13 @@ export default function ProductPage({ params }: ProductPageProps) {
                   </ul>
                 </div>
               )}
-              {product.requirements && product.requirements.length > 0 && (
+              {product.requirements && product.requirements.filter(r => !r.startsWith('External:') && !r.startsWith('Demo:') && !r.startsWith('Delivery:') && !r.startsWith('Revisions:')).length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2"><TranslatableText text="Included / Links" as="span" wrapperAs="span" className="inline" /></h3>
                   <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300 break-all">
-                    {product.requirements.map((r,i)=>{
+                    {product.requirements.filter(r => !r.startsWith('External:') && !r.startsWith('Demo:') && !r.startsWith('Delivery:') && !r.startsWith('Revisions:')).map((r,i)=>{
                       const isLink = /https?:\/\//i.test(r);
-                      return <li key={i}>{isLink ? <a href={r.replace(/^External:\s*/,'').replace(/^Download:\s*/,'').trim()} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline">{r.replace(/^External:\s*/,'').replace(/^Download:\s*/,'').trim()}</a> : r}</li>
+                      return <li key={i}>{isLink ? <a href={r.replace(/^Download:\s*/,'').trim()} target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline">{r.replace(/^Download:\s*/,'').trim()}</a> : r}</li>
                     })}
                   </ul>
                 </div>
@@ -612,13 +624,13 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
                 <div className="text-center">
                   <div className="text-base md:text-2xl font-bold text-gray-900 dark:text-white">
-                    {selectedPackage ? `${selectedPackage.delivery_time}`.replace(' days', '') : '—'}
+                    {product.deliveryStat ? product.deliveryStat.replace(' days', '') : (selectedPackage ? `${selectedPackage.delivery_time}`.replace(' days', '') : '—')}
                   </div>
                   <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Days Delivery" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
                 <div className="text-center">
                   <div className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
-                    {selectedPackage?.revisions || 'Unlimited'}
+                    {product.revisionsStat || (selectedPackage?.revisions || 'Unlimited')}
                   </div>
                   <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400"><TranslatableText text="Revisions" as="span" wrapperAs="span" className="inline" /></div>
                 </div>
