@@ -133,12 +133,14 @@ type CreatorProfileUpdate = Pick<Creator, "bio" | "website" | "location" | "soci
 
 async function loadCreator(username: string): Promise<Creator | null> {
   try {
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('username', username)
-      .eq('is_creator', true)
-      .single();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(username);
+    let query = supabase.from('users').select('*');
+    if (isUuid) {
+      query = query.eq('id', username);
+    } else {
+      query = query.eq('username', username);
+    }
+    const { data: userData, error } = await query.eq('is_creator', true).single();
     if (error || !userData) return null;
 
     const { data: products } = await supabase
@@ -374,6 +376,7 @@ export default function CreatorPage() {
   const [subscribeEmail, setSubscribeEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [reportCategory, setReportCategory] = useState('inappropriate');
   const [reportReason, setReportReason] = useState('');
   const [reporting, setReporting] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -2631,6 +2634,86 @@ export default function CreatorPage() {
           </div>
         </div>
       )}
+      {/* Report Modal */}
+      {reportOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full overflow-hidden">
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Report this shop</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Please let us know why you are reporting this shop. Our moderation team will review it.</p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Reason</label>
+                  <select
+                    value={reportCategory}
+                    onChange={e => setReportCategory(e.target.value)}
+                    className="w-full border dark:border-gray-600 rounded-lg p-2.5 text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-red-500 outline-none"
+                  >
+                    <option value="spam">Spam</option>
+                    <option value="inappropriate">Inappropriate Content</option>
+                    <option value="fraud">Fraud / Scam</option>
+                    <option value="copyright">Copyright Violation</option>
+                    <option value="harassment">Harassment</option>
+                    <option value="misleading">Misleading</option>
+                    <option value="quality">Poor Quality</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Additional Details</label>
+                  <textarea 
+                    className="w-full border dark:border-gray-600 rounded-lg p-3 text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-red-500 outline-none" 
+                    rows={3}
+                    placeholder="Provide more context (optional)..."
+                    value={reportReason}
+                    onChange={e => setReportReason(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex border-t border-gray-100 dark:border-gray-700">
+              <button 
+                onClick={() => { setReportOpen(false); setReportReason(''); setReportCategory('inappropriate'); }}
+                className="flex-1 p-4 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                disabled={reporting}
+              >
+                Cancel
+              </button>
+              <div className="w-px bg-gray-100 dark:border-gray-700"></div>
+              <button 
+                onClick={async () => {
+                  setReporting(true);
+                  try {
+                    const { error } = await supabase.from('reports').insert({
+                      reporter_id: currentUser?.id || null,
+                      entity_id: creator.id,
+                      entity_type: 'user',
+                      reason: reportCategory,
+                      description: reportReason.trim() || 'No additional details provided.',
+                      status: 'pending'
+                    });
+                    if (error) throw error;
+                    pushToast({ type: 'success', title: 'Report Submitted', message: 'Thank you. We will review this shortly.' });
+                    setReportOpen(false);
+                    setReportReason('');
+                    setReportCategory('inappropriate');
+                  } catch (e) {
+                    console.error('Report error:', e);
+                    pushToast({ type: 'error', title: 'Report Failed', message: 'Could not submit report.' });
+                  } finally {
+                    setReporting(false);
+                  }
+                }}
+                className="flex-1 p-4 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                disabled={reporting || !reportReason.trim()}
+              >
+                {reporting ? 'Submitting...' : 'Submit Report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Delete Confirmation Modal */}
       {deleteConfirmation.show && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">

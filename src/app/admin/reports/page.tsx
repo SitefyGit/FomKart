@@ -74,13 +74,26 @@ export default function ReportsPage() {
     setActionLoading(true)
 
     try {
+      const authUser = await supabase.auth.getUser();
+      const userId = authUser.data.user?.id;
+      
+      let adminId = null;
+      if (userId) {
+        const { data: adminData } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+        adminId = adminData?.id;
+      }
+
       const { error } = await supabase
         .from('reports')
         .update({
           status,
           resolution: resolutionNote,
           resolved_at: new Date().toISOString(),
-          handled_by: (await supabase.auth.getUser()).data.user?.id
+          handled_by: adminId || null
         })
         .eq('id', selectedReport.id)
 
