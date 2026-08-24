@@ -1754,19 +1754,19 @@ export default function CreatorPage() {
             </div>
             <div className="grid md:grid-cols-3 gap-3">
               {productTypes.map(pt => (
-                <button key={pt.key} onClick={()=>setSelectedType(pt.key)} className={`text-left border rounded-lg p-4 hover:border-blue-400 transition ${selectedType===pt.key?'border-blue-500 bg-blue-50':'border-gray-200'}`}>
+                <button key={pt.key} onClick={()=>setSelectedType(pt.key)} className={`text-left border rounded-lg p-4 hover:border-blue-400 transition ${selectedType===pt.key?'border-blue-500 bg-blue-50 dark:bg-blue-900/30':'border-gray-200 dark:border-gray-600'}`}>
                   <div className="font-medium text-sm mb-1">{pt.label}</div>
-                  <div className="text-[11px] text-gray-500 leading-snug">{pt.desc}</div>
+                  <div className="text-[11px] text-gray-500 dark:text-gray-400 leading-snug">{pt.desc}</div>
                 </button>
               ))}
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">Upload Images</label>
-              <div className="relative border-2 border-dashed rounded-xl p-6 bg-gray-50">
-                <div className="text-center text-gray-500">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Upload Images</label>
+              <div className="relative border-2 border-dashed dark:border-gray-600 rounded-xl p-6 bg-gray-50 dark:bg-gray-700">
+                <div className="text-center text-gray-500 dark:text-gray-400">
                   <div className="text-3xl">↑</div>
                   <p className="text-sm">Click to add images (multiple supported)</p>
-                  <p className="text-[11px] text-gray-400">PNG, JPG up to ~5MB each</p>
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500">PNG, JPG up to ~5MB each</p>
                 </div>
                 <input
                   type="file"
@@ -1787,29 +1787,29 @@ export default function CreatorPage() {
               </div>
               {mediaFiles.length > 0 && (
                 <div className="mt-3">
-                  <div className="text-xs text-gray-600 mb-2">Selected ({mediaFiles.length})</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">Selected ({mediaFiles.length})</div>
                   <ul className="space-y-2 max-h-40 overflow-auto">
                     {mediaFiles.map((f, idx) => (
-                      <li key={idx} className="flex items-center justify-between gap-3 border rounded-lg p-2 bg-white hover:bg-gray-50 transition-colors">
+                      <li key={idx} className="flex items-center justify-between gap-3 border dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                         <ImagePreview file={f} />
-                        <span className="text-xs truncate flex-1 font-medium text-gray-700">{f.name}</span>
+                        <span className="text-xs truncate flex-1 font-medium text-gray-700 dark:text-gray-300">{f.name}</span>
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
                             disabled={idx===0}
                             onClick={()=>setMediaFiles(prev=>{ const arr=[...prev]; const t=arr[idx-1]; arr[idx-1]=arr[idx]; arr[idx]=t; return arr; })}
-                            className="text-[11px] px-2 py-0.5 border rounded disabled:opacity-50"
+                            className="text-[11px] px-2 py-0.5 border dark:border-gray-600 rounded disabled:opacity-50 dark:text-gray-300"
                           >Up</button>
                           <button
                             type="button"
                             disabled={idx===mediaFiles.length-1}
                             onClick={()=>setMediaFiles(prev=>{ const arr=[...prev]; const t=arr[idx+1]; arr[idx+1]=arr[idx]; arr[idx]=t; return arr; })}
-                            className="text-[11px] px-2 py-0.5 border rounded disabled:opacity-50"
+                            className="text-[11px] px-2 py-0.5 border dark:border-gray-600 rounded disabled:opacity-50 dark:text-gray-300"
                           >Down</button>
                           <button
                             type="button"
                             onClick={()=>setMediaFiles(prev=>prev.filter((_,i)=>i!==idx))}
-                            className="text-[11px] px-2 py-0.5 border rounded text-red-600"
+                            className="text-[11px] px-2 py-0.5 border dark:border-gray-600 rounded text-red-600 dark:text-red-400"
                           >Remove</button>
                         </div>
                       </li>
@@ -1823,23 +1823,23 @@ export default function CreatorPage() {
             </div>
             <div className="grid gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Product Name *</label>
-                <input value={newProduct.title} onChange={e=>setNewProduct(p=>({...p,title:e.target.value}))} placeholder="Enter product name" className="w-full border rounded-lg px-3 py-2 text-sm" maxLength={80} />
-                <div className="text-[11px] text-gray-400 text-right mt-1">{newProduct.title.length}/80</div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Product Name *</label>
+                <input value={newProduct.title} onChange={e=>setNewProduct(p=>({...p,title:e.target.value}))} placeholder="Enter product name" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" maxLength={80} />
+                <div className="text-[11px] text-gray-400 dark:text-gray-500 text-right mt-1">{newProduct.title.length}/80</div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Product Description *</label>
-                <textarea value={newProduct.description} onChange={e=>setNewProduct(p=>({...p,description:e.target.value}))} placeholder="Describe your product" className="w-full border rounded-lg px-3 py-2 text-sm h-28" />
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Product Description *</label>
+                <textarea value={newProduct.description} onChange={e=>setNewProduct(p=>({...p,description:e.target.value}))} placeholder="Describe your product" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm h-28 dark:bg-gray-700 dark:text-white" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Price ({currency})</label>
-                  <input value={newProduct.price} onChange={e=>setNewProduct(p=>({...p,price:e.target.value}))} placeholder="19.00" className="w-full border rounded-lg px-3 py-2 text-sm" />
-                  <p className="text-[11px] text-gray-400 mt-0.5">Enter amount in {currency}. Converted to USD for storage.</p>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Price ({currency})</label>
+                  <input value={newProduct.price} onChange={e=>setNewProduct(p=>({...p,price:e.target.value}))} placeholder="19.00" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">Enter amount in {currency}. Converted to USD for storage.</p>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
-                  <div className="border rounded-lg px-3 py-2 text-sm bg-gray-50">{productTypes.find(p=>p.key===selectedType)?.label}</div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Type</label>
+                  <div className="border dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 dark:text-white">{productTypes.find(p=>p.key===selectedType)?.label}</div>
                 </div>
               </div>
               {/* Category & Subcategory */}
@@ -1980,20 +1980,20 @@ export default function CreatorPage() {
               {selectedType==='digital' && (
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">File Format</label>
-                    <input value={productExtras.fileFormat} onChange={e=>setProductExtras(x=>({...x,fileFormat:e.target.value}))} placeholder="PDF" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">File Format</label>
+                    <input value={productExtras.fileFormat} onChange={e=>setProductExtras(x=>({...x,fileFormat:e.target.value}))} placeholder="PDF" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Download URL</label>
-                    <input value={productExtras.downloadUrl} onChange={e=>setProductExtras(x=>({...x,downloadUrl:e.target.value}))} placeholder="(optional)" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Download URL</label>
+                    <input value={productExtras.downloadUrl} onChange={e=>setProductExtras(x=>({...x,downloadUrl:e.target.value}))} placeholder="(optional)" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">File Size</label>
-                    <input value={productExtras.fileSize} onChange={e=>setProductExtras(x=>({...x,fileSize:e.target.value}))} placeholder="15MB" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">File Size</label>
+                    <input value={productExtras.fileSize} onChange={e=>setProductExtras(x=>({...x,fileSize:e.target.value}))} placeholder="15MB" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">License Type</label>
-                    <input value={productExtras.licenseType} onChange={e=>setProductExtras(x=>({...x,licenseType:e.target.value}))} placeholder="Personal / Commercial" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">License Type</label>
+                    <input value={productExtras.licenseType} onChange={e=>setProductExtras(x=>({...x,licenseType:e.target.value}))} placeholder="Personal / Commercial" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                 </div>
               )}
@@ -2001,19 +2001,19 @@ export default function CreatorPage() {
               {selectedType==='consultation' && (
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Duration (min)</label>
-                    <input value={productExtras.consultationDuration} onChange={e=>setProductExtras(x=>({...x,consultationDuration:e.target.value}))} placeholder="30" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Duration (min)</label>
+                    <input value={productExtras.consultationDuration} onChange={e=>setProductExtras(x=>({...x,consultationDuration:e.target.value}))} placeholder="30" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Method</label>
-                    <input value={productExtras.consultationMethod} onChange={e=>setProductExtras(x=>({...x,consultationMethod:e.target.value}))} placeholder="Zoom" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Method</label>
+                    <input value={productExtras.consultationMethod} onChange={e=>setProductExtras(x=>({...x,consultationMethod:e.target.value}))} placeholder="Zoom" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Availability</label>
-                    <input value={productExtras.consultationAvailability} onChange={e=>setProductExtras(x=>({...x,consultationAvailability:e.target.value}))} placeholder="Weekdays" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Availability</label>
+                    <input value={productExtras.consultationAvailability} onChange={e=>setProductExtras(x=>({...x,consultationAvailability:e.target.value}))} placeholder="Weekdays" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                   <div className="md:col-span-3">
-                    <label className="flex items-start gap-2 text-sm text-gray-700">
+                    <label className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                       <input
                         type="checkbox"
                         checked={productExtras.consultationLiveEnabled}
@@ -2022,14 +2022,14 @@ export default function CreatorPage() {
                       />
                       <span>
                         Enable live call (video / voice)
-                        <span className="block text-[11px] text-gray-500">If enabled, buyers can schedule a live session with you.</span>
+                        <span className="block text-[11px] text-gray-500 dark:text-gray-400">If enabled, buyers can schedule a live session with you.</span>
                       </span>
                     </label>
                     {productExtras.consultationLiveEnabled && (
                       <div className="mt-3 grid md:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Call Type</label>
-                          <select value={productExtras.consultationCallType} onChange={e=>setProductExtras(x=>({...x,consultationCallType:e.target.value}))} className="w-full border rounded-lg px-3 py-2 text-sm">
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Call Type</label>
+                          <select value={productExtras.consultationCallType} onChange={e=>setProductExtras(x=>({...x,consultationCallType:e.target.value}))} className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white">
                             <option value="">Select</option>
                             <option value="video">Video</option>
                             <option value="voice">Voice</option>
@@ -2037,8 +2037,8 @@ export default function CreatorPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Provider / Notes</label>
-                          <input value={productExtras.consultationProvider} onChange={e=>setProductExtras(x=>({...x,consultationProvider:e.target.value}))} placeholder="Zoom link / provider info" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Provider / Notes</label>
+                          <input value={productExtras.consultationProvider} onChange={e=>setProductExtras(x=>({...x,consultationProvider:e.target.value}))} placeholder="Zoom link / provider info" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                         </div>
                       </div>
                     )}
@@ -2049,16 +2049,16 @@ export default function CreatorPage() {
               {selectedType==='service' && (
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Estimated Duration</label>
-                    <input value={productExtras.serviceDuration} onChange={e=>setProductExtras(x=>({...x,serviceDuration:e.target.value}))} placeholder="e.g. 2 hours" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Estimated Duration</label>
+                    <input value={productExtras.serviceDuration} onChange={e=>setProductExtras(x=>({...x,serviceDuration:e.target.value}))} placeholder="e.g. 2 hours" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Availability</label>
-                    <input value={productExtras.serviceAvailability} onChange={e=>setProductExtras(x=>({...x,serviceAvailability:e.target.value}))} placeholder="Weekdays, Evenings" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Availability</label>
+                    <input value={productExtras.serviceAvailability} onChange={e=>setProductExtras(x=>({...x,serviceAvailability:e.target.value}))} placeholder="Weekdays, Evenings" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Location / Booking URL</label>
-                    <input value={productExtras.externalUrl} onChange={e=>setProductExtras(x=>({...x,externalUrl:e.target.value}))} placeholder="In-person location or booking URL" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Location / Booking URL</label>
+                    <input value={productExtras.externalUrl} onChange={e=>setProductExtras(x=>({...x,externalUrl:e.target.value}))} placeholder="In-person location or booking URL" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                   </div>
                 </div>
               )}
@@ -2068,40 +2068,40 @@ export default function CreatorPage() {
                 <div className="grid gap-4">
                   <div className="grid md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Modules</label>
-                      <input value={productExtras.courseModules} onChange={e=>setProductExtras(x=>({...x,courseModules:e.target.value}))} placeholder="10" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Modules</label>
+                      <input value={productExtras.courseModules} onChange={e=>setProductExtras(x=>({...x,courseModules:e.target.value}))} placeholder="10" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Total Hours</label>
-                      <input value={productExtras.courseHours} onChange={e=>setProductExtras(x=>({...x,courseHours:e.target.value}))} placeholder="5" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Total Hours</label>
+                      <input value={productExtras.courseHours} onChange={e=>setProductExtras(x=>({...x,courseHours:e.target.value}))} placeholder="5" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Level</label>
-                      <input value={productExtras.courseLevel} onChange={e=>setProductExtras(x=>({...x,courseLevel:e.target.value}))} placeholder="Beginner" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Level</label>
+                      <input value={productExtras.courseLevel} onChange={e=>setProductExtras(x=>({...x,courseLevel:e.target.value}))} placeholder="Beginner" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Curriculum Outline</label>
-                    <textarea value={productExtras.courseCurriculum} onChange={e=>setProductExtras(x=>({...x,courseCurriculum:e.target.value}))} placeholder="Module 1: ...\nModule 2: ..." className="w-full border rounded-lg px-3 py-2 text-sm h-28" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Curriculum Outline</label>
+                    <textarea value={productExtras.courseCurriculum} onChange={e=>setProductExtras(x=>({...x,courseCurriculum:e.target.value}))} placeholder="Module 1: ...\nModule 2: ..." className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm h-28 dark:bg-gray-700 dark:text-white" />
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Course Access Links</label>
-                      <textarea value={productExtras.courseAccessLinks} onChange={e=>setProductExtras(x=>({...x,courseAccessLinks:e.target.value}))} placeholder="https://portal.example.com/class\nhttps://community.example.com" className="w-full border rounded-lg px-3 py-2 text-sm h-28" />
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Course Access Links</label>
+                      <textarea value={productExtras.courseAccessLinks} onChange={e=>setProductExtras(x=>({...x,courseAccessLinks:e.target.value}))} placeholder="https://portal.example.com/class\nhttps://community.example.com" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm h-28 dark:bg-gray-700 dark:text-white" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Passkeys / Codes</label>
-                      <textarea value={productExtras.coursePasskeys} onChange={e=>setProductExtras(x=>({...x,coursePasskeys:e.target.value}))} placeholder="Batch-2025-Key\nVIP-ACCESS-123" className="w-full border rounded-lg px-3 py-2 text-sm h-28" />
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Passkeys / Codes</label>
+                      <textarea value={productExtras.coursePasskeys} onChange={e=>setProductExtras(x=>({...x,coursePasskeys:e.target.value}))} placeholder="Batch-2025-Key\nVIP-ACCESS-123" className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm h-28 dark:bg-gray-700 dark:text-white" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Access Notes</label>
-                    <textarea value={productExtras.courseAccessNotes} onChange={e=>setProductExtras(x=>({...x,courseAccessNotes:e.target.value}))} placeholder="Share how learners unlock the content or who to contact for support." className="w-full border rounded-lg px-3 py-2 text-sm h-24" />
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Access Notes</label>
+                    <textarea value={productExtras.courseAccessNotes} onChange={e=>setProductExtras(x=>({...x,courseAccessNotes:e.target.value}))} placeholder="Share how learners unlock the content or who to contact for support." className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm h-24 dark:bg-gray-700 dark:text-white" />
                   </div>
                 </div>
               )}
-              <div className="border-t border-gray-100 pt-4">
-                <label className="flex items-start gap-2 text-sm text-gray-700">
+              <div className="border-t border-gray-100 dark:border-gray-600 pt-4">
+                <label className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <input
                     type="checkbox"
                     checked={autoMessageEnabled}
@@ -2110,7 +2110,7 @@ export default function CreatorPage() {
                   />
                   <span>
                     Send an automated welcome message after purchase
-                    <span className="block text-xs text-gray-500">Buyers receive this once their order is confirmed.</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">Buyers receive this once their order is confirmed.</span>
                   </span>
                 </label>
                 {autoMessageEnabled && (
@@ -2118,14 +2118,14 @@ export default function CreatorPage() {
                     value={autoMessage}
                     onChange={(e)=>setAutoMessage(e.target.value)}
                     rows={4}
-                    className="mt-3 w-full border rounded-lg px-3 py-2 text-sm"
+                    className="mt-3 w-full border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
                     placeholder="Thanks for purchasing! Please share your project details here..."
                   />
                 )}
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">
-              <button onClick={()=>{setAddProductOpen(false); setAutoMessageEnabled(false); setAutoMessage(''); setMediaFiles([]); setDeliveryFiles([]);}} className="px-4 py-2 text-sm rounded-lg border">Cancel</button>
+              <button onClick={()=>{setAddProductOpen(false); setAutoMessageEnabled(false); setAutoMessage(''); setMediaFiles([]); setDeliveryFiles([]);}} className="px-4 py-2 text-sm rounded-lg border dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">Cancel</button>
               <button disabled={savingProduct || !newProduct.title} onClick={async ()=>{
                 if (!creator || !newProduct.title) return;
                 setSavingProduct(true);
