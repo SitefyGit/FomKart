@@ -193,7 +193,7 @@ export default function SiteHeader() {
 
           {/* Mobile Layout (unchanged logically, just adjusted for spacing since Grid took over Desktop) */}
           <div className="md:hidden flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-2">
               <Link href="/" prefetch className="flex items-center shrink-0">
                 <Image
                   src="/fomkart_green_text.png"
@@ -214,10 +214,9 @@ export default function SiteHeader() {
                   suppressHydrationWarning
                 />
               </Link>
-              <div className="flex items-center justify-end gap-1 sm:gap-2 shrink-0">
+              <div className="flex items-center justify-end gap-1 sm:gap-2 min-w-0 flex-shrink overflow-x-auto">
                 <ThemeToggle />
                 <CartIcon />
-                <MessagesIcon />
                 <NotificationsBell />
                 <ProfileMenu />
               </div>

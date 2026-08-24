@@ -64,8 +64,8 @@ function ProfileMenuContent() {
     const redirectParam = currentPath !== '/' ? `?redirect=${encodeURIComponent(currentPath)}` : ''
     return (
       <div className="flex items-center gap-1 sm:gap-2">
-        <Link href={`/auth/login${redirectParam}`} className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs sm:text-sm whitespace-nowrap transition-colors">Sign in</Link>
-        <Link href={`/auth/choose-role${redirectParam}`} className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-transparent bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">Sign up</Link>
+        <Link href={`/auth/login${redirectParam}`} className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-[11px] sm:text-sm whitespace-nowrap transition-colors">Sign in</Link>
+        <Link href={`/auth/choose-role${redirectParam}`} className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-transparent bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] sm:text-sm font-medium transition-colors whitespace-nowrap">Sign up</Link>
       </div>
     )
   }
