@@ -2292,13 +2292,16 @@ export default function CreatorPage() {
                   const resolvedImages = imageUrls.length > 0 ? imageUrls : (insertedRow?.images ?? []);
                   if (!insertedId.startsWith('local-')) {
                     try {
+                      const parsedDelivery = productExtras.deliveryDate ? parseInt(productExtras.deliveryDate, 10) : null;
+                      const parsedRevisions = productExtras.revisions ? parseInt(productExtras.revisions, 10) : 0;
+                      
                       const defaultPackage: ProductPackageInsert = {
                         product_id: insertedId,
                         name: 'Standard',
                         description: newProduct.description?.slice(0, 160) || 'Standard package',
                         price: resolvedPrice,
-                        delivery_time: 3,
-                        revisions: 1,
+                        delivery_time: !isNaN(parsedDelivery as any) && parsedDelivery !== null ? parsedDelivery : 3,
+                        revisions: !isNaN(parsedRevisions as any) && parsedRevisions !== null ? parsedRevisions : 1,
                         features: resolvedFeatures,
                         sort_order: 1
                       };

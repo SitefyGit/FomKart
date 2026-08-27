@@ -231,6 +231,21 @@ export default function EditProductPage({ params }: EditProductProps) {
         .single();
       if (error) throw error;
       if (!data) throw new Error('No product updated');
+      
+      // Update the base package to reflect the new price, delivery, and revisions
+      try {
+        const pkgUpdate: any = { price: parsedPrice };
+        if (deliveryDate.trim()) pkgUpdate.delivery_time = parseInt(deliveryDate.trim(), 10) || null;
+        if (revisions.trim()) pkgUpdate.revisions = parseInt(revisions.trim(), 10) || 0;
+
+        await supabase
+          .from('product_packages')
+          .update(pkgUpdate)
+          .eq('product_id', product.id);
+      } catch (pkgErr) {
+        console.warn('Failed to update package prices', pkgErr);
+      }
+
       setImages(finalImages);
       setNewFiles([]);
       router.push(`/product/${product.id}`);
