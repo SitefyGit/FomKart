@@ -540,7 +540,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               title={product.title}
             />
             {/* Live Demo Button */}
-            {product.demoUrl && (
+            {product.type !== 'service' && product.demoUrl && (
               <div className="mt-4 flex justify-end">
                 <a
                   href={product.demoUrl}
