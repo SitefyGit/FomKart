@@ -432,7 +432,7 @@ export default async function MarketPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href="/category/services"
+              href="/category/offerings"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg shadow-indigo-500/25"
             >
               <TranslatableText text="Browse All Offerings" as="span" wrapperAs="span" className="inline" />

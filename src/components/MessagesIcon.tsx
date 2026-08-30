@@ -60,7 +60,7 @@ export default function MessagesIcon() {
   return (
     <Link
       href="/messages"
-      className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+      className="relative p-1.5 sm:p-2 text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0"
       title="Messages"
     >
       <MessageCircle className="w-5 h-5" />

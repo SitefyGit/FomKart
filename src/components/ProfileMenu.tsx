@@ -40,32 +40,34 @@ function ProfileMenuContent() {
       fetchUserProfile(session?.user || null)
     })
 
-    const onDocClick = (e: MouseEvent) => {
+    const onDocClick = (e: MouseEvent | TouchEvent) => {
       if (!rootRef.current) return
       if (!rootRef.current.contains(e.target as Node)) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
     document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('touchstart', onDocClick)
     document.addEventListener('keydown', onKey)
     return () => {
       subscription.unsubscribe()
       document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('touchstart', onDocClick)
       document.removeEventListener('keydown', onKey)
     }
   }, [])
 
   if (loading) {
     return (
-      <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+      <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse shrink-0"></div>
     )
   }
 
   if (!user) {
     const redirectParam = currentPath !== '/' ? `?redirect=${encodeURIComponent(currentPath)}` : ''
     return (
-      <div className="flex items-center gap-1 sm:gap-2">
-        <Link href={`/auth/login${redirectParam}`} className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-[11px] sm:text-sm whitespace-nowrap transition-colors">Sign in</Link>
-        <Link href={`/auth/choose-role${redirectParam}`} className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-transparent bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] sm:text-sm font-medium transition-colors whitespace-nowrap">Sign up</Link>
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <Link href={`/auth/login${redirectParam}`} className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs sm:text-sm whitespace-nowrap transition-colors shrink-0 font-medium">Sign in</Link>
+        <Link href={`/auth/choose-role${redirectParam}`} className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-full border border-transparent bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0">Sign up</Link>
       </div>
     )
   }
@@ -82,14 +84,14 @@ function ProfileMenuContent() {
   const avatar = user.avatar_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}`
 
   return (
-    <div className="relative" ref={rootRef}>
-      <button onClick={()=>setOpen(v=>!v)} className="h-8 pl-1 pr-2 rounded-full flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+    <div className="relative shrink-0" ref={rootRef}>
+      <button onClick={()=>setOpen(v=>!v)} className="h-8 pl-1 pr-1 sm:pr-2 rounded-full flex items-center gap-1 sm:gap-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 shrink-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={avatar} alt="avatar" className="w-8 h-8 rounded-full object-cover" suppressHydrationWarning />
-        <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+        <img src={avatar} alt="avatar" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shrink-0" suppressHydrationWarning />
+        <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-300" />
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="fixed right-3 top-14 sm:top-auto sm:absolute sm:right-0 sm:mt-2 w-60 max-w-[calc(100vw-24px)] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <div className="text-sm font-semibold text-gray-900 dark:text-white">{displayName}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</div>

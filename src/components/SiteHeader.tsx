@@ -2,26 +2,32 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Globe, ChevronDown, Search } from 'lucide-react';
+import { Globe, ChevronDown, Search, Menu } from 'lucide-react';
 import RouteProgress from '@/app/RouteProgress';
 import NotificationsBell from '@/components/NotificationsBell';
 import ProfileMenu from '@/components/ProfileMenu';
 import CartIcon from '@/components/CartIcon';
 import MessagesIcon from '@/components/MessagesIcon';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import MobileMenuDrawer from '@/components/MobileMenuDrawer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 
 export default function SiteHeader() {
   const { t, language, languages, setLanguage, showOriginalListings, setShowOriginalListings } = useLanguage();
   const [languageOpen, setLanguageOpen] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const currentLanguageObj = languages.find((l) => l.code === language) ?? languages[0];
+
+  const handleCloseMobileDrawer = useCallback(() => {
+    setMobileDrawerOpen(false);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -176,6 +182,9 @@ export default function SiteHeader() {
               <Link href="/market" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
                 {t('explore', 'Explore')}
               </Link>
+              <Link href="/category/offerings" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
+                {t('allOfferings', 'All Offerings')}
+              </Link>
               <Link href="/category/digital-products" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
                 {t('digitalProducts', 'Digital Products')}
               </Link>
@@ -191,34 +200,60 @@ export default function SiteHeader() {
             </nav>
           </div>
 
-          {/* Mobile Layout (unchanged logically, just adjusted for spacing since Grid took over Desktop) */}
-          <div className="md:hidden flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-2">
+          {/* Mobile Layout */}
+          <div className="md:hidden flex flex-col gap-2.5">
+            <div className="flex items-center justify-between gap-1.5">
               <Link href="/" prefetch className="flex items-center shrink-0">
                 <Image
                   src="/fomkart_green_text.png"
                   alt="fomkart"
-                  width={90}
-                  height={24}
-                  className="h-6 w-auto dark:hidden"
+                  width={82}
+                  height={22}
+                  className="h-5.5 w-auto dark:hidden"
                   priority
                   suppressHydrationWarning
                 />
                 <Image
                   src="/fomkart_white_text.png"
                   alt="fomkart"
-                  width={90}
-                  height={24}
-                  className="h-6 w-auto hidden dark:block"
+                  width={82}
+                  height={22}
+                  className="h-5.5 w-auto hidden dark:block"
                   priority
                   suppressHydrationWarning
                 />
               </Link>
-              <div className="flex items-center justify-end gap-1 sm:gap-2 min-w-0 flex-shrink overflow-x-auto">
-                <ThemeToggle />
-                <CartIcon />
-                <NotificationsBell />
-                <ProfileMenu />
+              <div className="flex items-center justify-end gap-1 sm:gap-1.5 shrink-0">
+                {isLoggedIn ? (
+                  <>
+                    <MessagesIcon />
+                    <NotificationsBell />
+                    <ProfileMenu />
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/auth/login"
+                      className="inline-flex items-center px-2.5 py-1 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs whitespace-nowrap transition-colors font-medium shrink-0"
+                    >
+                      Sign in
+                    </Link>
+                    <Link
+                      href="/auth/choose-role"
+                      className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors whitespace-nowrap shrink-0 shadow-sm"
+                    >
+                      Sign up
+                    </Link>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setMobileDrawerOpen(true)}
+                  className="p-1.5 text-gray-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  aria-label="Open menu"
+                >
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
               </div>
             </div>
             
@@ -247,9 +282,12 @@ export default function SiteHeader() {
               </div>
             </form>
             
-            <nav className="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-gray-200">
+            <nav className="flex items-center gap-5 overflow-x-auto whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-gray-200">
               <Link href="/market" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
                 {t('explore', 'Explore')}
+              </Link>
+              <Link href="/category/offerings" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
+                {t('allOfferings', 'All Offerings')}
               </Link>
               <Link href="/category/digital-products" prefetch className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0">
                 {t('digitalProducts', 'Digital Products')}
@@ -267,6 +305,7 @@ export default function SiteHeader() {
           </div>
         </div>
       </header>
+      <MobileMenuDrawer isOpen={mobileDrawerOpen} onClose={handleCloseMobileDrawer} />
       <RouteProgress />
     </>
   );

@@ -6,7 +6,7 @@ export default function SitemapPage() {
     {
       title: 'Marketplace',
       links: [
-        { name: 'All Products', href: '/market' },
+        { name: 'All Offerings', href: '/category/offerings' },
         { name: 'Digital Products', href: '/category/digital-products' },
         { name: 'Online Courses', href: '/category/courses' },
         { name: 'Services', href: '/category/services' },

@@ -149,11 +149,11 @@ export default async function FeaturedServicesSection() {
 
         <div className="text-center mt-8 sm:mt-12">
           <Link
-            href="/category/digital-products"
+            href="/category/offerings"
             prefetch
             className="inline-flex items-center space-x-2 bg-emerald-600 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
           >
-            <span>View all offerings</span>
+            <TranslatableText text="View all offerings" as="span" wrapperAs="span" className="inline" />
             <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
           </Link>
         </div>

@@ -65,13 +65,14 @@ export default function NotificationsBell() {
     
     init()
 
-    const onDocClick = (e: MouseEvent) => {
+    const onDocClick = (e: MouseEvent | TouchEvent) => {
       if (!rootRef.current) return
       if (!rootRef.current.contains(e.target as Node)) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
     
     document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('touchstart', onDocClick)
     document.addEventListener('keydown', onKey)
     
     return () => {
@@ -79,6 +80,7 @@ export default function NotificationsBell() {
       if (channel) supabase.removeChannel(channel)
       if (poll) clearInterval(poll)
       document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('touchstart', onDocClick)
       document.removeEventListener('keydown', onKey)
     }
   }, [])
@@ -113,15 +115,15 @@ export default function NotificationsBell() {
   }
 
   return (
-    <div className="relative" ref={rootRef}>
-      <button onClick={() => setOpen(v => !v)} className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+    <div className="relative shrink-0" ref={rootRef}>
+      <button onClick={() => setOpen(v => !v)} className="relative p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/30 shrink-0" aria-label="Notifications">
         <Bell className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         {mounted && userId && unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[10px] leading-none px-1.5 py-0.5 rounded-full">{unread}</span>
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl z-50 overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
+        <div className="fixed inset-x-3 top-14 sm:top-auto sm:inset-x-auto sm:absolute sm:right-0 sm:mt-2 w-auto sm:w-96 max-w-[calc(100vw-24px)] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl z-50 overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
           <div className="px-4 py-3 border-b bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-md border-gray-200 dark:border-gray-800 flex items-center justify-between sticky top-0 z-10">
             <div className="text-sm font-bold text-gray-900 dark:text-white">Notifications</div>
             {mounted && userId ? (

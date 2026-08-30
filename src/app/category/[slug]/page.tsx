@@ -93,6 +93,51 @@ type ProductRow = {
 }
 
 const categories = {
+  'offerings': {
+    name: 'All Offerings',
+    description: 'Explore digital products, services, courses, and consultations from creators worldwide',
+    icon: BoltIcon,
+    color: 'from-emerald-600 to-teal-700',
+    bgColor: 'bg-gradient-to-br from-emerald-50 to-teal-100',
+    iconColor: 'text-emerald-600',
+    subcategories: [
+      { name: 'Digital Products', icon: DevicePhoneMobileIcon, count: '2,847' },
+      { name: 'Services', icon: BoltIcon, count: '3,456' },
+      { name: 'Courses', icon: AcademicCapIcon, count: '1,543' },
+      { name: 'Consultations', icon: VideoCameraIcon, count: '124' },
+      { name: 'Website Templates', icon: ComputerDesktopIcon, count: '1,923' },
+    ]
+  },
+  'all': {
+    name: 'All Offerings',
+    description: 'Explore digital products, services, courses, and consultations from creators worldwide',
+    icon: BoltIcon,
+    color: 'from-emerald-600 to-teal-700',
+    bgColor: 'bg-gradient-to-br from-emerald-50 to-teal-100',
+    iconColor: 'text-emerald-600',
+    subcategories: [
+      { name: 'Digital Products', icon: DevicePhoneMobileIcon, count: '2,847' },
+      { name: 'Services', icon: BoltIcon, count: '3,456' },
+      { name: 'Courses', icon: AcademicCapIcon, count: '1,543' },
+      { name: 'Consultations', icon: VideoCameraIcon, count: '124' },
+      { name: 'Website Templates', icon: ComputerDesktopIcon, count: '1,923' },
+    ]
+  },
+  'all-offerings': {
+    name: 'All Offerings',
+    description: 'Explore digital products, services, courses, and consultations from creators worldwide',
+    icon: BoltIcon,
+    color: 'from-emerald-600 to-teal-700',
+    bgColor: 'bg-gradient-to-br from-emerald-50 to-teal-100',
+    iconColor: 'text-emerald-600',
+    subcategories: [
+      { name: 'Digital Products', icon: DevicePhoneMobileIcon, count: '2,847' },
+      { name: 'Services', icon: BoltIcon, count: '3,456' },
+      { name: 'Courses', icon: AcademicCapIcon, count: '1,543' },
+      { name: 'Consultations', icon: VideoCameraIcon, count: '124' },
+      { name: 'Website Templates', icon: ComputerDesktopIcon, count: '1,923' },
+    ]
+  },
   'digital-products': {
     name: 'Digital Products',
     description: 'Templates, graphics, apps, and digital assets to power your business',
@@ -170,6 +215,18 @@ const categories = {
 // Note: Previously mockProducts were used. We now load real products from Supabase.
 
 const subcategories = {
+  'offerings': [
+    'Digital Products', 'Services', 'Courses', 'Consultations',
+    'Website Templates', 'Web Development', 'Graphic Design', 'Digital Marketing', 'Mobile Apps', 'Video Editing'
+  ],
+  'all': [
+    'Digital Products', 'Services', 'Courses', 'Consultations',
+    'Website Templates', 'Web Development', 'Graphic Design', 'Digital Marketing', 'Mobile Apps', 'Video Editing'
+  ],
+  'all-offerings': [
+    'Digital Products', 'Services', 'Courses', 'Consultations',
+    'Website Templates', 'Web Development', 'Graphic Design', 'Digital Marketing', 'Mobile Apps', 'Video Editing'
+  ],
   'digital-products': [
     'Website Templates', 'Mobile Apps', 'Desktop Software', 'Plugins & Extensions',
     'Graphics & Design Assets', 'Stock Photos', 'Audio & Music', 'eBooks & Guides'
@@ -253,10 +310,18 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
     // Subcategory filter
     if (selectedSubcategory) {
       const subLower = selectedSubcategory.toLowerCase()
-      filtered = filtered.filter(product =>
-        product.title.toLowerCase().includes(subLower) ||
-        (product.tags || []).some(tag => tag.toLowerCase().includes(subLower))
-      )
+      filtered = filtered.filter(product => {
+        if (subLower === 'digital products' && (product.type === 'product' || !product.type)) return true
+        if (subLower === 'services' && product.type === 'service') return true
+        if (subLower === 'courses' && product.type === 'course') return true
+        if (subLower === 'consultations' && (product.type === 'consultation' || product.type === 'consultations')) return true
+        return (
+          product.title.toLowerCase().includes(subLower) ||
+          product.creatorName.toLowerCase().includes(subLower) ||
+          (product.tags || []).some(tag => tag.toLowerCase().includes(subLower)) ||
+          (product.categoryName || '').toLowerCase().includes(subLower)
+        )
+      })
     }
     
     // Budget filter
@@ -505,8 +570,8 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Category not found</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">The category you&apos;re looking for doesn&apos;t exist.</p>
-          <Link href="/category/digital-products" className="mt-4 inline-block bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700">
-            Browse Digital Products
+          <Link href="/category/offerings" className="mt-4 inline-block bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700">
+            Browse All Offerings
           </Link>
         </div>
       </div>
